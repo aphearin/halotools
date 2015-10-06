@@ -133,7 +133,7 @@ class MockFactory(object):
         comoving_volume = self.snapshot.Lbox**3
         return ngals/float(comoving_volume)
 
-    def compute_galaxy_clustering(self, include_crosscorr = False, **kwargs):
+    def compute_galaxy_clustering(self, include_crosscorr = False, N_threads=1, **kwargs):
         """
         Built-in method for all mock catalogs to compute the galaxy clustering signal. 
 
@@ -161,6 +161,9 @@ class MockFactory(object):
         rbins : array, optional 
             Bins in which the correlation function will be calculated. 
             Default is set in `~halotools.empirical_models.model_defaults` module. 
+
+        N_threads : int, optional
+            number of threads to use in calculation. Default is 1 thread for a serial calculation. 
 
         Returns 
         --------
@@ -221,8 +224,7 @@ class MockFactory(object):
                 "as your working directory."
                 )
             raise HalotoolsError(msg)
-
-        Nthreads = cpu_count()
+            
         if 'rbins' in kwargs:
             rbins = kwargs['rbins']
         else:
@@ -239,7 +241,7 @@ class MockFactory(object):
             pos = three_dim_pos_bundle(table = self.galaxy_table, 
                 key1='x', key2='y', key3='z', mask=mask, return_complement=False)
             clustering = mock_observables.clustering.tpcf(
-                pos, rbins, period=self.snapshot.Lbox, N_threads=Nthreads)
+                pos, rbins, period=self.snapshot.Lbox, N_threads=N_threads)
             return rbin_centers, clustering
         else:
             # Verify that the complementary mask is non-trivial
@@ -252,11 +254,11 @@ class MockFactory(object):
                 key1='x', key2='y', key3='z', mask=mask, return_complement=True)
             xi11, xi12, xi22 = mock_observables.clustering.tpcf(
                 sample1=pos, rbins=rbins, sample2=pos2, 
-                period=self.snapshot.Lbox, N_threads=Nthreads)
+                period=self.snapshot.Lbox, N_threads=N_threads)
             return rbin_centers, xi11, xi12, xi22 
 
 
-    def compute_galaxy_matter_cross_clustering(self, include_complement = False, **kwargs):
+    def compute_galaxy_matter_cross_clustering(self, include_complement = False, N_threads=1, **kwargs):
         """
         Built-in method for all mock catalogs to compute the galaxy-matter cross-correlation function. 
 
@@ -283,6 +285,9 @@ class MockFactory(object):
         rbins : array, optional 
             Bins in which the correlation function will be calculated. 
             Default is set in `~halotools.empirical_models.model_defaults` module. 
+
+        N_threads : int, optional
+            number of threads to use in calculation. Default is 1 thread for a serial calculation. 
 
         Returns 
         --------
@@ -348,7 +353,7 @@ class MockFactory(object):
         ptcl_pos = three_dim_pos_bundle(table = ptcl_table, 
             key1='x', key2='y', key3='z')
 
-        Nthreads = cpu_count()
+
         if 'rbins' in kwargs:
             rbins = kwargs['rbins']
         else:
@@ -366,7 +371,7 @@ class MockFactory(object):
                 key1='x', key2='y', key3='z', mask=mask, return_complement=False)
             clustering = mock_observables.clustering.tpcf(
                 sample1=pos, rbins=rbins, sample2=ptcl_pos, 
-                period=self.snapshot.Lbox, N_threads=Nthreads, do_auto=False)
+                period=self.snapshot.Lbox, N_threads=N_threads, do_auto=False)
             return rbin_centers, clustering
         else:
             # Verify that the complementary mask is non-trivial
@@ -379,14 +384,14 @@ class MockFactory(object):
                 key1='x', key2='y', key3='z', mask=mask, return_complement=True)
             clustering = mock_observables.clustering.tpcf(
                 sample1=pos, rbins=rbins, sample2=ptcl_pos, 
-                period=self.snapshot.Lbox, N_threads=Nthreads, do_auto=False)
+                period=self.snapshot.Lbox, N_threads=N_threads, do_auto=False)
             clustering2 = mock_observables.clustering.tpcf(
                 sample1=pos2, rbins=rbins, sample2=ptcl_pos, 
-                period=self.snapshot.Lbox, N_threads=Nthreads, do_auto=False)
+                period=self.snapshot.Lbox, N_threads=N_threads, do_auto=False)
             return rbin_centers, clustering, clustering2 
 
 
-    def compute_fof_group_ids(self, zspace = True, 
+    def compute_fof_group_ids(self, zspace = True, N_threads=1,
         b_perp = model_defaults.default_b_perp, 
         b_para = model_defaults.default_b_para, **kwargs):
         """
@@ -410,6 +415,9 @@ class MockFactory(object):
             normalized by the mean separation between galaxies. 
             Default is set in `~halotools.empirical_models.model_defaults` module. 
 
+        N_threads : int, optional
+            number of threads to use in calculation. Default is 1 thread for a serial calculation. 
+
         Returns 
         --------
         ids : array 
@@ -431,8 +439,6 @@ class MockFactory(object):
                 )
             raise HalotoolsError(msg)
 
-        Nthreads = cpu_count()
-
         x = self.galaxy_table['x']
         y = self.galaxy_table['y']
         z = self.galaxy_table['z']
@@ -443,7 +449,7 @@ class MockFactory(object):
 
         group_finder = mock_observables.FoFGroups(positions=pos, 
             b_perp = b_perp, b_para = b_para, 
-            Lbox = self.snapshot.Lbox, N_threads = Nthreads)
+            Lbox = self.snapshot.Lbox, N_threads = N_threads)
 
         return group_finder.group_ids
 

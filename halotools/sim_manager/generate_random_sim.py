@@ -48,6 +48,7 @@ class FakeSim(object):
 		self.Lbox = 250.0
 		self.particle_mass = 1.e8
 		self.simname = 'fake'
+		self.redshift = 0.
 
 		self.seed = seed
 

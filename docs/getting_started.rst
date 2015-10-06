@@ -4,6 +4,12 @@
 Getting Started with Halotools
 ******************************
 
+The Halotools Demo
+==================
+
+For a demonstration of some of the things that you can do with halotools, check out the
+DIRNAME/halotools_demo.ipynb file in ... TBD FILL ME IN!
+
 Importing Halotools
 ===================
 
@@ -87,8 +93,10 @@ different simulations using a single line of code.
 
 	>>> from halotools import sim_manager
 
-You can find an overview of this sub-package at :ref:`cat_manage`. 
 
+TBD: need one simple example here
+
+You can find an overview of this sub-package at :ref:`cat_manage`. 
 
 Building models and making mocks
 ------------------------------------
@@ -96,6 +104,8 @@ Building models and making mocks
 To get started with building models and making mocks, you can import the empirical modeling sub-package::
 
 >>> from halotools import empirical_models 
+
+TBD: need one simple example here
 
 For an outline of how to generate mock galaxy catalogs, see :ref:`mock_making_quickstart`. 
 
@@ -107,6 +117,8 @@ Making mock observations
 The ``mock_observables`` sub-package provides a virtual observatory for your synthetic galaxy population::
 
 >>> from halotools import mock_observables # doctest: +SKIP
+
+TBD: need one simple example here
 
 
 
