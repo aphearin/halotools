@@ -13,7 +13,7 @@ from ...smhm_models import *
 
 from ... import model_defaults
 
-__all__ = ['test_Moster13SmHm_initialization', 'test_LogNormalScatterModel_initialization']
+__all__ = ['test_Moster13SmHm_initialization', 'test_VariableLogNormalScatter_initialization']
 
 def test_Moster13SmHm_initialization():
 	""" Function testing the initialization of 
@@ -33,7 +33,7 @@ def test_Moster13SmHm_initialization():
 	assert default_model.prim_haloprop_key == model_defaults.default_smhm_haloprop
 	assert default_model.scatter_model.prim_haloprop_key == model_defaults.default_smhm_haloprop
 	assert hasattr(default_model, 'redshift') == False
-	assert isinstance(default_model.scatter_model, LogNormalScatterModel)
+	assert isinstance(default_model.scatter_model, VariableLogNormalScatter)
 
 	keys = ['m10', 'm11', 'n10', 'n11', 'beta10', 'beta11', 'gamma10', 'gamma11', 'scatter_model_param1']
 	for key in keys:
@@ -90,9 +90,9 @@ def test_Moster13SmHm_behavior():
 	np.testing.assert_allclose(measured_scatter4, 0.3, rtol=1e-3)
 
 
-def test_LogNormalScatterModel_initialization():
+def test_VariableLogNormalScatter_initialization():
 	""" Function testing the initialization of 
-	`~halotools.empirical_models.LogNormalScatterModel`. 
+	`~halotools.empirical_models.VariableLogNormalScatter`. 
 	Summary of tests:
 
 		* Class successfully instantiates when called with no arguments. 
@@ -102,7 +102,7 @@ def test_LogNormalScatterModel_initialization():
 		* When the above arguments are passed to the constructor, the instance is correctly initialized with the input values.
 
 	"""
-	default_scatter_model = LogNormalScatterModel()
+	default_scatter_model = VariableLogNormalScatter()
 	assert default_scatter_model.prim_haloprop_key == model_defaults.default_smhm_haloprop
 	assert default_scatter_model.abcissa == [12]
 	assert default_scatter_model.ordinates == [model_defaults.default_smhm_scatter]
@@ -111,7 +111,7 @@ def test_LogNormalScatterModel_initialization():
 
 	input_abcissa = [12, 15]
 	input_ordinates = [0.3, 0.1]
-	scatter_model2 = LogNormalScatterModel(
+	scatter_model2 = VariableLogNormalScatter(
 		scatter_abcissa = input_abcissa, scatter_ordinates = input_ordinates)
 
 	assert scatter_model2.abcissa == input_abcissa
@@ -120,9 +120,9 @@ def test_LogNormalScatterModel_initialization():
 	assert scatter_model2.param_dict == model2_param_dict
 
 
-def test_LogNormalScatterModel_behavior():
+def test_VariableLogNormalScatter_behavior():
 	""" Function testing the behavior of 
-	`~halotools.empirical_models.LogNormalScatterModel`. 
+	`~halotools.empirical_models.VariableLogNormalScatter`. 
 
 	Summary of tests:
 
@@ -139,7 +139,7 @@ def test_LogNormalScatterModel_behavior():
 
 	testing_seed = 43
 
-	default_scatter_model = LogNormalScatterModel()
+	default_scatter_model = VariableLogNormalScatter()
 
 	Npts = 1e4
 	testmass12 = 1e12
@@ -167,7 +167,7 @@ def test_LogNormalScatterModel_behavior():
 
 	input_abcissa = [12, 15]
 	input_ordinates = [0.3, 0.1]
-	scatter_model2 = LogNormalScatterModel(
+	scatter_model2 = VariableLogNormalScatter(
 		scatter_abcissa = input_abcissa, scatter_ordinates = input_ordinates)
 
 	assert len(scatter_model2.abcissa) == 2

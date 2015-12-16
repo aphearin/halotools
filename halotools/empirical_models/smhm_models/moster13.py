@@ -14,7 +14,7 @@ from astropy import cosmology
 from warnings import warn
 from functools import partial
 
-from .scatter_models import LogNormalScatterModel
+from .scatter_models import VariableLogNormalScatter
 from .smhm_model_template import PrimGalpropModel
 
 from .. import model_defaults
@@ -41,7 +41,7 @@ class Moster13SmHm(PrimGalpropModel):
 
         scatter_model : object, optional  
             Class governing stochasticity of stellar mass. Default scatter is log-normal, 
-            implemented by the `LogNormalScatterModel` class. 
+            implemented by the `VariableLogNormalScatter` class. 
 
         scatter_abcissa : array_like, optional  
             Array of values giving the abcissa at which

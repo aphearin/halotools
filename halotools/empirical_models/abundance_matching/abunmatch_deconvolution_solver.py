@@ -58,7 +58,7 @@ class AbunMatchSolver():
         """
         
         #this should be a function that returns the galaxy property given the halo property.
-        self.gal_prop_first_moment = 
+        #self.gal_prop_first_moment = 
     
     
     def _deconvolute(self, scatter, repeat=10, sm_step=0.005, return_remainder=True):

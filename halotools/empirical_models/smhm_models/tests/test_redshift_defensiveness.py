@@ -14,6 +14,7 @@ from ... import model_defaults
 
 from ....sim_manager import sim_defaults
 from ....custom_exceptions import *
+from ....utils import convert_to_ndarray
 
 def test_behroozi10_redshift_safety():
 	"""
@@ -45,6 +46,25 @@ def test_behroozi10_redshift_safety():
 	result2 = model.mean_stellar_mass(prim_haloprop = 1e12, redshift = model.redshift)
 	assert result0 == result2
 
+	# Check also that redshift differences propagate to the the Monte Carlo realizations, 
+	### and also that the seeds propagate properly
+	model0 = Behroozi10SmHm(redshift = 0)
+	model0b = Behroozi10SmHm(redshift = 0)
+	model1 = Behroozi10SmHm(redshift = 0)
+	model2 = Behroozi10SmHm(redshift = 2)
+	mass = np.zeros(1e4) + 1e12
+	result0 = model0.mc_stellar_mass(prim_haloprop = mass, seed=43)
+	result0b = model0.mc_stellar_mass(prim_haloprop = mass, seed=42)
+	result1 = model1.mc_stellar_mass(prim_haloprop = mass, seed=43)
+	result2 = model2.mc_stellar_mass(prim_haloprop = mass, seed=43)
+	mean0 = convert_to_ndarray(result0.mean())
+	mean0b = convert_to_ndarray(result0b.mean())
+	mean1 = convert_to_ndarray(result1.mean())
+	mean2 = convert_to_ndarray(result2.mean())
+
+	assert np.isclose(mean0, mean1, rtol=0.0001)
+	assert not np.isclose(mean0, mean0b, rtol=0.0001)
+	assert not np.isclose(mean1, mean2, rtol=0.1)
 
 
 

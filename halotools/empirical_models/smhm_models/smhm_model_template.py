@@ -16,7 +16,7 @@ from astropy import cosmology
 from warnings import warn
 from functools import partial
 
-from .scatter_models import LogNormalScatterModel
+from .scatter_models import VariableLogNormalScatter
 
 from .. import model_defaults
 from .. import model_helpers as model_helpers
@@ -37,7 +37,7 @@ class PrimGalpropModel(object):
 
     def __init__(self, galprop_name, 
         prim_haloprop_key = model_defaults.default_smhm_haloprop, 
-        scatter_model = LogNormalScatterModel, **kwargs):
+        scatter_model = VariableLogNormalScatter, **kwargs):
         """
         Parameters 
         ----------
@@ -53,7 +53,7 @@ class PrimGalpropModel(object):
 
         scatter_model : object, optional  
             Class governing stochasticity of stellar mass. Default scatter is log-normal, 
-            implemented by the `LogNormalScatterModel` class. 
+            implemented by the `VariableLogNormalScatter` class. 
 
         redshift : float, optional  
             Redshift of the stellar-to-halo-mass relation. Default is 0. 
@@ -187,16 +187,6 @@ class PrimGalpropModel(object):
             Array storing the values of the primary galaxy property 
             of the galaxies living in the input table. 
         """
-
-        # Interpret the inputs to determine the appropriate redshift
-        if 'redshift' not in kwargs.keys():
-            if hasattr(self, 'redshift'):
-                kwargs['redshift'] = self.redshift
-            else:
-                warn("\nThe PrimGalpropModel class was not instantiated with a redshift,\n"
-                "nor was a redshift passed to the primary function call.\n"
-                "Choosing the default redshift z = %.2f\n" % sim_defaults.default_redshift)
-                kwargs['redshift'] = sim_defaults.default_redshift
 
         prim_galprop_func = getattr(self, 'mean_'+self.galprop_name)
         galprop_first_moment = prim_galprop_func(**kwargs)
