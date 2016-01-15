@@ -167,8 +167,10 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         """
         
         if self.n_increases_with_x:
+            print(np.shape(self._x[::-1]), np.shape(self._log_dn[::-1]))
             self._log_dn_func = interp1d(self._x[::-1], self._log_dn[::-1], kind='linear')
         else:
+            print(np.shape(self._x), np.shape(self._log_dn))
             self._log_dn_func = interp1d(self._x, self._log_dn, kind='linear')
     
     def _spline_n(self):
@@ -245,10 +247,12 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
     
     def _diff_cum_n(self):
         """
-        differential the cumulative number density to get the differential number 
+        differentiate the cumulative number density to get the differential number 
         density
         """
         self._dn = np.fabs(np.diff(self._n))
+        half_diff = self._dn[0]-(self._dn[0]-self._dn[1])/2.0
+        self._dn = np.insert(self._dn,0,self._dn[0]-half_diff)
         self._log_dn = np.log10(self._dn)
     
     def dn(self, x):

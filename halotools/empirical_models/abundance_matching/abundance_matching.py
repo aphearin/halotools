@@ -59,14 +59,15 @@ class AbundanceMatching(PrimGalpropModel):
                 except KeyError:
                     msg = ("\nYou passed in a ``complete_halo_catalog`` argument.\n"
                         "This catalog does not have a column corresponding to the input \n"
-                        "``prim_haloprop_key`` = " + prim_haloprop)
+                        "``prim_haloprop_key`` = " + prim_haloprop_key)
                     raise HalotoolsError(msg)
                 else:
-                    halo_abundance_array = empirical_cum_ndensity(prim_haloprop, sim_volume)
+                    halo_abundance_array, sorted_prim_haloprop = empirical_cum_ndensity(prim_haloprop_array, sim_volume)
+                    print(np.shape(halo_abundance_array), np.shape(sorted_prim_haloprop))
                     halo_abundance_function = (
                         AbundanceFunctionFromTabulated(
                             n = halo_abundance_array, 
-                            x = prim_haloprop_array, 
+                            x = sorted_prim_haloprop, 
                             type = 'cumulative', 
                             n_increases_with_x = False)
                         )
