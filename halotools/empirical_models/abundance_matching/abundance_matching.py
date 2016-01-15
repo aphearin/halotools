@@ -110,7 +110,7 @@ class AbundanceMatching(PrimGalpropModel):
             self.galaxy_abundance_function, self.halo_abundance_function, 
             self.galprop_sample_values, self.haloprop_sample_values)
 
-        return galprop
+        return func(halo_mass)
 
     def match(self,n1, n2, x1, x2):
         """
