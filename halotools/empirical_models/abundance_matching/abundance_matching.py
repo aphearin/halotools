@@ -91,21 +91,25 @@ class AbundanceMatching(PrimGalpropModel):
     def _galprop_from_haloprop(self, haloprop):
         return galprop
 
-    def match(n1, n2, x1, x2):
+    def match(self,n1, n2, x1, x2):
         """
         Given two cumulative abundnace functions, n1 and n2, return x1(x2).
+        e.g. return the stellar mass halo mass relation given the stellar 
+        mass and halo mass abundnace functions.
         
         Parameters
         ----------
-        n1 : 
-            primary abundance function
+        n1 : function
+            primary cumulative abundance function, e.g. stellar mass function
         
-        n2: 
-            secondary abundance function
+        n2: function
+            secondary cumulative abundance function, e.g. halo mass function
         
         x1 : array_like
+            galaxy/halo property to sample result, e.g. stellar mass
         
         x2 : array_like
+            galaxy/halo property thats samples relavent abundance range, e.g. halo mass
         
         Returns
         -------
@@ -113,29 +117,37 @@ class AbundanceMatching(PrimGalpropModel):
             callable
         """
         
+        x1 = np.sort(x1)
+        x2 = np.sort(x2)
+        
         #calculate abundances for x1
         n = n1(x1)
         
         #invert the secondary abundance function at each x2
-        inverted_n2 = interp1d(n2(x2),x2)
+        sort_inds = np.argsort(n2(x2))
+        inverted_n2 = interp1d(n2(x2)[sort_inds],x2[sort_inds])
         
         #calculate the value of x2 at the abundances of x1
         x2n = inverted_n2(n)
         
         #get x1 as a function of x2
-        x1x2 = interp1d(x1,x2)
+        x1x2 = interp1d(x1,x2n)
         
         #extrapolate beyond x1 range using a linear function
         def fitting_func(x, a, b):
             return a*x+b
         
-        #use the first 3 and last three tabulated points
+        #use the first 3 and last three tabulated points to fit extrapolation
         r_slice = slice(-3,None,None)
         l_slice = slice(3,None,None)
         
+        #guess initial right and left extrapolation parameters
+        init_r_params = [0,0]
+        init_l_params = [0,0]
+        
         #fit the left and right sides
-        right_ext = curve_fit(fitting_func,x1[r_slice],x1x2[r_slice])
-        left_ext = curve_fit(fitting_func,x1[l_slice],x1x2[l_slice])
+        right_ext = curve_fit(fitting_func,x1[r_slice],x1x2[r_slice], p0=init_r_params)
+        left_ext = curve_fit(fitting_func,x1[l_slice],x1x2[l_slice], p0=init_l_params)
         
         def x1x2_func(x):
             """
