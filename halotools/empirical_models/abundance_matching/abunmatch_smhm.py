@@ -15,14 +15,14 @@ from astropy import cosmology
 from warnings import warn
 from functools import partial
 
-from ..smhm_models import PrimGalpropModel, ConstantLogNormalScatterModel
+from ..smhm_models import PrimGalpropModel, ConstantLogNormalScatter
 from ..model_defaults import *
 from ..model_helpers import *
 from .abunmatch_deconvolution_solver import AbunMatchSolver
 
 from ...utils.array_utils import custom_len
-from ...utils.abundance import AbundanceFunction
-from ...sim_manager import sim_defaults, HaloCatalog
+from .abundance import AbundanceFunction
+from ...sim_manager import sim_defaults, CachedHaloCatalog
 from ...custom_exceptions import *
 
 
@@ -87,7 +87,7 @@ class AbunMatchSmHm(PrimGalpropModel):
         setattr(self, 'mean_'+galprop_name, self._galprop_first_moment)
         
         super(AbunMatchSmHm, self).__init__(prim_haloprop_key = prim_haloprop_key, 
-            galprop_name = galprop_name, scatter_model = ConstantLogNormalScatterModel,
+            galprop_name = galprop_name, scatter_model = ConstantLogNormalScatter,
             **kwargs)
         
         self.gal_abund_func = gal_abund_func
@@ -120,7 +120,7 @@ class AbunMatchSmHm(PrimGalpropModel):
         Returns 
         -------
         mean_gal_props : array_like 
-            Array containing the mean value of the galaxy property occupying haloes with
+            Array containing the mean value of the galaxy property occupying halos with
             in ``table``.
         """
         redshift = safely_retrieve_redshift(self, 'mean_stellar_mass', **kwargs)
@@ -132,7 +132,7 @@ class AbunMatchSmHm(PrimGalpropModel):
             halo_props= kwargs['prim_haloprop']
         else:
             raise KeyError("Must pass one of the following keyword arguments to \n"
-                           "mean_"+galprop_name ":``table`` or ``prim_haloprop``")
+                "mean_"+galprop_name +":``table`` or ``prim_haloprop``")
         
         mean_galaxy_props = self._gal_prop_first_moment(halo_props)
         
