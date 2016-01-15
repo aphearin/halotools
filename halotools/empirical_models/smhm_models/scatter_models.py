@@ -285,8 +285,11 @@ class ConstantLogNormalScatter(ScatterModelTemplate):
         scatter_scale = np.zeros(num_gals) + self.param_dict['scatter_model_param1']
 
         np.random.seed(seed=seed)
+
+        # Only draw from a Gaussian for cases with non-zero scatter
+        result = np.where(scatter_scale > 0, np.random.normal(loc=0, scale=scatter_scale), 0)
             
-        return np.random.normal(loc=0, scale=scatter_scale)
+        return result
 
 
         
