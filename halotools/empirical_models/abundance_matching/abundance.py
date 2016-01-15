@@ -339,8 +339,12 @@ def empirical_cum_ndensity(x, volume, xbins = None, weights = None,
     if weights is None:
         weights = np.ones(Nx)
     
-    sorted_inds=np.argsort(x)
-    sorted_weights = weights[sorted_inds]
+    if not nd_increases_wtih_x:
+        sorted_inds=np.argsort(x)[::-1]
+        sorted_weights = weights[sorted_inds]
+    else:
+        sorted_inds=np.argsort(x)
+        sorted_weights = weights[sorted_inds]
     
     if xbins is None:
         sorted_x = x[sorted_inds]
