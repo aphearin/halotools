@@ -22,7 +22,7 @@ from ..model_helpers import *
 
 from ...utils.array_utils import custom_len
 from .abundance import AbundanceFunction
-from ...sim_manager import sim_defaults, HaloCatalog
+from ...sim_manager import sim_defaults, CachedHaloCatalog
 from ...custom_exceptions import *
 
 
