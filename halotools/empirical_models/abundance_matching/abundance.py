@@ -91,11 +91,11 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         
         num_points_to_fit_high_abundance : int, optional
             The number of input tabulated points to use when fitting the high abundance 
-            end of the abundnace function for extrapolation.  The deault is 4.
+            end of the abundnace function for extrapolation.  The default is 4.
         
         num_points_to_fit_low_abundance : int, optional
             The number of input tabulated points to use when fitting the low abundance 
-            end of the abundnace function for extrapolation.  The deault is 4.
+            end of the abundnace function for extrapolation.  The default is 4.
         """
         
         #process input arguments

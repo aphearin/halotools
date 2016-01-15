@@ -20,10 +20,12 @@ from ..model_defaults import *
 from ..model_helpers import *
 from .abunmatch_deconvolution_solver import AbunMatchSolver
 
+from .abundance import AbundanceFunctionFromTabulated, empirical_cum_ndensity
+
 from ...utils.array_utils import custom_len
 from .abundance import AbundanceFunction
 from ...sim_manager import sim_defaults, CachedHaloCatalog
-from ...custom_exceptions import *
+from ...custom_exceptions import HalotoolsError
 
 from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit
@@ -36,10 +38,41 @@ class AbundanceMatching(PrimGalpropModel):
     """
     
     def __init__(self, galprop_name, prim_haloprop_key, galaxy_abundance_function, 
-        scatter = 0.2, **kwargs):
+        scatter_level = 0., **kwargs):
         """
 
         """
+        try:
+            halo_abundance_function = kwargs['halo_abundance_function']
+        except KeyError:
+            try:
+                complete_halo_catalog = kwargs['complete_subhalo_catalog']
+                Lbox = kwargs['Lbox']
+                sim_volume = Lbox**3.
+            except KeyError:
+                msg = ("\nIf you do not pass in a ``halo_abundance_function`` keyword argument \n"
+                    "you must pass in ``complete_subhalo_catalog`` and ``Lbox`` keyword arguments.\n")
+                raise HalotoolsError(msg)
+            else:
+                try:
+                    prim_haloprop_array = complete_halo_catalog[prim_haloprop_key]                    
+                except KeyError:
+                    msg = ("\nYou passed in a ``complete_halo_catalog`` argument.\n"
+                        "This catalog does not have a column corresponding to the input \n"
+                        "``prim_haloprop_key`` = " + prim_haloprop)
+                    raise HalotoolsError(msg)
+                else:
+                    halo_abundance_array = empirical_cum_ndensity(prim_haloprop, sim_volume)
+                    halo_abundance_function = (
+                        AbundanceFunctionFromTabulated(
+                            n = halo_abundance_array, 
+                            x = prim_haloprop_array, 
+                            type = 'cumulative', 
+                            n_increases_with_x = False)
+                        )
+        else:
+            self.halo_abundance_function = halo_abundance_function
+
 
         new_method_name = 'mean_' + galprop_name
         new_method_behavior = self._galprop_from_haloprop
