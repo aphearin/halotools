@@ -77,8 +77,8 @@ class AbundanceMatching(PrimGalpropModel):
                             type = 'cumulative', 
                             n_increases_with_x = False)
                         )
-        else:
-            self.halo_abundance_function = halo_abundance_function
+        
+        self.halo_abundance_function = halo_abundance_function
 
 
         new_method_name = 'mean_' + galprop_name
@@ -112,7 +112,7 @@ class AbundanceMatching(PrimGalpropModel):
 
         return func(halo_mass)
 
-    def match(self,n1, n2, x1, x2):
+    def match(self, n1, n2, x1, x2):
         """
         Given two cumulative abundnace functions, n1 and n2, return x1(x2).
         e.g. return the stellar mass halo mass relation given the stellar 
@@ -142,11 +142,11 @@ class AbundanceMatching(PrimGalpropModel):
         x2 = np.sort(x2)
         
         #calculate abundances for x1
-        n = n1(x1)
+        n = n1.n(x1)
         
         #invert the secondary abundance function at each x2
-        sort_inds = np.argsort(n2(x2))
-        inverted_n2 = interp1d(n2(x2)[sort_inds],x2[sort_inds])
+        sort_inds = np.argsort(n2.n(x2))
+        inverted_n2 = interp1d(n2.n(x2)[sort_inds],x2[sort_inds])
         
         #calculate the value of x2 at the abundances of x1
         x2n = inverted_n2(n)
