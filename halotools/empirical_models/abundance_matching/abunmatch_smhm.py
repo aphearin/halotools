@@ -95,8 +95,7 @@ class AbunMatchSmHm(PrimGalpropModel):
         self.scatter_level = scatter_level
         
         #intialize abundance matching solver
-        self._abunmatch_solver = 
-            AbunMatchSolver(self.gal_abund_func, self.halo_abund_func,
+        self._abunmatch_solver = AbunMatchSolver(self.gal_abund_func, self.halo_abund_func,
             self.halo_prop_range)
         
         #solve for SMHM

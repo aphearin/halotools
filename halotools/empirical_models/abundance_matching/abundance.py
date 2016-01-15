@@ -304,7 +304,7 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
 def empirical_cum_ndensity(x, volume, xbins = None, weights = None, 
                            nd_increases_wtih_x = False):
     """
-    Caclulate cumulative number density of galaxies/haloes given a property ``x``.
+    Caclulate cumulative number density of galaxies/halos given a property ``x``.
     
     Parameters
     ----------
@@ -362,7 +362,7 @@ def empirical_cum_ndensity(x, volume, xbins = None, weights = None,
 
 def empirical_diff_ndensity(x, volume, xbins, weights = None):
     """
-    Caclulate differential number density of galaxies/haloes given a property ``x``.
+    Caclulate differential number density of galaxies/halos given a property ``x``.
     
     Parameters
     ----------
