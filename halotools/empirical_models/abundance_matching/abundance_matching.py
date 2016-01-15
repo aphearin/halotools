@@ -38,10 +38,16 @@ class AbundanceMatching(PrimGalpropModel):
     """
     
     def __init__(self, galprop_name, prim_haloprop_key, galaxy_abundance_function, 
+        galprop_sample_values, haloprop_sample_values, 
         scatter_level = 0., **kwargs):
         """
 
         """
+        self.prim_haloprop_key = prim_haloprop_key
+        self.galaxy_abundance_function = galaxy_abundance_function
+        self.galprop_sample_values = galprop_sample_values
+        self.haloprop_sample_values = haloprop_sample_values
+
         try:
             halo_abundance_function = kwargs['halo_abundance_function']
         except KeyError:
@@ -55,7 +61,7 @@ class AbundanceMatching(PrimGalpropModel):
                 raise HalotoolsError(msg)
             else:
                 try:
-                    prim_haloprop_array = complete_halo_catalog[prim_haloprop_key]                    
+                    prim_haloprop_array = complete_halo_catalog[prim_haloprop_key]
                 except KeyError:
                     msg = ("\nYou passed in a ``complete_halo_catalog`` argument.\n"
                         "This catalog does not have a column corresponding to the input \n"
@@ -80,16 +86,31 @@ class AbundanceMatching(PrimGalpropModel):
         setattr(self, new_method_name, new_method_behavior)
 
         PrimGalpropModel.__init__(self, galprop_name, prim_haloprop_key=prim_haloprop_key, 
-            scatter_model = ConstantLogNormalScatter, **kwargs)
-
-        self.galaxy_abundance_function = galaxy_abundance_function
+            scatter_model = ConstantLogNormalScatter, scatter_level = scatter_level, **kwargs)
 
 
         self.publications = ['arXiv:1001.0015']
 
 
-    def _galprop_from_haloprop(self, haloprop):
-        return galprop
+    def _galprop_from_haloprop(self, **kwargs):
+
+        # Retrieve the array storing the mass-like variable
+        if 'table' in kwargs.keys():
+            halo_mass = kwargs['table'][self.prim_haloprop_key]
+        elif 'prim_haloprop' in kwargs.keys():
+            halo_mass = kwargs['prim_haloprop']
+        else:
+            raise KeyError("Must pass one of the following keyword arguments to mean_occupation:\n"
+                "``table`` or ``prim_haloprop``")
+
+        # downsample the halo_mass array for the spline table
+        num_sample_pts = min(1000, len(halo_mass))
+
+        func = self.match(
+            self.galaxy_abundance_function, self.halo_abundance_function, 
+            self.galprop_sample_values, self.haloprop_sample_values)
+
+        return func(halo_mass)
 
     def match(self,n1, n2, x1, x2):
         """
