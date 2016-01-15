@@ -116,7 +116,6 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
             self._num_points_to_fit_low_abundance = kwargs['num_points_to_fit_low_abundance']
         
         self._s_low = slice(-self._num_points_to_fit_low_abundance,None,None)
-        print(self._s_low)
         self._s_high = slice(self._num_points_to_fit_low_abundance)
         
         self._n = kwargs['n']
@@ -351,7 +350,6 @@ def empirical_cum_ndensity(x, volume, xbins = None, weights = None,
     else:
         Nx_weighed = np.sum(weights)
         inds = np.searchsorted(x, xbins, sorter=sorted_inds)
-        print(inds)
         cumu_x = np.zeros(len(xbins))
         #for i,ind in enumerate(inds):
         #    cumu_x[i] = Nx_weighed - np.sum(sorted_weights[:inds])
