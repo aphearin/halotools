@@ -2,5 +2,5 @@
 
 #from .abunmatch_deconvolution_solver import *
 #from .abunmatch_smhm import *
-from .abundance import *
+from .abundance_function import *
 from .abundance_matching import *

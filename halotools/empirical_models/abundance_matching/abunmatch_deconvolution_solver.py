@@ -9,7 +9,7 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 from .deconvolution import abunmatch_deconvolution
 from ...custom_exceptions import *
-from .abundance import *
+from .abundance_function import *
 
 
 __all__ = ['AbunmatchSolver']
