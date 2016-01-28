@@ -21,6 +21,8 @@ from ..model_defaults import *
 from ..model_helpers import *
 from .abunmatch_deconvolution_solver import AbunMatchSolver
 
+from .abunmatch_deconvolution_wrapper import abunmatch_deconvolution
+
 from .abundance_function import *
 
 from ...utils.array_utils import custom_len
@@ -284,8 +286,67 @@ class AbundanceMatching(PrimGalpropModel):
         
         return x1x2_func
     
-    def deconvolve_galaxy_halo_mapping(self):
-        pass
+    def compute_deconvolved_galaxy_abundance_function(self, 
+        galaxy_abundance_function, scatter):
+        """ Should call abunmatch_deconvolution_wrapper.pyx 
+        """
+
+        if scatter == 0:
+            return galaxy_abundance_function
+        else:
+
+            ######################################################################
+            # First define an array storing the natural log of the 
+            # abcissa points at which the galaxy abundance function has been tabulated
+            if galaxy_abundance_function.use_log is True:
+                log10_x_abcissa = galaxy_abundance_function.x_abscissa
+            else:
+                log10_x_abcissa = np.log10(galaxy_abundance_function.x_abscissa)
+            ln_x_abcissa = np.log(10.)*log10_x_abcissa
+
+            ######################################################################
+
+
+            ######################################################################
+            # Now we will one by one initialize the following four arrays 
+            # so that they store the variables required by the C code:
+            # 1. af_key, 2. af_val, 3. smm, 4. mf
+
+            ###############
+            # 1. af_key
+            af_key = ln_x_abcissa[::-1]
+            if self.n_increases_with_x is True: af_key *= -1.0
+
+            ###############
+            # 2. af_val
+            af_val = np.empty_like(ln_x_abcissa)
+            af_val[::-1] = np.log(
+                galaxy_abundance_function.dn(
+                    galaxy_abundance_function.x_abcissa))/np.log(10.)
+
+            ###############
+            # 3. smm
+            smm = np.empty_like(galaxy_abundance_function.x_abscissa)
+            smm[::-1] = galaxy_abundance_function.x_abscissa[:]
+            if self.n_increases_with_x is True: smm *= -1.0
+
+            ###############
+            # 4. mf
+            mf = np.empty_like(galaxy_abundance_function.x_abscissa)
+            mf[::-1] = np.log(
+                galaxy_abundance_function.dn(
+                    galaxy_abundance_function.x_abscissa))
+
+            ######################################################################
+
+            deconvolved_abcissa = abunmatch_deconvolution(
+                af_key, af_val, smm, mf, scatter, repeat, sm_step)
+
+            deconvolved_galaxy_abundance_function = AbundanceFunctionFromTabulated(
+                deconvolved_abcissa, 
+                type = 'dunno')
+
+            return deconvolved_galaxy_abundance_function
 
 
 
