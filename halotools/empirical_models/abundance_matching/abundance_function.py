@@ -15,6 +15,9 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 import six 
 from abc import ABCMeta, abstractmethod
 from warnings import warn
+from copy import deepcopy 
+
+from .abunmatch_deconvolution_wrapper import abunmatch_deconvolution
 
 __all__ = ['AbundanceFunction',
            'AbundanceFunctionFromTabulated',
@@ -64,15 +67,111 @@ class AbundanceFunction(object):
         raise NotImplementedError(msg)
     
     #check for required attributes
-    def __init__(self):
+    def __init__(self, **kwargs):
+        self._constructor_kwargs = kwargs
+
         required_attrs = ["n_increases_with_x","x_abscissa"]
         for attr in required_attrs:
             try:
                 assert hasattr(self, attr)
             except AssertionError:
-                msg = ("All subclasses of Parent must have the following \n"
+                msg = ("All subclasses of AbundanceFunction must have the following \n"
                        "attributes: 'n_increases_with_x', 'x_abscissa'")
                 raise HalotoolsError(msg)
+
+
+    def compute_deconvolved_galaxy_abundance_function(self, scatter):
+        """ Should call abunmatch_deconvolution_wrapper.pyx 
+        """
+
+        if scatter == 0:
+            return self.__class__(**self._constructor_kwargs)
+
+        else:
+
+            ######################################################################
+            # First define an array storing the natural log of the 
+            # abcissa points at which the galaxy abundance function has been tabulated
+            if self.use_log is True:
+                log10_x_abcissa = self.x_abscissa
+            else:
+                log10_x_abcissa = np.log10(self.x_abscissa)
+            ln_x_abcissa = np.log(10.)*log10_x_abcissa
+
+            ######################################################################
+
+
+            ######################################################################
+            # Now we will one by one initialize the following four arrays 
+            # so that they store the variables required by the C code:
+            # 1. af_key, 2. af_val, 3. smm, 4. mf
+
+            ###############
+            # 1. af_key
+            af_key = ln_x_abcissa[::-1] # NOT SURE WHETHER THIS SHOULD BE log10_x_abcissa
+            if self.n_increases_with_x is True: af_key *= -1.0
+
+            ###############
+            # 2. af_val
+            dn_x_abcissa = self.dn(self.x_abcissa)
+            af_val = np.empty_like(ln_x_abcissa)
+            af_val[::-1] = np.log(dn_x_abcissa)/np.log(10.) # NOT SURE WHETHER /np.log(10.) is correct
+
+            ###############
+            # 3. smm
+            # what is the point of smm & af_key duplication?
+            smm = ln_x_abcissa[::-1] # NOT SURE WHETHER THIS SHOULD BE log10_x_abcissa
+            if self.n_increases_with_x is True: smm *= -1.0
+
+            ###############
+            # 4. mf
+            # Quite uncertain about this
+            mf = np.empty_like(self.x_abscissa)
+            mf[::-1] = self.dn(self.x_abscissa)
+
+            ######################################################################
+
+            # The returned value of this function could either be log10(deconvolved_x) 
+            # or ln(deconvolved_x), I'm not sure. 
+            # I am *mostly* sure that the order of the returned 
+            # deconvolved_abcissa is from bright to faint
+
+            deconvolved_abcissa = abunmatch_deconvolution(
+                af_key, af_val, smm, mf, scatter, repeat, sm_step)
+
+            # I'm still not sure whether the n_increases_with_x flag should be thrown here
+            deconvolved_galaxy_abundance_function = AbundanceFunctionFromTabulated(
+                x = deconvolved_abcissa[::-1], n = dn_x_abcissa, 
+                type = 'differential', use_log = True)
+
+            return deconvolved_galaxy_abundance_function
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
 
 
 class AbundanceFunctionFromTabulated(AbundanceFunction):
@@ -220,7 +319,7 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         self._extrapolate_dn()
         self._extrapolate_n()
         
-        AbundanceFunction.__init__(self)
+        AbundanceFunction.__init__(self, **kwargs)
     
     def _spline_dn(self):
         """
@@ -461,7 +560,7 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         #the passed in callable is cumulative (differential).
         self.x_abscissa = np.copy(self._x[:-1])
         
-        AbundanceFunction.__init__(self)
+        AbundanceFunction.__init__(self, **kwargs)
     
     def _integrate_diff_n(self):
         """
