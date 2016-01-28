@@ -50,6 +50,10 @@ class AbundanceMatching(PrimGalpropModel):
         
         halo_abundance_function : AbundanceFunction object
         
+        galprop_sample_values : array_like
+        
+        haloprop_sample_values : array_like
+        
         scatter_level : float, optional
         """
         self.prim_haloprop_key = prim_haloprop_key

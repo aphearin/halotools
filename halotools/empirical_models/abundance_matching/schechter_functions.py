@@ -15,7 +15,7 @@ __author__=['Duncan Campbell']
 @custom_model
 def schechter(x, phi0=10**(-5), x0=10.0**12.0, alpha=-1):
     """
-    Schechter function astropy.modeling.model object
+    Schechter function astropy.modeling.model object to model dn(x)/dx.
     
     Parameters
     ----------
@@ -35,24 +35,27 @@ def schechter(x, phi0=10**(-5), x0=10.0**12.0, alpha=-1):
     Returns
     -------
     phi : numpy.array
-        abundance of galaxies/haloes at input ``x`` values
+        differential abundance of galaxies/haloes at input ``x`` values, dn(x)/dx
     
     Notes
     -----
     .. math::
-        \\phi(x)\\mathrm{d}x = \\phi_0\\left(\\frac{x}{x_0}\\right)^{\\alpha}\\exp{-x/x_0}
+        \\phi(x) = \\phi_0\\left(\\frac{x}{x_0}\\right)^{\\alpha}\\exp{-x/x_0}
     """
     
     x = np.asarray(x)
     x = x.astype(float)
-    norm = phi0
+    
+    norm = phi0/x0
     val = norm * (x/x0)**(alpha) * np.exp(-x/x0)
+    
     return val
+
 
 @custom_model
 def super_schechter(x, phi0=10**(-5), x0=10.0**12.0, alpha=-1.0, beta=0.5):
     """
-    'super' Schecter function astropy.modeling.model object
+    'super' Schecter function astropy.modeling.model object to model dn(x)/dx
     
     Parameters
     ----------
@@ -92,7 +95,7 @@ def super_schechter(x, phi0=10**(-5), x0=10.0**12.0, alpha=-1.0, beta=0.5):
 @custom_model
 def log_schechter(x, phi0=10**(-5), x0=12.0, alpha=-1.0):
     """
-    Schechter function astropy.modeling.model object for log10 values of ``x``
+    Schechter function astropy.modeling.model to model dn(log(x))/dlog(x).
     
     Parameters
     ----------
@@ -117,7 +120,7 @@ def log_schechter(x, phi0=10**(-5), x0=12.0, alpha=-1.0):
     Notes
     -----
     .. math::
-        \\phi(x)\\mathrm{d}x = \\log(10)\\phi_0\\left(10^{(x-x_0)(1+\\alpha)}\\right)\\exp{-10^{x-x_0)}}
+        \\phi(x) = \\log(10)\\phi_0\\left(10^{(x-x_0)(1+\\alpha)}\\right)\\exp{-10^{x-x_0)}}
     """
     
     x = np.asarray(x)
@@ -129,7 +132,7 @@ def log_schechter(x, phi0=10**(-5), x0=12.0, alpha=-1.0):
 @custom_model
 def log_super_schechter(x, phi0=10**(-5), x0=12.0, alpha=-1.0, beta=0.5):
     """
-    'super' Schecter function astropy.modeling.model object for log10 values of ``x``
+    'super' Schecter function astropy.modeling.model object to model dn(log(x))/dlog(x).
     
     Parameters
     ----------
@@ -157,7 +160,7 @@ def log_super_schechter(x, phi0=10**(-5), x0=12.0, alpha=-1.0, beta=0.5):
     Notes
     -----
     .. math::
-        \\phi(x)\\mathrm{d}x = \\log(10)\\phi_0\\left(\\frac{x}{x_0}\\right)^{\\alpha}\\exp{-x/x_0}^{\\beta}
+        \\phi(x) = \\log(10)\\phi_0\\left(\\frac{x}{x_0}\\right)^{\\alpha}\\exp{-x/x_0}^{\\beta}
     """
     
     x = np.asarray(x)
@@ -194,7 +197,7 @@ def mag_schechter(x, phi0=10**(-5), m0=20.0, alpha=-1.0):
     Notes
     -----
     .. math::
-        \\phi(x)\\mathrm{d}x = \\frac{2}{5}\\phi_0\\log(10)\\left(10^{0.4(m_0-x)}\\right)^{(\\alpha+1)}\\exp{-10^{0.4(m_0-x)}}
+        \\phi(x) = \\frac{2}{5}\\phi_0\\log(10)\\left(10^{0.4(m_0-x)}\\right)^{(\\alpha+1)}\\exp{-10^{0.4(m_0-x)}}
     """
     
     x = np.asarray(x)

@@ -2,7 +2,7 @@
 
 """
 classes used to create galaxy and halo abundance functions used in the 
-abundance matching module
+abundance matching module.
 """
 
 from __future__ import (division, print_function, absolute_import, unicode_literals)
@@ -14,10 +14,12 @@ from scipy.optimize import curve_fit
 from scipy.interpolate import InterpolatedUnivariateSpline
 import six 
 from abc import ABCMeta, abstractmethod
+from warnings import warn
 
 __all__ = ['AbundanceFunction',
            'AbundanceFunctionFromTabulated',
            'AbundanceFunctionFromCallable']
+__author__=['Duncan Campbell', 'Andrew Hearin']
 
 @six.add_metaclass(ABCMeta)
 class AbundanceFunction(object):
@@ -28,17 +30,17 @@ class AbundanceFunction(object):
     @abstractmethod
     def n(self,x):
         """
-        Return the cumulative number density of galaxies/halos
+        Return the cumulative number density of galaxies/halos, n(<x).
         
         Parameters 
         ----------
         x : numpy.array
-            galaxy or halo properties, e.g. stellar mass
+            galaxy or halo properties, e.g. stellar mass or halo mass
         
         Returns 
         -------
         n : numpy.array
-            cumulative number desnity of galaixes/halos with property x
+            cumulative number density of galaxies/halos with property x
         """
         msg = "All subclasses of AbundanceFunction must include a `n` method."
         raise NotImplementedError(msg)
@@ -46,17 +48,17 @@ class AbundanceFunction(object):
     @abstractmethod
     def dn(self,x):
         """
-        Return the differential number density of galaxies/halos
+        Return the differential number density of galaxies/halos, dn(x)/dx.
         
         Parameters 
         ----------
         x : numpy.array
-            galaxy or halo properties
+            galaxy or halo properties, e.g. stellar mass or halo mass
         
         Returns 
         -------
         dn : numpy.array
-            differential number desnity of galaixes/halos with property x
+            differential number density of galaixes/halos with property x
         """
         msg = "All subclasses of AbundanceFunction must include a `dn` method."
         raise NotImplementedError(msg)
@@ -86,7 +88,7 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
             tabulated galaxy/halo property.
         
         use_log : boolean
-           bool indicating whether to use the log10(x).  Note that *log10(n)* should 
+           bool indicating whether to use the log10(``x``).  Note that *log10(n)* should 
            roughly be linear in log10(``x``). The default is to True.
         
         type : string
@@ -392,18 +394,20 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
     def __init__(self, **kwargs):
         """
         n : callable
-            function returning number densities (cumulative or differential) given a
-            galaxy/halo property, 'x'.
+            callabel function returning number densities (cumulative or differential) 
+            given a galaxy/halo property, ``x``.
         
         x : array_like
-            abscissa sampeling the relavent galaxy/halo property range
+            abscissa sampling the relevant galaxy/halo property range with an appropriate 
+            density.
         
         use_log : boolean
-           bool indicating whether to use the log10(x).  Note that *log10(n)* should 
-           roughly be linear in log10(x). The default is to True.
+           bool indicating whether to use the log10(``x``).  Note that *log10(n)* should 
+           roughly be linear in either ``x`` or log10(``x``). The default is to True.
         
         type : string
-            'cumulative' or 'differential'
+            string indicating: 'cumulative' or 'differential', corresponding to the input
+            callable, ``n``
         
         n_increases_with_x : boolean, optional
             boolean indicating if abundance increases with increasing x.  
@@ -418,17 +422,23 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
                 raise ValueError(msg)
             self.n_increases_with_x = kwargs['n_increases_with_x']
         
-        if self.n_increases_with_x:
-            self._x = np.sort(kwargs['x'])
-        else:
-            self._x = np.sort(kwargs['x'])[::-1]
+        #tabulated abundance functions are stored from high to low, i.e. the way 
+        #astronomers would plot it.
         
-        self.x_abscissa = self._x
+        if self.n_increases_with_x:
+            self._x = np.sort(kwargs['x'])[::-1]
+        else:
+            self._x = np.sort(kwargs['x'])
+        
+        self.x_abscissa = np.copy(self._x)
         
         #set whether the log10 of x should be used
         if 'use_log' not in kwargs.keys():
             self._use_log_x = True
         else:
+            if type(kwargs['use_log']) is not bool:
+                msg = "`use_log` parameter must of type bool."
+                raise ValueError(msg)
             self._use_log_x = kwargs['use_log']
         
         if kwargs['type']=='cumulative':
@@ -440,22 +450,28 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
             self._dn_func = kwargs['n']
             self._log_dn_func = lambda x: np.log10(self._dn_func(x))
         else:
-            msg = ("abundnace type keyword must be 'cumulative' or 'differential'.")
+            msg = ("abundance type keyword must be 'cumulative' or 'differential'.")
             raise ValueError(msg)
         
+        #depending on input, calculate either the differential or cumulative functions
         if kwargs['type']=='cumulative':
             self._diff_cum_n()
         else:
             self._integrate_diff_n()
+        
+        AbundanceFunction.__init__(self)
     
     def _integrate_diff_n(self):
         """
         integrate a differential number density to get the cumulative number 
-        density.
+        density, n(<x)
         """
         
+        #integrate from low to high density
         n = integrate.cumtrapz(self._dn_func(self._x)[::-1],self._x[::-1])
-        x = self._x[:-1]
+        if not self.n_increases_with_x:
+            n = -1.0*n
+        x = np.copy(self._x[:-1])
         log_n = np.log10(n)[::-1]
         
         #used for bounds checking when calling the interpolation
@@ -465,17 +481,22 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         if self._use_log_x:
             x = np.log10(x)
         
+        #x must be monotonically increasing for the interpolation routine
         if self.n_increases_with_x:
             self._log_n_func = InterpolatedUnivariateSpline(x[::-1], log_n[::-1], k=1)
         else:
             self._log_n_func = InterpolatedUnivariateSpline(x, log_n, k=1)
         
-        self._n_func = lambda x: 10**self._log_n_func(x)
+        #use log10(x) as argument is appropriate
+        if self._use_log_x:
+            self._n_func = lambda x: 10**self._log_n_func(np.log10(x))
+        else:
+            self._n_func = lambda x: 10**self._log_n_func(x)
     
     def _diff_cum_n(self):
         """
         differentiate the cumulative number density to get the differential number 
-        density
+        density, dn(x)/dx
         """
         
         dn = np.diff(self._dn_func(self._x)[::-1])[::-1]
@@ -496,44 +517,63 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         else:
             self._log_dn_func = InterpolatedUnivariateSpline(x, dndx, k=1)
         
-        self._dn_func = lambda x: 10**self._log_n_func(x)
+        if self._use_log_x:
+            self._dn_func = lambda x: 10**self._log_n_func(np.log10(x))
+        else:
+            self._dn_func = lambda x: 10**self._log_n_func(x)
     
     def dn(self, x):
         """
-        return the differential abundance
+        Return the differential number density of galaxies/halos, dn(x)/dx.
+        
+        Parameters 
+        ----------
+        x : numpy.array
+            galaxy or halo properties, e.g. stellar mass or halo mass
+        
+        Returns 
+        -------
+        dn : numpy.array
+            differential number density of galaxies/halos with property ``x``
         """
         
         if self._type == 'cumulative':
-            out_of_abcissa_bounds = np.any(((x>self._min_x) & (x<self._min_x)))
+            out_of_abcissa_bounds = np.any(((x<self._min_x) | (x>self._max_x)))
             if out_of_abcissa_bounds:
-                msg = ("input out of interpolated abundance range. \n"
+                msg = ("Input out of interpolated abundance range. \n"
                        "Reinstantiate abundance function object with an \n"
                        "increased range in the `x` parameter which serves as \n"
                        "abcissa for the interpolation, or use a callable \n"
                        "differential function for the `n` parameter.")
-                raise ValueError(msg)
-        
-        if self._use_log_x:
-            x = np.log10(x)
+                warn(msg)
         
         return self._dn_func(x)
     
     def n(self, x):
         """
-        return the cumulative abundance
+        Return the cumulative number density of galaxies/halos, n(<x).
+        
+        Parameters 
+        ----------
+        x : numpy.array
+            galaxy or halo properties, e.g. stellar mass or halo mass
+        
+        Returns 
+        -------
+        n : numpy.array
+            cumulative number density of galaxies/halos with property ``x``
         """
         
         if self._type == 'differential':
-            out_of_abcissa_bounds = np.any(((x>self._min_x) & (x<self._min_x)))
+            out_of_abcissa_bounds = np.any(((x<self._min_x) | (x>self._max_x)))
             if out_of_abcissa_bounds:
-                msg = ("input out of interpolated abundance range. \n"
+                msg = ("Input out of interpolated abundance range. \n"
                        "reinstantiate abundance function object with \n"
                        "increased range in the `x` parameter which serves as \n"
                        "abcissa for the interpolation, or use a callable \n"
                        "cumulative function for the `n` parameter.")
-                raise ValueError(msg)
-        
-        if self._use_log_x:
-            x = np.log10(x)
+                warn(msg)
         
         return self._n_func(x)
+        
+        
