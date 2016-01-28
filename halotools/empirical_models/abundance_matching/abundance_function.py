@@ -430,8 +430,6 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         else:
             self._x = np.sort(kwargs['x'])
         
-        self.x_abscissa = np.copy(self._x)
-        
         #set whether the log10 of x should be used
         if 'use_log' not in kwargs.keys():
             self._use_log_x = True
@@ -458,6 +456,10 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
             self._diff_cum_n()
         else:
             self._integrate_diff_n()
+        
+        #remove the last point because dn (n) is not known at that point when 
+        #the passed in callable is cumulative (differential).
+        self.x_abscissa = np.copy(self._x[:-1])
         
         AbundanceFunction.__init__(self)
     

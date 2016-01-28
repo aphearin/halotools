@@ -24,7 +24,7 @@ class LiWhite2009(AbundanceFunctionFromCallable):
         self.publications = ['arXiv:0901.0706']
         
         #abscissa to sample stellar mass function
-        mstar = np.logspace(8.0,12.0,1000)
+        mstar = np.logspace(7.0,13.0,1000)
         
         #define interval
         @custom_model
@@ -67,7 +67,7 @@ class BolshoiMpeak(AbundanceFunctionFromCallable):
     def __init__(self):
         
         #abscissa to sample stellar mass function
-        mpeak = np.logspace(9,16.0,1000)
+        mpeak = np.logspace(7.9,16.1,1000)
         
         #define model
         s = super_schechter(phi0=1.4224*10**(-19), x0=10**14.3144, alpha=-1.9341, beta=0.9238)
