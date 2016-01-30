@@ -106,13 +106,25 @@ class AbundanceFunction(object):
             # so that they store the variables required by the C code:
             # 1. af_key, 2. af_val, 3. smm, 4. mf
 
+            # in the C code, ALL log quantitie mean log10
+            # in C code, high mass must be at the end of the array
+            # In C code, there is a further assumption that the array must be monotnoically increasing
+            # This second assumption is incompatible with magnitude convention, so yao has a 
+            # hack for this: if using magnitudes, he manually multiplies by -1 
+            # and then manually mutiples back by -1 at the end
+
+            # returned value of fiducial_dconvolute preserves label, so if log10 --> in, then log10 --> out
+            # mf just stores differential unber density, that's it
+            # 
+
+
             ###############
             # 1. af_key
             af_key = ln_x_abcissa[::-1] # NOT SURE WHETHER THIS SHOULD BE log10_x_abcissa
             if self.n_increases_with_x is True: af_key *= -1.0
 
             ###############
-            # 2. af_val
+            # 2. af_val is in log10
             dn_x_abcissa = self.dn(self.x_abcissa)
             af_val = np.empty_like(ln_x_abcissa)
             af_val[::-1] = np.log(dn_x_abcissa)/np.log(10.) # NOT SURE WHETHER /np.log(10.) is correct
@@ -125,7 +137,7 @@ class AbundanceFunction(object):
 
             ###############
             # 4. mf
-            # Quite uncertain about this
+            # Quite uncertain about this - in Yao's code, mf is differential number density, not in log 
             mf = np.empty_like(self.x_abscissa)
             mf[::-1] = self.dn(self.x_abscissa)
 
