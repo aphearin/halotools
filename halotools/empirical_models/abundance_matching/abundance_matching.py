@@ -19,7 +19,6 @@ from functools import partial
 from ..smhm_models import PrimGalpropModel, ConstantLogNormalScatter
 from ..model_defaults import *
 from ..model_helpers import *
-from .abunmatch_deconvolution_solver import AbunMatchSolver
 
 from .deconvolution import abunmatch_deconvolution
 
@@ -69,20 +68,20 @@ class AbundanceMatching(PrimGalpropModel):
             halo_abundance_function = kwargs['halo_abundance_function']
         except KeyError:
             try:
-                complete_halo_catalog = kwargs['complete_subhalo_catalog']
+                complete_halo_catalog10 = kwargs['complete_subhalo_catalog10']
                 Lbox = kwargs['Lbox']
                 sim_volume = Lbox**3.
             except KeyError:
                 msg = ("\n If you do not pass in a ``halo_abundance_function`` \n"
-                        "keyword argument, you must pass in ``complete_subhalo_catalog``\n"
+                        "keyword argument, you must pass in ``complete_subhalo_catalog10``\n"
                         "and ``Lbox`` keyword arguments.\n")
                 raise HalotoolsError(msg)
             else:
                 try:
-                    prim_haloprop_array = complete_halo_catalog[prim_haloprop_key]
+                    prim_haloprop_array = complete_halo_catalog10[prim_haloprop_key]
                 except KeyError:
-                    msg = ("\n You passed in a ``complete_halo_catalog`` argument.\n"
-                           "This catalog does not have a column corresponding to the \n"
+                    msg = ("\n You passed in a ``complete_halo_catalog10`` argument.\n"
+                           "This catalog10 does not have a column corresponding to the \n"
                            "input ``prim_haloprop_key`` = " + prim_haloprop_key)
                     raise HalotoolsError(msg)
                 else: #build halo abundance function
@@ -92,7 +91,7 @@ class AbundanceMatching(PrimGalpropModel):
                         AbundanceFunctionFromTabulated(
                             n = halo_abundance_array, 
                             x = sorted_prim_haloprop,
-                            use_log = True, 
+                            use_log10 = True, 
                             type = 'cumulative', 
                             n_increases_with_x = False)
                         )
@@ -240,7 +239,7 @@ class AbundanceMatching(PrimGalpropModel):
         max_x1 = optimize.brentq(f, x1_l2, x1_r2, maxiter=100)
         
         #get new x1 abscissa that span the abundance range of n2.n(x2)
-        if n1._use_log_x:
+        if n1._use_log10_x:
             x1 = np.logspace(np.log10(min_x1), np.log10(max_x1), N_sample)
         else: 
             x1 = np.linspace(min_x1, max_x1, N_sample)
@@ -250,9 +249,9 @@ class AbundanceMatching(PrimGalpropModel):
         
         #invert the secondary abundance function at each x2
         sort_inds = np.argsort(n2.n(x2)) #must be monotonically increasing
-        if n2._use_log_x:
-            log_inverted_n2 = InterpolatedUnivariateSpline(np.log10(n2.n(x2)[sort_inds]),np.log10(x2[sort_inds]), k=1)
-            inverted_n2 = lambda x: 10**log_inverted_n2(x) 
+        if n2._use_log10_x:
+            log10_inverted_n2 = InterpolatedUnivariateSpline(np.log10(n2.n(x2)[sort_inds]),np.log10(x2[sort_inds]), k=1)
+            inverted_n2 = lambda x: 10**log10_inverted_n2(x) 
         else:
             inverted_n2 = InterpolatedUnivariateSpline(np.log10(n2.n(x2)[sort_inds]),x2[sort_inds],k=1)
         
@@ -260,8 +259,8 @@ class AbundanceMatching(PrimGalpropModel):
         x2n = inverted_n2(np.log10(n))
         
         #get x1 as a function of x2
-        if n1._use_log_x: x1 = np.log10(x1)
-        if n2._use_log_x: x2n = np.log10(x2n)
+        if n1._use_log10_x: x1 = np.log10(x1)
+        if n2._use_log10_x: x2n = np.log10(x2n)
         x1x2 = InterpolatedUnivariateSpline(x2n,x1,k=1)
         
         #define a function and return
@@ -269,7 +268,7 @@ class AbundanceMatching(PrimGalpropModel):
             """
             Return the x1 which has equal abundance to n2(x).
             """
-            if n2._use_log_x: x = np.log10(x)
+            if n2._use_log10_x: x = np.log10(x)
             
             #throw a warning if it is beyond the interpolated range
             if np.any(x>x2):
@@ -281,7 +280,7 @@ class AbundanceMatching(PrimGalpropModel):
             
             result = x1x2(x)
             
-            if n1._use_log_x: result=10**result
+            if n1._use_log10_x: result=10**result
             return result
         
         return x1x2_func

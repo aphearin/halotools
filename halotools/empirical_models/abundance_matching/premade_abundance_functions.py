@@ -53,7 +53,7 @@ class LiWhite2009(AbundanceFunctionFromCallable):
         #define parameters
         params = {'n' : s,
                   'x' : mstar,
-                  'use_log' : True,
+                  'use_log10' : True,
                   'type' : 'differential',
                   'n_increases_with_x' : False}
         
@@ -77,7 +77,7 @@ class BolshoiMpeak(AbundanceFunctionFromCallable):
         #define parameters
         params = {'n' : s,
                   'x' : mpeak,
-                  'use_log' : True,
+                  'use_log10' : True,
                   'type' : 'differential',
                   'n_increases_with_x' : False}
         
