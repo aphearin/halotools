@@ -8,7 +8,7 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 from astropy.modeling.models import custom_model
 
-__all__=['schechter','super_schechter','log_schechter','log_super_schechter','mag_schechter']
+__all__=['schechter','super_schechter','log10_schechter','log10_super_schechter','mag_schechter']
 
 __author__=['Duncan Campbell']
 
@@ -93,9 +93,9 @@ def super_schechter(x, phi0=10**(-5), x0=10.0**12.0, alpha=-1.0, beta=0.5):
     return val
 
 @custom_model
-def log_schechter(x, phi0=10**(-5), x0=12.0, alpha=-1.0):
+def log10_schechter(x, phi0=10**(-5), x0=12.0, alpha=-1.0):
     """
-    Schechter function astropy.modeling.model to model dn(log(x))/dlog(x).
+    Schechter function astropy.modeling.model to model dn(log10(x))/dlog10(x).
     
     Parameters
     ----------
@@ -120,19 +120,19 @@ def log_schechter(x, phi0=10**(-5), x0=12.0, alpha=-1.0):
     Notes
     -----
     .. math::
-        \\phi(x) = \\log(10)\\phi_0\\left(10^{(x-x_0)(1+\\alpha)}\\right)\\exp{-10^{x-x_0)}}
+        \\phi(x) = \\log10(10)\\phi_0\\left(10^{(x-x_0)(1+\\alpha)}\\right)\\exp{-10^{x-x_0)}}
     """
     
     x = np.asarray(x)
     x = x.astype(float)
-    norm = np.log(10.0)*phi0
+    norm = np.log10(10.0)*phi0
     val = norm*(10.0**((x-x0)*(1.0+alpha)))*np.exp(-10.0**(x-x0))
     return val
 
 @custom_model
-def log_super_schechter(x, phi0=10**(-5), x0=12.0, alpha=-1.0, beta=0.5):
+def log10_super_schechter(x, phi0=10**(-5), x0=12.0, alpha=-1.0, beta=0.5):
     """
-    'super' Schecter function astropy.modeling.model object to model dn(log(x))/dlog(x).
+    'super' Schecter function astropy.modeling.model object to model dn(log10(x))/dlog10(x).
     
     Parameters
     ----------
@@ -160,12 +160,12 @@ def log_super_schechter(x, phi0=10**(-5), x0=12.0, alpha=-1.0, beta=0.5):
     Notes
     -----
     .. math::
-        \\phi(x) = \\log(10)\\phi_0\\left(\\frac{x}{x_0}\\right)^{\\alpha}\\exp{-x/x_0}^{\\beta}
+        \\phi(x) = \\log10(10)\\phi_0\\left(\\frac{x}{x_0}\\right)^{\\alpha}\\exp{-x/x_0}^{\\beta}
     """
     
     x = np.asarray(x)
     x = x.astype(float)
-    norm = np.log(10.0)*phi0
+    norm = np.log10(10.0)*phi0
     val = norm*(10.0**((x-x0)*(1.0+alpha)))*np.exp(-10.0**((x-x0)))*beta
     return val
 
@@ -197,12 +197,12 @@ def mag_schechter(x, phi0=10**(-5), m0=20.0, alpha=-1.0):
     Notes
     -----
     .. math::
-        \\phi(x) = \\frac{2}{5}\\phi_0\\log(10)\\left(10^{0.4(m_0-x)}\\right)^{(\\alpha+1)}\\exp{-10^{0.4(m_0-x)}}
+        \\phi(x) = \\frac{2}{5}\\phi_0\\log10(10)\\left(10^{0.4(m_0-x)}\\right)^{(\\alpha+1)}\\exp{-10^{0.4(m_0-x)}}
     """
     
     x = np.asarray(x)
     x = x.astype(float)
-    norm = (2.0/5.0)*phi0*np.log(10.0)
+    norm = (2.0/5.0)*phi0*np.log10(10.0)
     val = norm*(10.0**(0.4*(m0-x)))**(alpha+1.0)*np.exp(-10.0**(0.4*(m0-x)))
     return val
 

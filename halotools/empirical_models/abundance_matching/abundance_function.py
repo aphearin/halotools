@@ -70,13 +70,13 @@ class AbundanceFunction(object):
     def __init__(self, **kwargs):
         self._constructor_kwargs = kwargs
 
-        required_attrs = ["n_increases_with_x","x_abscissa","_use_log_x"]
+        required_attrs = ["n_increases_with_x","x_abscissa","_use_log10_x"]
         for attr in required_attrs:
             try:
                 assert hasattr(self, attr)
             except AssertionError:
                 msg = ("All subclasses of Parent must have the following \n"
-                       "attributes: 'n_increases_with_x', 'x_abscissa','_use_log_x'")
+                       "attributes: 'n_increases_with_x', 'x_abscissa','_use_log10_x'")
                 raise HalotoolsError(msg)
 
 
@@ -113,14 +113,17 @@ class AbundanceFunction(object):
             return self.__class__(**self._constructor_kwargs)
 
         else:
-
             ######################################################################
-            # First define an array storing the natural log of the 
-            # abcissa points at which the galaxy abundance function has been tabulated
-            if self._use_log_x is True:
-                log10_x_abcissa = self.x_abscissa
+            # First define an array storing the natural log10 of the 
+            # abscissa points at which the galaxy abundance function has been tabulated
+
+            # self.x_abcissa stores the galaxy/halo property. 
+            # The ordering of this propery always goes from 
+            # high-number-density to low-number-density
+            if self._use_log10_x is True:
+                log10_x_abscissa = self.x_abscissa
             else:
-                log10_x_abcissa = np.log10(self.x_abscissa)
+                log10_x_abscissa = np.log10(self.x_abscissa)
 
             ######################################################################
 
@@ -134,14 +137,14 @@ class AbundanceFunction(object):
             # All logarithmic quantities are in base-10 
 
             # C code convention 2
-            # Rare, high-mass must be stored at the end of the array. 
+            # Rare, high-mass entries must be stored at the end of the array. 
 
             # C code convention 3
-            # The values stored in the abcissa array must be monotonically increasing
+            # The values stored in the abscissa array must be monotonically increasing
             # For the case of abundance matching on absolute magnitudes, 
             # this assumption is incompatible with Convention 2 
             # To work around this, we use the following hack: 
-            # if using magnitudes, we manually multiply the abcissa values by -1, 
+            # if using magnitudes, we manually multiply the abscissa values by -1, 
             # call the C code, and then manually mutiply the returned values by -1
 
             # C code convention 4
@@ -153,17 +156,17 @@ class AbundanceFunction(object):
 
             ###############
             # 1. af_key
-            af_key = log10_x_abcissa
+            af_key = log10_x_abscissa
             if self.n_increases_with_x is True: af_key *= -1.0
 
             ###############
             # 2. af_val 
-            dn_x_abcissa = self.dn(self.x_abcissa)
-            af_val = np.log10(dn_x_abcissa) 
+            dn_x_abscissa = self.dn(self.x_abscissa)
+            af_val = np.log10(dn_x_abscissa) 
 
             ###############
             # 3. smm
-            smm = log10_x_abcissa # NOT SURE WHETHER THIS SHOULD BE log10_x_abcissa
+            smm = log10_x_abscissa 
             if self.n_increases_with_x is True: smm *= -1.0
 
             ###############
@@ -172,14 +175,14 @@ class AbundanceFunction(object):
 
             ######################################################################
 
-            deconvolved_abcissa = abunmatch_deconvolution(
+            deconvolved_log10_x_abscissa = abunmatch_deconvolution(
                 af_key, af_val, smm, mf, scatter, **kwargs)
 
-            if self.n_increases_with_x is True: deconvolved_abcissa *= -1.0
+            if self.n_increases_with_x is True: deconvolved_abscissa *= -1.0
 
             deconvolved_galaxy_abundance_function = AbundanceFunctionFromTabulated(
-                x = deconvolved_abcissa, n = dn_x_abcissa, 
-                type = 'differential', use_log = self._use_log_x)
+                x = deconvolved_log10_x_abscissa, n = dn_x_abscissa, 
+                type = 'differential', use_log10 = True)
 
             return deconvolved_galaxy_abundance_function
 
@@ -198,7 +201,7 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         x : array_like
             tabulated galaxy/halo property.
         
-        use_log : boolean
+        use_log10 : boolean
            bool indicating whether to use the log10(``x``).  Note that *log10(n)* should 
            roughly be linear in log10(``x``). The default is to True.
         
@@ -276,29 +279,29 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         
         if kwargs['type']=='cumulative':
             self._n = n
-            self._log_n = np.log10(self._n)
+            self._log10_n = np.log10(self._n)
             self._x = x
             #remove duplicate x's
             self._x, uniq_inds = np.unique(self._x, return_index=True)
             self._n = np.copy(self._n[uniq_inds])
-            self._log_n = np.copy(self._log_n[uniq_inds])
+            self._log10_n = np.copy(self._log10_n[uniq_inds])
             self._xx = np.copy(self._x)
         elif kwargs['type']=='differential':
             self._dn = n
-            self._log_dn = np.log10(self._dn)
+            self._log10_dn = np.log10(self._dn)
             self._xx = x
             #remove duplicate x's
             self._xx, uniq_inds = np.unique(self._xx, return_index=True)
             self._dn = np.copy(self._dn[uniq_inds])
-            self._log_dn = np.copy(self._log_dn[uniq_inds])
+            self._log10_dn = np.copy(self._log10_dn[uniq_inds])
             self._x = np.copy(self._xx)
        
         #set whether the log10 of x should be used
-        if 'use_log' not in kwargs.keys():
-            self._use_log_x = True
+        if 'use_log10' not in kwargs.keys():
+            self._use_log10_x = True
         else:
-            self._use_log_x = kwargs['use_log']
-        if self._use_log_x:
+            self._use_log10_x = kwargs['use_log10']
+        if self._use_log10_x:
             self._x = np.log10(self._x)
             self._xx = np.log10(self._xx)
         
@@ -339,11 +342,11 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         """
         
         if self.n_increases_with_x:
-            #self._log_dn_func = interp1d(self._xx[::-1], self._log_dn[::-1], kind='linear')
-            self._log_dn_func = InterpolatedUnivariateSpline(self._xx[::-1], self._log_dn[::-1], k=1)
+            #self._log10_dn_func = interp1d(self._xx[::-1], self._log10_dn[::-1], kind='linear')
+            self._log10_dn_func = InterpolatedUnivariateSpline(self._xx[::-1], self._log10_dn[::-1], k=1)
         else:
-            #self._log_dn_func = interp1d(self._xx, self._log_dn, kind='linear')
-            self._log_dn_func = InterpolatedUnivariateSpline(self._xx, self._log_dn, k=1)
+            #self._log10_dn_func = interp1d(self._xx, self._log10_dn, kind='linear')
+            self._log10_dn_func = InterpolatedUnivariateSpline(self._xx, self._log10_dn, k=1)
             
     def _spline_n(self):
         """
@@ -351,11 +354,11 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         """
         
         if self.n_increases_with_x:
-            #self._log_n_func = interp1d(self._x[::-1], self._log_n[::-1], kind='linear')
-            self._log_n_func = InterpolatedUnivariateSpline(self._x[::-1], self._log_n[::-1], k=1)
+            #self._log10_n_func = interp1d(self._x[::-1], self._log10_n[::-1], kind='linear')
+            self._log10_n_func = InterpolatedUnivariateSpline(self._x[::-1], self._log10_n[::-1], k=1)
         else:
-            #self._log_n_func = interp1d(self._x, self._log_n, kind='linear')
-            self._log_n_func = InterpolatedUnivariateSpline(self._x, self._log_n, k=1)
+            #self._log10_n_func = interp1d(self._x, self._log10_n, kind='linear')
+            self._log10_n_func = InterpolatedUnivariateSpline(self._x, self._log10_n, k=1)
             
     def _extrapolate_dn(self):
         """
@@ -371,15 +374,15 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
             
         a0 = 1.0 if self.n_increases_with_x else -1.0
         popt_l = curve_fit(func_l, self._xx[self._s_low],
-            self._log_dn[self._s_low], [a0, 0.0, 0.0, 0.0], maxfev=100000)[0]
-        self._ext_log_dn_func_l = lambda x: func_l(x, *popt_l)
+            self._log10_dn[self._s_low], [a0, 0.0, 0.0, 0.0], maxfev=100000)[0]
+        self._ext_log10_dn_func_l = lambda x: func_l(x, *popt_l)
         
         #fit high abundance end
         func_h = lambda x, a, b: a*x+b
         
         popt_h = curve_fit(func_h, self._xx[self._s_high],
-            self._log_dn[self._s_high], [0.0, 0.0], maxfev=100000)[0]
-        self._ext_log_dn_func_h = lambda x: func_h(x, *popt_h)
+            self._log10_dn[self._s_high], [0.0, 0.0], maxfev=100000)[0]
+        self._ext_log10_dn_func_h = lambda x: func_h(x, *popt_h)
     
     def _extrapolate_n(self):
         """
@@ -395,15 +398,15 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
             
         a0 = 1.0 if self.n_increases_with_x else -1.0
         popt_l = curve_fit(func_l, self._x[self._s_low],
-            self._log_n[self._s_low], [a0, 0.0, 0.0, 0.0], maxfev=100000)[0]
-        self._ext_log_n_func_l = lambda x: func_l(x, *popt_l)
+            self._log10_n[self._s_low], [a0, 0.0, 0.0, 0.0], maxfev=100000)[0]
+        self._ext_log10_n_func_l = lambda x: func_l(x, *popt_l)
         
         #fit high abundance end
         func_h = lambda x, a, b: a*x+b
         
         popt_h = curve_fit(func_h, self._x[self._s_high],
-            self._log_n[self._s_high], [0.0, 0.0], maxfev=100000)[0]
-        self._ext_log_n_func_h = lambda x: func_h(x, *popt_h)
+            self._log10_n[self._s_high], [0.0, 0.0], maxfev=100000)[0]
+        self._ext_log10_n_func_h = lambda x: func_h(x, *popt_h)
         
     def _integrate_diff_n(self):
         """
@@ -417,7 +420,7 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         self._n = np.fabs(integrate.cumtrapz(self._dn[::-1], self._x[::-1],
             initial=init_value))
         self._n = self._n[::-1]
-        self._log_n = np.log10(self._n)
+        self._log10_n = np.log10(self._n)
     
     def _diff_cum_n(self):
         """
@@ -427,7 +430,7 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         
         #sample the cumulative function finely
         self._xx = np.linspace(self._x[0],self._x[-2],1000)
-        n = 10**(self._log_n_func(self._xx))
+        n = 10**(self._log10_n_func(self._xx))
         
         #get the run
         dx = np.fabs(np.diff(self._xx))
@@ -441,14 +444,14 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         self._max_xx = np.max(self._xx)
         
         #calculate log10 of dn
-        self._log_dn = np.log10(self._dn)
+        self._log10_dn = np.log10(self._dn)
         
     def dn(self, x):
         """
         return the differential abundance
         """
         
-        if self._use_log_x:
+        if self._use_log10_x:
             x = np.log10(x)
         
         #determine if the galaxies/halos are inside the tabulated range
@@ -458,15 +461,15 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         
         #initialize the result
         result = np.zeros(len(x))
-        result[mask_in_range] = 10**self._log_dn_func(x[mask_in_range])
+        result[mask_in_range] = 10**self._log10_dn_func(x[mask_in_range])
         
         #call the interpolation functions if necessary
         if self.n_increases_with_x:
-            result[mask_high] = 10**self._ext_log_dn_func_h(x[mask_high])
-            result[mask_low] = 10**self._ext_log_dn_func_l(x[mask_low])
+            result[mask_high] = 10**self._ext_log10_dn_func_h(x[mask_high])
+            result[mask_low] = 10**self._ext_log10_dn_func_l(x[mask_low])
         else:
-            result[mask_high] = 10**self._ext_log_dn_func_l(x[mask_high])
-            result[mask_low] = 10**self._ext_log_dn_func_h(x[mask_low])
+            result[mask_high] = 10**self._ext_log10_dn_func_l(x[mask_high])
+            result[mask_low] = 10**self._ext_log10_dn_func_h(x[mask_low])
         
         return result
     
@@ -475,7 +478,7 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         return the cumulative abundance
         """
         
-        if self._use_log_x:
+        if self._use_log10_x:
             x = np.log10(x)
         
         #determine if the galaxies/halos are inside the tabulated range
@@ -485,15 +488,15 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         
         #initialize the result
         result = np.zeros(len(x))
-        result[mask_in_range] = 10**self._log_n_func(x[mask_in_range])
+        result[mask_in_range] = 10**self._log10_n_func(x[mask_in_range])
         
         #call the interpolation functions if necessary
         if self.n_increases_with_x:
-            result[mask_high] = 10**self._ext_log_n_func_h(x[mask_high])
-            result[mask_low] = 10**self._ext_log_n_func_l(x[mask_low])
+            result[mask_high] = 10**self._ext_log10_n_func_h(x[mask_high])
+            result[mask_low] = 10**self._ext_log10_n_func_l(x[mask_low])
         else:
-            result[mask_high] = 10**self._ext_log_n_func_l(x[mask_high])
-            result[mask_low] = 10**self._ext_log_n_func_h(x[mask_low])
+            result[mask_high] = 10**self._ext_log10_n_func_l(x[mask_high])
+            result[mask_low] = 10**self._ext_log10_n_func_h(x[mask_low])
         
         return result
 
@@ -505,14 +508,14 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
     def __init__(self, **kwargs):
         """
         n : callable
-            callabel function returning number densities (cumulative or differential) 
+            callable function returning number densities (cumulative or differential) 
             given a galaxy/halo property, ``x``.
         
         x : array_like
             abscissa sampling the relevant galaxy/halo property range with an appropriate 
             density.
         
-        use_log : boolean
+        use_log10 : boolean
            bool indicating whether to use the log10(``x``).  Note that *log10(n)* should 
            roughly be linear in either ``x`` or log10(``x``). The default is to True.
         
@@ -542,22 +545,22 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
             self._x = np.sort(kwargs['x'])
         
         #set whether the log10 of x should be used
-        if 'use_log' not in kwargs.keys():
-            self._use_log_x = True
+        if 'use_log10' not in kwargs.keys():
+            self._use_log10_x = True
         else:
-            if type(kwargs['use_log']) is not bool:
-                msg = "`use_log` parameter must of type bool."
+            if type(kwargs['use_log10']) is not bool:
+                msg = "`use_log10` parameter must of type bool."
                 raise ValueError(msg)
-            self._use_log_x = kwargs['use_log']
+            self._use_log10_x = kwargs['use_log10']
         
         if kwargs['type']=='cumulative':
             self._type = 'cumulative'
             self._n_func = kwargs['n']
-            self._log_n_func = lambda x: np.log10(self._n_func(x))
+            self._log10_n_func = lambda x: np.log10(self._n_func(x))
         elif kwargs['type']=='differential':
             self._type = 'differential'
             self._dn_func = kwargs['n']
-            self._log_dn_func = lambda x: np.log10(self._dn_func(x))
+            self._log10_dn_func = lambda x: np.log10(self._dn_func(x))
         else:
             msg = ("abundance type keyword must be 'cumulative' or 'differential'.")
             raise ValueError(msg)
@@ -585,26 +588,26 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         if not self.n_increases_with_x:
             n = -1.0*n
         x = np.copy(self._x[:-1])
-        log_n = np.log10(n)[::-1]
+        log10_n = np.log10(n)[::-1]
         
         #used for bounds checking when calling the interpolation
         self._min_x = np.min(x)
         self._max_x = np.max(x)
         
-        if self._use_log_x:
+        if self._use_log10_x:
             x = np.log10(x)
         
         #x must be monotonically increasing for the interpolation routine
         if self.n_increases_with_x:
-            self._log_n_func = InterpolatedUnivariateSpline(x[::-1], log_n[::-1], k=1)
+            self._log10_n_func = InterpolatedUnivariateSpline(x[::-1], log10_n[::-1], k=1)
         else:
-            self._log_n_func = InterpolatedUnivariateSpline(x, log_n, k=1)
+            self._log10_n_func = InterpolatedUnivariateSpline(x, log10_n, k=1)
         
         #use log10(x) as argument is appropriate
-        if self._use_log_x:
-            self._n_func = lambda x: 10**self._log_n_func(np.log10(x))
+        if self._use_log10_x:
+            self._n_func = lambda x: 10**self._log10_n_func(np.log10(x))
         else:
-            self._n_func = lambda x: 10**self._log_n_func(x)
+            self._n_func = lambda x: 10**self._log10_n_func(x)
     
     def _diff_cum_n(self):
         """
@@ -622,18 +625,18 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         self._min_x = np.min(x)
         self._max_x = np.max(x)
         
-        if self._use_log_x:
+        if self._use_log10_x:
             x = np.log10(x)
         
         if self.n_increases_with_x:
-            self._log_dn_func = InterpolatedUnivariateSpline(x[::-1], dndx[::-1], k=1)
+            self._log10_dn_func = InterpolatedUnivariateSpline(x[::-1], dndx[::-1], k=1)
         else:
-            self._log_dn_func = InterpolatedUnivariateSpline(x, dndx, k=1)
+            self._log10_dn_func = InterpolatedUnivariateSpline(x, dndx, k=1)
         
-        if self._use_log_x:
-            self._dn_func = lambda x: 10**self._log_n_func(np.log10(x))
+        if self._use_log10_x:
+            self._dn_func = lambda x: 10**self._log10_n_func(np.log10(x))
         else:
-            self._dn_func = lambda x: 10**self._log_n_func(x)
+            self._dn_func = lambda x: 10**self._log10_n_func(x)
     
     def dn(self, x):
         """
@@ -651,12 +654,12 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         """
         
         if self._type == 'cumulative':
-            out_of_abcissa_bounds = np.any(((x<self._min_x) | (x>self._max_x)))
-            if out_of_abcissa_bounds:
+            out_of_abscissa_bounds = np.any(((x<self._min_x) | (x>self._max_x)))
+            if out_of_abscissa_bounds:
                 msg = ("Input out of interpolated abundance range. \n"
                        "Reinstantiate abundance function object with an \n"
                        "increased range in the `x` parameter which serves as \n"
-                       "abcissa for the interpolation, or use a callable \n"
+                       "abscissa for the interpolation, or use a callable \n"
                        "differential function for the `n` parameter.")
                 warn(msg)
         
@@ -678,12 +681,12 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         """
         
         if self._type == 'differential':
-            out_of_abcissa_bounds = np.any(((x<self._min_x) | (x>self._max_x)))
-            if out_of_abcissa_bounds:
+            out_of_abscissa_bounds = np.any(((x<self._min_x) | (x>self._max_x)))
+            if out_of_abscissa_bounds:
                 msg = ("Input out of interpolated abundance range. \n"
                        "reinstantiate abundance function object with \n"
                        "increased range in the `x` parameter which serves as \n"
-                       "abcissa for the interpolation, or use a callable \n"
+                       "abscissa for the interpolation, or use a callable \n"
                        "cumulative function for the `n` parameter.")
                 warn(msg)
         

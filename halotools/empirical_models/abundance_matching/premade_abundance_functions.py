@@ -19,13 +19,15 @@ class LiWhite2009(AbundanceFunctionFromCallable):
     triple schecter stellar mass function
     """
     
-    def __init__(self):
+    def __init__(self, mstar = np.logspace(7.0,13.0,1000)):
+        """
+        mstar : array_like, optional 
+            abscissa sampling the relevant galaxy/halo property range with an appropriate 
+            density. Default is np.logspace(7.0,13.0,1000). 
+        """
         
         self.publications = ['arXiv:0901.0706']
-        
-        #abscissa to sample stellar mass function
-        mstar = np.logspace(7.0,13.0,1000)
-        
+                
         #define interval
         @custom_model
         def interval(x,x1=0.0,x2=1.0):
@@ -51,12 +53,12 @@ class LiWhite2009(AbundanceFunctionFromCallable):
         #define parameters
         params = {'n' : s,
                   'x' : mstar,
-                  'use_log' : True,
+                  'use_log10' : True,
                   'type' : 'differential',
                   'n_increases_with_x' : False}
         
         #initialize super class
-        super(LiWhite2009, self).__init__(**params)
+        AbundanceFunctionFromCallable.__init__(self, **params)
 
 
 class BolshoiMpeak(AbundanceFunctionFromCallable):
@@ -75,7 +77,7 @@ class BolshoiMpeak(AbundanceFunctionFromCallable):
         #define parameters
         params = {'n' : s,
                   'x' : mpeak,
-                  'use_log' : True,
+                  'use_log10' : True,
                   'type' : 'differential',
                   'n_increases_with_x' : False}
         
