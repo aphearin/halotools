@@ -65,13 +65,13 @@ class AbundanceFunction(object):
     
     #check for required attributes
     def __init__(self):
-        required_attrs = ["n_increases_with_x","x_abscissa"]
+        required_attrs = ["n_increases_with_x","x_abscissa","_use_log_x"]
         for attr in required_attrs:
             try:
                 assert hasattr(self, attr)
             except AssertionError:
                 msg = ("All subclasses of Parent must have the following \n"
-                       "attributes: 'n_increases_with_x', 'x_abscissa'")
+                       "attributes: 'n_increases_with_x', 'x_abscissa','_use_log_x'")
                 raise HalotoolsError(msg)
 
 

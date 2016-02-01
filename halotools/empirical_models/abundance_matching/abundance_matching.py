@@ -21,7 +21,7 @@ from ..model_defaults import *
 from ..model_helpers import *
 from .abunmatch_deconvolution_solver import AbunMatchSolver
 
-from .abunmatch_deconvolution_wrapper import abunmatch_deconvolution
+#from .abunmatch_deconvolution_wrapper import abunmatch_deconvolution
 
 from .abundance_function import *
 

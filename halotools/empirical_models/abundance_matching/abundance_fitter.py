@@ -42,7 +42,7 @@ def chi2(measured_vals, updated_model, cov, x):
         inv_cov = cov.I
         
         X2 = Y*inv_cov*Y.T
-        print(X2)
+        
         return float(X2)
 
 class AbundanceFitter(Fitter):
