@@ -51,11 +51,11 @@ class LiWhite2009(AbundanceFunctionFromCallable):
         s = s1+s2+s3
         
         #define parameters
-        params = {'n' : s,
-                  'x' : mstar,
-                  'use_log10' : True,
-                  'type' : 'differential',
-                  'n_increases_with_x' : False}
+        params = ({
+            'n' : s, 'x' : mstar, 'use_log10' : True, 
+            'type' : 'differential',
+            'n_increases_with_x' : False
+            })
         
         #initialize super class
         AbundanceFunctionFromCallable.__init__(self, **params)

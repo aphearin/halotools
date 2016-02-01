@@ -619,7 +619,7 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         dx = np.fabs(np.diff(self._x))
         dndx = dn/dx
         
-        x = self._x[:-1]
+        x = np.copy(self._x[:-1])
         
         #used for bounds checking when calling the interpolation
         self._min_x = np.min(x)
