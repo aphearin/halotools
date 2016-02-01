@@ -56,7 +56,7 @@ class LiWhite2009(AbundanceFunctionFromCallable):
                   'n_increases_with_x' : False}
         
         #initialize super class
-        super(LiWhite2009, self).__init__(**params)
+        AbundanceFunctionFromCallable.__init__(self, **params)
 
 
 class BolshoiMpeak(AbundanceFunctionFromCallable):

@@ -116,11 +116,11 @@ class AbundanceFunction(object):
 
             ######################################################################
             # First define an array storing the natural log of the 
-            # abcissa points at which the galaxy abundance function has been tabulated
+            # abscissa points at which the galaxy abundance function has been tabulated
             if self._use_log_x is True:
-                log10_x_abcissa = self.x_abscissa
+                log10_x_abscissa = self.x_abscissa
             else:
-                log10_x_abcissa = np.log10(self.x_abscissa)
+                log10_x_abscissa = np.log10(self.x_abscissa)
 
             ######################################################################
 
@@ -137,11 +137,11 @@ class AbundanceFunction(object):
             # Rare, high-mass must be stored at the end of the array. 
 
             # C code convention 3
-            # The values stored in the abcissa array must be monotonically increasing
+            # The values stored in the abscissa array must be monotonically increasing
             # For the case of abundance matching on absolute magnitudes, 
             # this assumption is incompatible with Convention 2 
             # To work around this, we use the following hack: 
-            # if using magnitudes, we manually multiply the abcissa values by -1, 
+            # if using magnitudes, we manually multiply the abscissa values by -1, 
             # call the C code, and then manually mutiply the returned values by -1
 
             # C code convention 4
@@ -153,17 +153,17 @@ class AbundanceFunction(object):
 
             ###############
             # 1. af_key
-            af_key = log10_x_abcissa
+            af_key = log10_x_abscissa
             if self.n_increases_with_x is True: af_key *= -1.0
 
             ###############
             # 2. af_val 
-            dn_x_abcissa = self.dn(self.x_abcissa)
-            af_val = np.log10(dn_x_abcissa) 
+            dn_x_abscissa = self.dn(self.x_abscissa)
+            af_val = np.log10(dn_x_abscissa) 
 
             ###############
             # 3. smm
-            smm = log10_x_abcissa # NOT SURE WHETHER THIS SHOULD BE log10_x_abcissa
+            smm = log10_x_abscissa # NOT SURE WHETHER THIS SHOULD BE log10_x_abscissa
             if self.n_increases_with_x is True: smm *= -1.0
 
             ###############
@@ -172,13 +172,13 @@ class AbundanceFunction(object):
 
             ######################################################################
 
-            deconvolved_abcissa = abunmatch_deconvolution(
+            deconvolved_abscissa = abunmatch_deconvolution(
                 af_key, af_val, smm, mf, scatter, **kwargs)
 
-            if self.n_increases_with_x is True: deconvolved_abcissa *= -1.0
+            if self.n_increases_with_x is True: deconvolved_abscissa *= -1.0
 
             deconvolved_galaxy_abundance_function = AbundanceFunctionFromTabulated(
-                x = deconvolved_abcissa, n = dn_x_abcissa, 
+                x = deconvolved_abscissa, n = dn_x_abscissa, 
                 type = 'differential', use_log = self._use_log_x)
 
             return deconvolved_galaxy_abundance_function
@@ -651,12 +651,12 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         """
         
         if self._type == 'cumulative':
-            out_of_abcissa_bounds = np.any(((x<self._min_x) | (x>self._max_x)))
-            if out_of_abcissa_bounds:
+            out_of_abscissa_bounds = np.any(((x<self._min_x) | (x>self._max_x)))
+            if out_of_abscissa_bounds:
                 msg = ("Input out of interpolated abundance range. \n"
                        "Reinstantiate abundance function object with an \n"
                        "increased range in the `x` parameter which serves as \n"
-                       "abcissa for the interpolation, or use a callable \n"
+                       "abscissa for the interpolation, or use a callable \n"
                        "differential function for the `n` parameter.")
                 warn(msg)
         
@@ -678,12 +678,12 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         """
         
         if self._type == 'differential':
-            out_of_abcissa_bounds = np.any(((x<self._min_x) | (x>self._max_x)))
-            if out_of_abcissa_bounds:
+            out_of_abscissa_bounds = np.any(((x<self._min_x) | (x>self._max_x)))
+            if out_of_abscissa_bounds:
                 msg = ("Input out of interpolated abundance range. \n"
                        "reinstantiate abundance function object with \n"
                        "increased range in the `x` parameter which serves as \n"
-                       "abcissa for the interpolation, or use a callable \n"
+                       "abscissa for the interpolation, or use a callable \n"
                        "cumulative function for the `n` parameter.")
                 warn(msg)
         
