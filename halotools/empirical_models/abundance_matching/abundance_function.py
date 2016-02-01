@@ -80,8 +80,33 @@ class AbundanceFunction(object):
                 raise HalotoolsError(msg)
 
 
-    def compute_deconvolved_galaxy_abundance_function(self, scatter):
-        """ Should call abunmatch_deconvolution_wrapper.pyx 
+    def compute_deconvolved_galaxy_abundance_function(self, scatter, **kwargs):
+        """ Deconvolve the input ``scatter`` from the `AbundanceFunction` instance. 
+
+        Parameters 
+        -----------
+        scatter : float 
+            Level of scatter in dex
+
+        repeat : int, optional 
+            Number of iterations in the deconvolution algorithm. Default is 40. 
+
+        sm_step : float, optional 
+            Step size in the galaxy/halo property to use in the deconvolution algorithm. 
+            Default is 0.01. 
+
+        Returns 
+        --------
+        deconvolved_galaxy_abundance_function : object 
+            Instance of the `AbundanceFunction` class in which the input scatter 
+            has been deconvolved. Thus when the input ``scatter`` is applied 
+            to the returned ``deconvolved_galaxy_abundance_function``, 
+            you get the original `AbundanceFunction` back. 
+
+        Notes 
+        -------
+        The `compute_deconvolved_galaxy_abundance_function` method is just a 
+        wrapper around Peter Behroozi's C-implementation of the Richardson-Lucy deconvolution algorithm. 
         """
 
         if scatter == 0:
@@ -96,7 +121,6 @@ class AbundanceFunction(object):
                 log10_x_abcissa = self.x_abscissa
             else:
                 log10_x_abcissa = np.log10(self.x_abscissa)
-            ln_x_abcissa = np.log(10.)*log10_x_abcissa
 
             ######################################################################
 
@@ -106,83 +130,59 @@ class AbundanceFunction(object):
             # so that they store the variables required by the C code:
             # 1. af_key, 2. af_val, 3. smm, 4. mf
 
-            # in the C code, ALL log quantitie mean log10
-            # in C code, high mass must be at the end of the array
-            # In C code, there is a further assumption that the array must be monotnoically increasing
-            # This second assumption is incompatible with magnitude convention, so yao has a 
-            # hack for this: if using magnitudes, he manually multiplies by -1 
-            # and then manually mutiples back by -1 at the end
+            # C code convention 1
+            # All logarithmic quantities are in base-10 
 
-            # returned value of fiducial_dconvolute preserves label, so if log10 --> in, then log10 --> out
+            # C code convention 2
+            # Rare, high-mass must be stored at the end of the array. 
+
+            # C code convention 3
+            # The values stored in the abcissa array must be monotonically increasing
+            # For the case of abundance matching on absolute magnitudes, 
+            # this assumption is incompatible with Convention 2 
+            # To work around this, we use the following hack: 
+            # if using magnitudes, we manually multiply the abcissa values by -1, 
+            # call the C code, and then manually mutiply the returned values by -1
+
+            # C code convention 4
+            # The array returned by fiducial_deconvolute preserves input label. 
+            # So if log10 --> in, then log10 --> out
             # mf just stores differential unber density, that's it
             # 
 
 
             ###############
             # 1. af_key
-            af_key = ln_x_abcissa[::-1] # NOT SURE WHETHER THIS SHOULD BE log10_x_abcissa
+            af_key = log10_x_abcissa
             if self.n_increases_with_x is True: af_key *= -1.0
 
             ###############
-            # 2. af_val is in log10
+            # 2. af_val 
             dn_x_abcissa = self.dn(self.x_abcissa)
-            af_val = np.empty_like(ln_x_abcissa)
-            af_val[::-1] = np.log(dn_x_abcissa)/np.log(10.) # NOT SURE WHETHER /np.log(10.) is correct
+            af_val = np.log10(dn_x_abcissa) 
 
             ###############
             # 3. smm
-            # what is the point of smm & af_key duplication?
-            smm = ln_x_abcissa[::-1] # NOT SURE WHETHER THIS SHOULD BE log10_x_abcissa
+            smm = log10_x_abcissa # NOT SURE WHETHER THIS SHOULD BE log10_x_abcissa
             if self.n_increases_with_x is True: smm *= -1.0
 
             ###############
             # 4. mf
-            # Quite uncertain about this - in Yao's code, mf is differential number density, not in log 
-            mf = np.empty_like(self.x_abscissa)
-            mf[::-1] = self.dn(self.x_abscissa)
+            mf = self.dn(self.x_abscissa)
 
             ######################################################################
 
-            # The returned value of this function could either be log10(deconvolved_x) 
-            # or ln(deconvolved_x), I'm not sure. 
-            # I am *mostly* sure that the order of the returned 
-            # deconvolved_abcissa is from bright to faint
-
             deconvolved_abcissa = abunmatch_deconvolution(
-                af_key, af_val, smm, mf, scatter, repeat, sm_step)
+                af_key, af_val, smm, mf, scatter, **kwargs)
 
-            # I'm still not sure whether the n_increases_with_x flag should be thrown here
+            if self.n_increases_with_x is True: deconvolved_abcissa *= -1.0
+
             deconvolved_galaxy_abundance_function = AbundanceFunctionFromTabulated(
-                x = deconvolved_abcissa[::-1], n = dn_x_abcissa, 
-                type = 'differential', use_log = True)
+                x = deconvolved_abcissa, n = dn_x_abcissa, 
+                type = 'differential', use_log = self.use_log)
 
             return deconvolved_galaxy_abundance_function
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
 
 
 
