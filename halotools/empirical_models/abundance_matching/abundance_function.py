@@ -117,7 +117,7 @@ class AbundanceFunction(object):
             # First define an array storing the natural log10 of the 
             # abscissa points at which the galaxy abundance function has been tabulated
 
-            # self.x_abcissa stores the galaxy/halo property. 
+            # self.x_abscissa stores the galaxy/halo property. 
             # The ordering of this propery always goes from 
             # high-number-density to low-number-density
             if self._use_log10_x is True:
@@ -161,7 +161,7 @@ class AbundanceFunction(object):
 
             ###############
             # 2. af_val 
-            dn_x_abscissa = self.dn(self.x_abscissa)
+            dn_x_abscissa = self.dn(self.x_abscissa)/self.x_abscissa
             af_val = np.log10(dn_x_abscissa) 
 
             ###############
@@ -171,7 +171,7 @@ class AbundanceFunction(object):
 
             ###############
             # 4. mf
-            mf = self.dn(self.x_abscissa)
+            mf = dn_x_abscissa
 
             ######################################################################
 
