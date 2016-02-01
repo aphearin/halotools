@@ -15,6 +15,9 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 import six 
 from abc import ABCMeta, abstractmethod
 from warnings import warn
+from copy import deepcopy 
+
+from .deconvolution import abunmatch_deconvolution
 
 __all__ = ['AbundanceFunction',
            'AbundanceFunctionFromTabulated',
@@ -64,7 +67,9 @@ class AbundanceFunction(object):
         raise NotImplementedError(msg)
     
     #check for required attributes
-    def __init__(self):
+    def __init__(self, **kwargs):
+        self._constructor_kwargs = kwargs
+
         required_attrs = ["n_increases_with_x","x_abscissa","_use_log_x"]
         for attr in required_attrs:
             try:
@@ -73,6 +78,112 @@ class AbundanceFunction(object):
                 msg = ("All subclasses of Parent must have the following \n"
                        "attributes: 'n_increases_with_x', 'x_abscissa','_use_log_x'")
                 raise HalotoolsError(msg)
+
+
+    def compute_deconvolved_galaxy_abundance_function(self, scatter, **kwargs):
+        """ Deconvolve the input ``scatter`` from the `AbundanceFunction` instance. 
+
+        Parameters 
+        -----------
+        scatter : float 
+            Level of scatter in dex
+
+        repeat : int, optional 
+            Number of iterations in the deconvolution algorithm. Default is 40. 
+
+        sm_step : float, optional 
+            Step size in the galaxy/halo property to use in the deconvolution algorithm. 
+            Default is 0.01. 
+
+        Returns 
+        --------
+        deconvolved_galaxy_abundance_function : object 
+            Instance of the `AbundanceFunction` class in which the input scatter 
+            has been deconvolved. Thus when the input ``scatter`` is applied 
+            to the returned ``deconvolved_galaxy_abundance_function``, 
+            you get the original `AbundanceFunction` back. 
+
+        Notes 
+        -------
+        The `compute_deconvolved_galaxy_abundance_function` method is just a 
+        wrapper around Peter Behroozi's C-implementation of the Richardson-Lucy deconvolution algorithm. 
+        """
+
+        if scatter == 0:
+            return self.__class__(**self._constructor_kwargs)
+
+        else:
+
+            ######################################################################
+            # First define an array storing the natural log of the 
+            # abcissa points at which the galaxy abundance function has been tabulated
+            if self._use_log_x is True:
+                log10_x_abcissa = self.x_abscissa
+            else:
+                log10_x_abcissa = np.log10(self.x_abscissa)
+
+            ######################################################################
+
+
+            ######################################################################
+            # Now we will one by one initialize the following four arrays 
+            # so that they store the variables required by the C code:
+            # 1. af_key, 2. af_val, 3. smm, 4. mf
+
+            # C code convention 1
+            # All logarithmic quantities are in base-10 
+
+            # C code convention 2
+            # Rare, high-mass must be stored at the end of the array. 
+
+            # C code convention 3
+            # The values stored in the abcissa array must be monotonically increasing
+            # For the case of abundance matching on absolute magnitudes, 
+            # this assumption is incompatible with Convention 2 
+            # To work around this, we use the following hack: 
+            # if using magnitudes, we manually multiply the abcissa values by -1, 
+            # call the C code, and then manually mutiply the returned values by -1
+
+            # C code convention 4
+            # The array returned by fiducial_deconvolute preserves input label. 
+            # So if log10 --> in, then log10 --> out
+            # mf just stores differential unber density, that's it
+            # 
+
+
+            ###############
+            # 1. af_key
+            af_key = log10_x_abcissa
+            if self.n_increases_with_x is True: af_key *= -1.0
+
+            ###############
+            # 2. af_val 
+            dn_x_abcissa = self.dn(self.x_abcissa)
+            af_val = np.log10(dn_x_abcissa) 
+
+            ###############
+            # 3. smm
+            smm = log10_x_abcissa # NOT SURE WHETHER THIS SHOULD BE log10_x_abcissa
+            if self.n_increases_with_x is True: smm *= -1.0
+
+            ###############
+            # 4. mf
+            mf = self.dn(self.x_abscissa)
+
+            ######################################################################
+
+            deconvolved_abcissa = abunmatch_deconvolution(
+                af_key, af_val, smm, mf, scatter, **kwargs)
+
+            if self.n_increases_with_x is True: deconvolved_abcissa *= -1.0
+
+            deconvolved_galaxy_abundance_function = AbundanceFunctionFromTabulated(
+                x = deconvolved_abcissa, n = dn_x_abcissa, 
+                type = 'differential', use_log = self._use_log_x)
+
+            return deconvolved_galaxy_abundance_function
+
+
 
 
 class AbundanceFunctionFromTabulated(AbundanceFunction):
@@ -220,7 +331,7 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         self._extrapolate_dn()
         self._extrapolate_n()
         
-        AbundanceFunction.__init__(self)
+        AbundanceFunction.__init__(self, **kwargs)
     
     def _spline_dn(self):
         """
@@ -461,7 +572,7 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         #the passed in callable is cumulative (differential).
         self.x_abscissa = np.copy(self._x[:-1])
         
-        AbundanceFunction.__init__(self)
+        AbundanceFunction.__init__(self, **kwargs)
     
     def _integrate_diff_n(self):
         """
