@@ -287,8 +287,8 @@ class AbundanceMatching(PrimGalpropModel):
         return x1x2_func
     
     def compute_deconvolved_galaxy_abundance_function(self, 
-        galaxy_abundance_function, scatter):
+        galaxy_abundance_function, scatter, **kwargs):
         """ Should call abunmatch_deconvolution_wrapper.pyx 
         """
-        return galaxy_abundance_function.compute_deconvolved_galaxy_abundance_function(scatter)
+        return galaxy_abundance_function.compute_deconvolved_galaxy_abundance_function(scatter, **kwargs)
 
