@@ -163,7 +163,7 @@ class AbundanceFunction(object):
 
             ###############
             # 3. smm
-            smm = log10_x_abscissa # NOT SURE WHETHER THIS SHOULD BE log10_x_abscissa
+            smm = log10_x_abscissa 
             if self.n_increases_with_x is True: smm *= -1.0
 
             ###############
@@ -505,7 +505,7 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
     def __init__(self, **kwargs):
         """
         n : callable
-            callabel function returning number densities (cumulative or differential) 
+            callable function returning number densities (cumulative or differential) 
             given a galaxy/halo property, ``x``.
         
         x : array_like
