@@ -17,7 +17,7 @@ from abc import ABCMeta, abstractmethod
 from warnings import warn
 from copy import deepcopy 
 
-from .abunmatch_deconvolution_wrapper import abunmatch_deconvolution
+from .deconvolution import abunmatch_deconvolution
 
 __all__ = ['AbundanceFunction',
            'AbundanceFunctionFromTabulated',
@@ -117,7 +117,7 @@ class AbundanceFunction(object):
             ######################################################################
             # First define an array storing the natural log of the 
             # abcissa points at which the galaxy abundance function has been tabulated
-            if self.use_log is True:
+            if self._use_log_x is True:
                 log10_x_abcissa = self.x_abscissa
             else:
                 log10_x_abcissa = np.log10(self.x_abscissa)
@@ -179,7 +179,7 @@ class AbundanceFunction(object):
 
             deconvolved_galaxy_abundance_function = AbundanceFunctionFromTabulated(
                 x = deconvolved_abcissa, n = dn_x_abcissa, 
-                type = 'differential', use_log = self.use_log)
+                type = 'differential', use_log = self._use_log_x)
 
             return deconvolved_galaxy_abundance_function
 
