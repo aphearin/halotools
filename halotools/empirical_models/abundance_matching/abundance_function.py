@@ -177,7 +177,7 @@ class AbundanceFunction(object):
 
             ###############
             # 1. af_key
-            af_key = log10_x_abscissa
+            af_key = np.copy(log10_x_abscissa)
             if self.n_increases_with_x is True: af_key *= -1.0
 
             ###############
@@ -188,7 +188,7 @@ class AbundanceFunction(object):
 
             ###############
             # 3. smm
-            smm = log10_x_abscissa
+            smm = np.copy(log10_x_abscissa)
             if self.n_increases_with_x is True: smm *= -1.0
 
             ###############
