@@ -196,34 +196,28 @@ class AbundanceFunction(object):
             mf = dn_dlog10x_abscissa*abs(log10_x_abscissa[1]-log10_x_abscissa[0])
             ######################################################################
 
-            return af_key, af_val, smm, mf
-
-            # deconvolved_log10_x_abscissa = abunmatch_deconvolution(
-            #     af_key, af_val, smm, mf, scatter, repeat = 40)
-
             # return af_key, af_val, smm, mf
 
-            # if self.n_increases_with_x is True: deconvolved_log10_x_abscissa *= -1.0
+            deconvolved_log10_x_abscissa = abunmatch_deconvolution(
+                af_key, af_val, smm, mf, scatter, repeat = 40)
+            if self.n_increases_with_x is True: deconvolved_log10_x_abscissa *= -1.0
 
-            # nd = 10.**np.interp(np.log10(self.x_abscissa), 
-            #     deconvolved_log10_x_abscissa, np.log10(dn_dx_abscissa))
-            # dlog10x = (np.fabs((log10_x_abscissa[-1] - log10_x_abscissa[0])/
-            #     float(len(log10_x_abscissa)-1)))
-            # nd_conv = _convolve_gaussian(nd, float(scatter)/dlog10x)
-            # frac_remainder = abs((nd_conv - dn_dx_abscissa)/dn_dx_abscissa)
+            nd = 10.**np.interp(np.log10(self.x_abscissa), 
+                deconvolved_log10_x_abscissa, np.log10(dn_dx_abscissa))
+            dlog10x = (np.fabs((log10_x_abscissa[-1] - log10_x_abscissa[0])/
+                float(len(log10_x_abscissa)-1)))
+            nd_conv = _convolve_gaussian(nd, float(scatter)/dlog10x)
+            frac_remainder = abs((nd_conv - dn_dx_abscissa)/dn_dx_abscissa)
 
-            # mask = frac_remainder < remainder_tol
+            mask = frac_remainder < remainder_tol
+            return deconvolved_log10_x_abscissa, mask
 
             # deconvolved_abcissa = 10.**deconvolved_log10_x_abscissa[mask]
-            # return deconvolved_abcissa
-
 
             # deconvolved_galaxy_abundance_function = AbundanceFunctionFromTabulated(
-            #     x = deconvolved_log10_x_abscissa, n = dn_dx_abscissa, 
+            #     x = deconvolved_abcissa, n = dn_dx_abscissa[mask], 
             #     type = 'differential', use_log10 = True)
             # return deconvolved_galaxy_abundance_function
-
-            # return deconvolved_log10_x_abscissa
 
 
 class AbundanceFunctionFromTabulated(AbundanceFunction):
