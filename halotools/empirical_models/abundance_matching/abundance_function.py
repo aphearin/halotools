@@ -24,6 +24,17 @@ __all__ = ['AbundanceFunction',
            'AbundanceFunctionFromCallable']
 __author__=['Duncan Campbell', 'Andrew Hearin']
 
+def _convolve_gaussian(y, sigma, truncate=4):
+    sd = float(sigma)
+    size = int(np.ceil(truncate * sd))
+    weights = np.zeros(size*2+1)
+    i = np.arange(size+1)
+    weights[size:] = np.exp(-(i*i)/(2.0*sd*sd))
+    weights[:size] = weights[:size:-1]
+    weights /= weights.sum()
+    y_full = np.concatenate((np.zeros(size), y, np.ones(size)*y[-1]))
+    return np.convolve(y_full, weights, 'valid')
+
 @six.add_metaclass(ABCMeta)
 class AbundanceFunction(object):
     """
@@ -80,7 +91,8 @@ class AbundanceFunction(object):
                 raise HalotoolsError(msg)
 
 
-    def compute_deconvolved_galaxy_abundance_function(self, scatter, **kwargs):
+    def compute_deconvolved_galaxy_abundance_function(self, scatter, 
+        remainder_tol = 0.5, **kwargs):
         """ Deconvolve the input ``scatter`` from the `AbundanceFunction` instance. 
 
         Parameters 
@@ -94,6 +106,12 @@ class AbundanceFunction(object):
         sm_step : float, optional 
             Step size in the galaxy/halo property to use in the deconvolution algorithm. 
             Default is 0.01. 
+
+        remainder_tol : float, optional 
+            Tolerance for the fractional difference between the input SMF 
+            and the deconvolved SMF with the appropriate scatter added back in. 
+            Used as a sanity check on the Richardson-Lucy deconvolution. 
+            Default is 0.5. 
 
         Returns 
         --------
@@ -120,10 +138,13 @@ class AbundanceFunction(object):
             # self.x_abscissa stores the galaxy/halo property. 
             # The ordering of this propery always goes from 
             # high-number-density to low-number-density
-            if self._use_log10_x is True:
-                log10_x_abscissa = self.x_abscissa
-            else:
-                log10_x_abscissa = np.log10(self.x_abscissa)
+            # if self._use_log10_x is True:
+            #     log10_x_abscissa = self.x_abscissa
+            # else:
+            #     log10_x_abscissa = np.log10(self.x_abscissa)
+            # print("printing _use_log10_x" + str(self._use_log10_x))
+
+            log10_x_abscissa = np.log10(self.x_abscissa)
 
             ######################################################################
 
@@ -172,20 +193,30 @@ class AbundanceFunction(object):
 
             ###############
             # 4. mf
-            mf = dn_x_abscissa
-
+            mf = dn_dlog10x_abscissa*(-np.ediff1d(log10_x_abscissa)[0])
             ######################################################################
-
-            deconvolved_log10_x_abscissa = abunmatch_deconvolution(
+            deconvolved_log10_x_abscissa = np.empty_like(smm)
+            deconvolved_log10_x_abscissa[::-1] = abunmatch_deconvolution(
                 af_key, af_val, smm, mf, scatter, **kwargs)
+            if self.n_increases_with_x is True: deconvolved_log10_x_abscissa *= -1.0
 
-            if self.n_increases_with_x is True: deconvolved_abscissa *= -1.0
+            nd = 10.**np.interp(np.log10(self.x_abscissa), 
+                deconvolved_log10_x_abscissa, np.log10(dn_dx_abscissa))
+            dlog10x = (np.fabs((log10_x_abscissa[-1] - log10_x_abscissa[0])/
+                float(len(log10_x_abscissa)-1)))
+            nd_conv = _convolve_gaussian(nd, float(scatter)/dlog10x)
+            frac_remainder = abs((nd_conv - dn_dx_abscissa)/dn_dx_abscissa)
 
-            deconvolved_galaxy_abundance_function = AbundanceFunctionFromTabulated(
-                x = deconvolved_log10_x_abscissa, n = dn_x_abscissa, 
-                type = 'differential', use_log10 = True)
+            mask = frac_remainder < 1
 
-            return deconvolved_galaxy_abundance_function
+            deconvolved_abcissa = 10.**deconvolved_log10_x_abscissa[mask]
+
+
+            # deconvolved_galaxy_abundance_function = AbundanceFunctionFromTabulated(
+            #     x = deconvolved_log10_x_abscissa, n = dn_dx_abscissa, 
+            #     type = 'differential', use_log10 = True)
+            # return deconvolved_galaxy_abundance_function
+            return deconvolved_abcissa
 
 
 
