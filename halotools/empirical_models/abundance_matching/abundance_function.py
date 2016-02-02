@@ -144,7 +144,7 @@ class AbundanceFunction(object):
             #     log10_x_abscissa = np.log10(self.x_abscissa)
             # print("printing _use_log10_x" + str(self._use_log10_x))
 
-            log10_x_abscissa = np.log10(np.copy(self.x_abscissa))
+            log10_x_abscissa = np.log10(self.x_abscissa)
 
             ######################################################################
 
@@ -184,24 +184,25 @@ class AbundanceFunction(object):
             # 2. af_val 
             dn_dx_abscissa = self.dn(self.x_abscissa)
             dn_dlog10x_abscissa = self.x_abscissa*np.log(10)*dn_dx_abscissa
-            af_val = np.log10(dn_dlog10x_abscissa[::-1]) 
+            af_val = np.log10(dn_dlog10x_abscissa) 
 
             ###############
             # 3. smm
-            smm = log10_x_abscissa[::-1]
+            smm = log10_x_abscissa
             if self.n_increases_with_x is True: smm *= -1.0
 
             ###############
             # 4. mf
-            mf = dn_dlog10x_abscissa*(-np.ediff1d(log10_x_abscissa)[0])
+            mf = dn_dlog10x_abscissa*abs(log10_x_abscissa[1]-log10_x_abscissa[0])
             ######################################################################
-
 
             return af_key, af_val, smm, mf
 
-            deconvolved_log10_x_abscissa = np.empty_like(smm)
-            # deconvolved_log10_x_abscissa[::-1] = abunmatch_deconvolution(
-            #     af_key, af_val, smm, mf, scatter, **kwargs)
+            # deconvolved_log10_x_abscissa = abunmatch_deconvolution(
+            #     af_key, af_val, smm, mf, scatter, repeat = 40)
+
+            # return af_key, af_val, smm, mf
+
             # if self.n_increases_with_x is True: deconvolved_log10_x_abscissa *= -1.0
 
             # nd = 10.**np.interp(np.log10(self.x_abscissa), 
