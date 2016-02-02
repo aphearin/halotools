@@ -156,17 +156,18 @@ class AbundanceFunction(object):
 
             ###############
             # 1. af_key
-            af_key = log10_x_abscissa
+            af_key = log10_x_abscissa[::-1]
             if self.n_increases_with_x is True: af_key *= -1.0
 
             ###############
             # 2. af_val 
-            dn_x_abscissa = self.dn(self.x_abscissa)/self.x_abscissa
-            af_val = np.log10(dn_x_abscissa) 
+            dn_dx_abscissa = self.dn(self.x_abscissa)
+            dn_dlog10x_abscissa = self.x_abscissa*np.log(10)*dn_dx_abscissa
+            af_val = np.log10(dn_dlog10x_abscissa[::-1]) 
 
             ###############
             # 3. smm
-            smm = log10_x_abscissa 
+            smm = log10_x_abscissa[::-1]
             if self.n_increases_with_x is True: smm *= -1.0
 
             ###############
