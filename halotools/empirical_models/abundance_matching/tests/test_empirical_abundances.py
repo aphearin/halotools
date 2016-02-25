@@ -11,10 +11,10 @@ from ..empirical_abundance import *
 
 from ....custom_exceptions import HalotoolsError
 
-__all__ = ['TestEmpiricalAbundances']
+__all__ = ['TestEmpiricalCumNDensity', 'TestEmpiricalDiffnDensity']
 
 
-class TestEmpiricalAbundances(TestCase):
+class TestEmpiricalCumNDensity(TestCase):
 
 	def setUp(self):
 		pass
@@ -71,7 +71,22 @@ class TestEmpiricalAbundances(TestCase):
 		pass
 
 
+class TestEmpiricalDiffnDensity(TestCase):
 
+	def setUp(self):
+		pass
+
+	def test_empirical_diff_ndensity(self):
+		npts = 100
+		Lbox = 250
+		x = np.linspace(-1, 1, npts)
+		xbins = np.linspace(-0.99, 0.99, 10)
+		volume = Lbox**3
+
+		diff_x, x_centers = empirical_diff_ndensity(x, volume, xbins)
+
+	def tearDown(self):
+		pass
 
 
 
