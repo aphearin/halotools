@@ -13,9 +13,9 @@ __all__ = ['empirical_cum_ndensity', 'empirical_diff_ndensity']
 
 
 def empirical_cum_ndensity(x, volume, xbins = None, weights = None, 
-                           nd_increases_wtih_x = False):
+                           nd_increases_with_x = False):
     """
-    Caclulate cumulative number density of galaxies/halos given a property ``x``.
+    Calculate cumulative number density of galaxies/halos given a property ``x``.
     
     Parameters
     ----------
@@ -26,20 +26,22 @@ def empirical_cum_ndensity(x, volume, xbins = None, weights = None,
         effective volume
     
     xbins : array_like, optional
-        value of ``x`` for which to return the cumulative number densities.  If set to 
-        None, return for every ``x``
+        value of ``x`` for which to return the cumulative number densities.  
+        If set to None, return for every ``x``
     
     weights : array_like, optional
-        weight to give every ``x``.  If set to None, equal weight of 1 given to each ``x``
+        weight to give every ``x``.
+        If set to None, equal weight of 1 given to each ``x``
     
-    nd_increases_wtih_x : boolean, optional
-        Boolean indicating that the number density increases with increasing ``x``.
+    nd_increases_with_x : boolean, optional
+        Boolean indicating that the number density 
+        increases with increasing ``x``.
         Default is False.
     
     Returns
     -------
     cumu_x : numpy.array
-        cumulative number desntiy at values ``x_val``
+        cumulative number density at values ``x_val``
     
     x_val : numpy.array
         values of ``x`` for which cumulative abundances are returned
@@ -52,7 +54,7 @@ def empirical_cum_ndensity(x, volume, xbins = None, weights = None,
     if weights is None:
         weights = np.ones(Nx)
     
-    if not nd_increases_wtih_x:
+    if not nd_increases_with_x:
         sorted_inds=np.argsort(x)[::-1]
         sorted_weights = weights[sorted_inds]
     else:
@@ -64,7 +66,7 @@ def empirical_cum_ndensity(x, volume, xbins = None, weights = None,
     cumu_x = np.cumsum(cumu_x)/volume
     
     if xbins is not None:
-        if not nd_increases_wtih_x:
+        if not nd_increases_with_x:
             xbins = np.sort(xbins)[::-1]
             inds = np.searchsorted(sorted_x[::-1], xbins)*-1
         else:
