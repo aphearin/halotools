@@ -21,7 +21,7 @@ from ..model_defaults import *
 from ..model_helpers import *
 
 from .deconvolution import abunmatch_deconvolution
-
+from .empirical_abundance import *
 from .abundance_function import *
 
 from ...utils.array_utils import custom_len
@@ -92,7 +92,7 @@ class AbundanceMatching(PrimGalpropModel):
                             n = halo_abundance_array, 
                             x = sorted_prim_haloprop,
                             use_log10 = True, 
-                            type = 'cumulative', 
+                            abundance_type = 'cumulative', 
                             n_increases_with_x = False)
                         )
         self.halo_abundance_function = halo_abundance_function
