@@ -176,7 +176,7 @@ class AbundanceFunction(object):
                 raise ValueError(msg)
             x_range = convert_to_ndarray(x_range, dt=np.float)
             if len(x_range)!=2:
-                msg = ("``x_pad`` parameter must have lenght 2.")
+                msg = ("``x_range`` parameter must have lenght 2.")
                 raise ValueError(msg)
             
             #calculate minimums and maximums
@@ -289,7 +289,7 @@ class AbundanceFunction(object):
             args = {'n':deconvolved_dn,
                     'x':deconvolved_x_abscissa,
                     'use_log10':self._use_log10_x,
-                    'type':'differential',
+                    'abundance_type':'differential',
                     'n_increases_with_x':self.n_increases_with_x}
             
             return AbundanceFunctionFromTabulated(**args)
@@ -309,7 +309,7 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         x : array_like
             tabulated galaxy/halo property.
         
-        type : string
+        abundance_type : string
             'cumulative' or 'differential'
         
         use_log10 : boolean, optional
@@ -380,8 +380,8 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
             msg = "input `n` and `x` must be longer than 4 elements"
             raise ValueError(msg)
         
-        #Note that we store the tabulated abundance functions from high to low abundance,
-        #as an astronomer would plot them!
+        # We always store the tabulated abundance functions from high to low abundance,
+        # the same ordering as they are always plotted
         n = np.array(kwargs['n'])
         sort_inds = np.argsort(n)[::-1]
         x = np.array(kwargs['x'])
@@ -390,10 +390,10 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         
         self._x = copy(x)
         
-        if kwargs['type']=='cumulative':
+        if kwargs['abundance_type']=='cumulative':
             self._n = copy(n)
             self._log10_n = np.log10(self._n)
-        elif kwargs['type']=='differential':
+        elif kwargs['abundance_type']=='differential':
             self._dn = copy(n)
             self._log10_dn = np.log10(self._dn)
         
@@ -416,11 +416,11 @@ class AbundanceFunctionFromTabulated(AbundanceFunction):
         
         #calculate cumulative or differential abundance depending on what was passed.
         #also calculate splines.
-        if kwargs['type']=='cumulative':
+        if kwargs['abundance_type']=='cumulative':
             self._spline_n()
             self._diff_cum_n()
             self._spline_dn()
-        elif kwargs['type']=='differential':
+        elif kwargs['abundance_type']=='differential':
             self._spline_dn()
             self._integrate_diff_n()
             self._spline_n()
@@ -669,7 +669,7 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
             abscissa sampling the relevant galaxy/halo property range with an appropriate 
             density.
         
-        type : string
+        abundance_type : string
             'cumulative' or 'differential'
         
         use_log10 : boolean, optional
@@ -707,11 +707,11 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
                 raise ValueError(msg)
             self._use_log10_x = kwargs['use_log10']
         
-        if kwargs['type']=='cumulative':
+        if kwargs['abundance_type']=='cumulative':
             self._type = 'cumulative'
             self._n_func = kwargs['n']
             self._log10_n_func = lambda x: np.log10(self._n_func(x))
-        elif kwargs['type']=='differential':
+        elif kwargs['abundance_type']=='differential':
             self._type = 'differential'
             self._dn_func = kwargs['n']
             self._log10_dn_func = lambda x: np.log10(self._dn_func(x))
@@ -720,7 +720,7 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
             raise ValueError(msg)
         
         #depending on input, calculate either the differential or cumulative functions
-        if kwargs['type']=='cumulative':
+        if kwargs['abundance_type']=='cumulative':
             self._diff_cum_n()
         else:
             self._integrate_diff_n()

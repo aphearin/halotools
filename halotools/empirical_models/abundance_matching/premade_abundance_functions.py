@@ -42,7 +42,7 @@ class Baldry2011(AbundanceFunctionFromCallable):
         params = {'n' : s,
                   'x' : mstar,
                   'use_log10' : True,
-                  'type' : 'differential',
+                  'abundance_type' : 'differential',
                   'n_increases_with_x' : False}
         
         #initialize super class
@@ -91,7 +91,7 @@ class LiWhite2009(AbundanceFunctionFromCallable):
         params = {'n' : s, 
                   'x' : mstar,
                   'use_log10' : True, 
-                  'type' : 'differential',
+                  'abundance_type' : 'differential',
                   'n_increases_with_x' : False
                   }
         
