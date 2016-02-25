@@ -16,7 +16,7 @@ __all__ = ['LiWhite2009','Baldry2011']
 
 class Baldry2011(AbundanceFunctionFromCallable):
     """
-    double schecter stellar mass function
+    double schechter stellar mass function
     """
     
     def __init__(self, mstar = np.logspace(7.0,13.0,1000)):
@@ -51,7 +51,7 @@ class Baldry2011(AbundanceFunctionFromCallable):
 
 class LiWhite2009(AbundanceFunctionFromCallable):
     """
-    piecewise triple schecter stellar mass function
+    piecewise triple schechter stellar mass function
     """
     
     def __init__(self, mstar = np.logspace(7.0,13.0,1000)):

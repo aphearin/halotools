@@ -68,20 +68,20 @@ class AbundanceMatching(PrimGalpropModel):
             halo_abundance_function = kwargs['halo_abundance_function']
         except KeyError:
             try:
-                complete_halo_catalog10 = kwargs['complete_subhalo_catalog10']
+                complete_halo_catalog = kwargs['complete_subhalo_catalog']
                 Lbox = kwargs['Lbox']
                 sim_volume = Lbox**3.
             except KeyError:
                 msg = ("\n If you do not pass in a ``halo_abundance_function`` \n"
-                        "keyword argument, you must pass in ``complete_subhalo_catalog10``\n"
+                        "keyword argument, you must pass in ``complete_subhalo_catalog``\n"
                         "and ``Lbox`` keyword arguments.\n")
                 raise HalotoolsError(msg)
             else:
                 try:
-                    prim_haloprop_array = complete_halo_catalog10[prim_haloprop_key]
+                    prim_haloprop_array = complete_halo_catalog[prim_haloprop_key]
                 except KeyError:
-                    msg = ("\n You passed in a ``complete_halo_catalog10`` argument.\n"
-                           "This catalog10 does not have a column corresponding to the \n"
+                    msg = ("\n You passed in a ``complete_halo_catalog`` argument.\n"
+                           "This catalog does not have a column corresponding to the \n"
                            "input ``prim_haloprop_key`` = " + prim_haloprop_key)
                     raise HalotoolsError(msg)
                 else: #build halo abundance function
