@@ -16,7 +16,7 @@ from astropy import cosmology
 from warnings import warn
 from functools import partial
 
-from . import LogNormalScatterModel
+from . import VariableLogNormalScatter
 
 from .. import model_defaults
 from .. import model_helpers as model_helpers
@@ -37,7 +37,7 @@ class PrimGalpropModel(object):
 
     def __init__(self, galprop_name, 
         prim_haloprop_key = model_defaults.default_smhm_haloprop, 
-        scatter_model = LogNormalScatterModel, **kwargs):
+        scatter_model = VariableLogNormalScatter, **kwargs):
         """
         Parameters 
         ----------
@@ -58,7 +58,7 @@ class PrimGalpropModel(object):
 
         scatter_model : object, optional  
             Class governing stochasticity of stellar mass. Default scatter is log-normal, 
-            implemented by the `LogNormalScatterModel` class. 
+            implemented by the `VariableLogNormalScatter` class. 
 
         redshift : float, optional  
             Redshift of the stellar-to-halo-mass relation. Default is 0. 

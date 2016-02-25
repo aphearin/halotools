@@ -19,7 +19,7 @@ from .smhm_helpers import safely_retrieve_redshift
 from .. import model_defaults
 from .. import model_helpers as model_helpers
 
-from ..component_model_templates import LogNormalScatterModel, PrimGalpropModel
+from ..component_model_templates import VariableLogNormalScatter, PrimGalpropModel
 
 from ...utils.array_utils import custom_len
 from ...sim_manager import sim_defaults 
@@ -44,7 +44,7 @@ class Behroozi10SmHm(PrimGalpropModel):
 
         scatter_model : object, optional  
             Class governing stochasticity of stellar mass. Default scatter is log-normal, 
-            implemented by the `~halotools.empirical_models.LogNormalScatterModel` class. 
+            implemented by the `~halotools.empirical_models.VariableLogNormalScatter` class. 
 
         scatter_abscissa : array_like, optional  
             Array of values giving the abscissa at which

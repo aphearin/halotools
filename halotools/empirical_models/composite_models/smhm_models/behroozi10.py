@@ -38,7 +38,7 @@ def behroozi10_model_dictionary(redshift = sim_defaults.default_redshift, **kwar
 
     scatter_model : object, optional  
         Class governing stochasticity of stellar mass. Default scatter is log-normal, 
-        implemented by the `~halotools.empirical_models.LogNormalScatterModel` class. 
+        implemented by the `~halotools.empirical_models.VariableLogNormalScatter` class. 
 
     scatter_abscissa : array_like, optional  
         Array of values giving the abscissa at which

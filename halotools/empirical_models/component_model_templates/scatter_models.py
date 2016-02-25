@@ -6,6 +6,9 @@ stellar mass and subtable.
 from __future__ import (
     division, print_function, absolute_import, unicode_literals)
 
+from abc import ABCMeta, abstractmethod
+import six 
+
 import numpy as np
 from scipy.interpolate import UnivariateSpline
 from astropy.extern import six
@@ -17,15 +20,46 @@ from functools import partial
 from .. import model_defaults
 from .. import model_helpers as model_helpers
 
-from ...utils.array_utils import custom_len, convert_to_ndarray
+from ...utils.array_utils import custom_len
 from ...sim_manager import sim_defaults 
+from ...custom_exceptions import HalotoolsError
 
 
-__all__ = ['LogNormalScatterModel']
+__all__ = ['ScatterModelTemplate', 'VariableLogNormalScatter', 'ConstantLogNormalScatter']
 
-class LogNormalScatterModel(object):
-    """ Simple model used to generate log-normal scatter 
-    in a stellar-to-halo-mass type relation. 
+
+@six.add_metaclass(ABCMeta)
+class ScatterModelTemplate(object):
+    """ Abstract base class used to standardize any class used to introduce scatter into a model for a galaxy property. 
+    """
+
+    @abstractmethod
+    def scatter_realization(self, seed=None, **kwargs):
+        """ Return a Monte Carlo realization of the scatter that should be added to the mean galaxy property to which noise is being added. 
+
+        Parameters 
+        ----------
+        prim_haloprop : array, optional  
+            Array of halo mass-like variable regulating the galaxy property being modeled. 
+            If ``prim_haloprop`` is not passed, then ``table`` keyword argument must be passed. 
+
+        table : object, optional  
+            Data table storing halo catalog. 
+            If ``table`` is not passed, then ``prim_haloprop`` keyword argument must be passed. 
+
+        seed : int, optional  
+            Random number seed. Default is None. 
+
+        Returns 
+        -------
+        scatter : array_like 
+            Array containing a random variable realization that should be added to the mean galaxy property to add scatter.  
+        """
+        raise NotImplementedError("All subclasses of ScatterModelTemplate "
+            "must include a ``scatter_realization`` method")
+
+class VariableLogNormalScatter(ScatterModelTemplate):
+    """ Simple model used to generate log-normal scatter in a stellar-to-halo-mass type relation. 
 
     """
 
@@ -53,8 +87,8 @@ class LogNormalScatterModel(object):
 
         Examples 
         ---------
-        >>> scatter_model = LogNormalScatterModel()
-        >>> scatter_model = LogNormalScatterModel(prim_haloprop_key='halo_mvir')
+        >>> scatter_model1 = VariableLogNormalScatter()
+        >>> scatter_model1 = VariableLogNormalScatter(prim_haloprop_key='halo_mvir')
 
         To implement variable scatter, we need to define the level 
         of log-normal scatter at a set of control values 
@@ -63,7 +97,14 @@ class LogNormalScatterModel(object):
 
         >>> scatter_abscissa = [12, 15]
         >>> scatter_ordinates = [0.3, 0.1]
-        >>> scatter_model = LogNormalScatterModel(scatter_abscissa=scatter_abscissa, scatter_ordinates=scatter_ordinates)
+        >>> scatter_model2 = VariableLogNormalScatter(scatter_abscissa=scatter_abscissa, scatter_ordinates=scatter_ordinates)
+
+        For every control point, there is a corresponding key in the model's ``param_dict``. 
+        After instantiating the model, the level of scatter can be 
+        modulated by changing the value of the corresponding parameter.  For example, 
+        in `scatter_model2` above, we can adjust the level of scatter in cluster-mass halos as follows
+
+        >> scatter_model2.param_dict['scatter_model_param2'] = 0.15
 
         """
         
@@ -71,8 +112,8 @@ class LogNormalScatterModel(object):
         self.prim_haloprop_key = prim_haloprop_key
 
         if ('scatter_abscissa' in kwargs.keys()) and ('scatter_ordinates' in kwargs.keys()):
-            self.abscissa = convert_to_ndarray(kwargs['scatter_abscissa'])
-            self.ordinates = convert_to_ndarray(kwargs['scatter_ordinates'])
+            self.abscissa = kwargs['scatter_abscissa']
+            self.ordinates = kwargs['scatter_ordinates']
         else:
             self.abscissa = [12]
             self.ordinates = [default_scatter]
@@ -107,7 +148,9 @@ class LogNormalScatterModel(object):
         elif 'prim_haloprop' in kwargs.keys():
             mass = kwargs['prim_haloprop']
         else:
-            raise KeyError("Must pass one of the following keyword arguments to mean_occupation:\n"
+            raise HalotoolsError("Must pass one of the following "
+                "keyword arguments to the ``mean_scatter`` method "
+                "of the ``VariableLogNormalScatter`` class:\n"
                 "``table`` or ``prim_haloprop``")
 
         self._update_interpol()
@@ -175,7 +218,78 @@ class LogNormalScatterModel(object):
         """
         return 'scatter_model_param'+str(ipar+1)
 
+class ConstantLogNormalScatter(ScatterModelTemplate):
+    """ Simple model used to generate log-normal scatter in a stellar-to-halo-mass type relation. 
 
+    """
+
+    def __init__(self, scatter_level = model_defaults.default_smhm_scatter, **kwargs):
+        """
+        Parameters 
+        ----------
+        scatter_level : float, optional  
+            Float defining the level of constant scatter in dex. 
+            Default level is set in the 
+            `~halotools.empirical_models.model_defaults` module. 
+
+        Examples 
+        ---------
+        >>> scatter_model1 = ConstantLogNormalScatter()
+        >>> scatter_model2 = ConstantLogNormalScatter(scatter_level = 0.25)
+
+        After instantiating the model, the level of scatter can be 
+        modulated by changing the value of the ``scatter_model_param1`` key in ``param_dict``. 
+        For example, in `scatter_model2` above, we can adjust the level of scatter as follows
+
+        >> scatter_model2.param_dict['scatter_model_param1'] = 0.15
+
+        """
+        
+        self.param_dict = {}
+        self.param_dict['scatter_model_param1'] = scatter_level
+
+    def scatter_realization(self, seed=None, **kwargs):
+        """ Return the amount of log-normal scatter that should be added 
+        to the galaxy property as a function of the input table. 
+
+        Parameters 
+        ----------
+        prim_haloprop : array, optional  
+            Array of mass-like variable upon which occupation statistics are based. 
+            If ``prim_haloprop`` is not passed, then ``table`` keyword argument must be passed. 
+
+        table : object, optional  
+            Data table storing halo catalog. 
+            If ``table`` is not passed, then ``prim_haloprop`` keyword argument must be passed. 
+
+        seed : int, optional  
+            Random number seed. Default is None. 
+
+        Returns 
+        -------
+        scatter : array_like 
+            Array containing a random variable realization that should be summed 
+            with the galaxy property to add scatter.  
+        """
+
+        if 'prim_haloprop' in kwargs:
+            num_gals = len(kwargs['prim_haloprop'])
+        elif 'table' in kwargs:
+            num_gals = len(kwargs['table'])
+        else:
+            raise HalotoolsError("Must pass one of the following "
+                "keyword arguments to the ``scatter_realization`` method "
+                "of the ``ConstantLogNormalScatter`` class:\n"
+                "``table`` or ``prim_haloprop``")
+
+        scatter_scale = np.zeros(num_gals) + self.param_dict['scatter_model_param1']
+
+        np.random.seed(seed=seed)
+
+        # Only draw from a Gaussian for cases with non-zero scatter
+        result = np.where(scatter_scale > 0, np.random.normal(loc=0, scale=scatter_scale), 0)
+            
+        return result
 
 
         
