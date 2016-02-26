@@ -152,7 +152,7 @@ class AbundanceMatching(PrimGalpropModel):
     def match(self, n1, n2, x1, x2, N_sample=1000):
         """
         Given abundance functions, n1 and n2, return x1(x2), such that the cumulative
-        abundances are equal, e.g. return the first momemnt of the stellar mass halo mass 
+        abundances are equal, e.g. return the first moment of the stellar mass halo mass 
         relation given the stellar mass and halo mass abundance functions.
         
         Parameters

@@ -757,12 +757,16 @@ class AbundanceFunctionFromCallable(AbundanceFunction):
         else:
             self._log10_n_func = InterpolatedUnivariateSpline(x, log10_n, k=1)
         
-        #use log10(x) as argument is appropriate
+        #use log10(x) as argument is appropriate    
         if self._use_log10_x:
-            self._n_func = lambda x: 10**self._log10_n_func(np.log10(x))
+            def f(x):
+                return 10**self._log10_n_func(np.log10(x))
+            self._n_func = f
         else:
-            self._n_func = lambda x: 10**self._log10_n_func(x)
-    
+            def f(x):
+                return 10**self._log10_n_func(x)
+            self._n_func = f
+
     def _diff_cum_n(self):
         """
         differentiate the cumulative number density to get the differential number 

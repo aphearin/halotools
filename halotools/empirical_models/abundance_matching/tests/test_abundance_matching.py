@@ -42,6 +42,38 @@ class TestAbundanceMatching(TestCase):
 			complete_subhalo_catalog=halos, 
 			Lbox = 250.)
 
+	@pytest.mark.xfail
+	def test_mean_relation(self):
+
+		am = AbundanceMatching('stellar_mass', 'halo_mpeak', 
+			self.baldry11, np.logspace(9, 11, 100), np.logspace(9, 11, 100), 
+			halo_abundance_function=self.liwhite09)
+
+		result = am.mean_stellar_mass(1e10)
+
+	@pytest.mark.xfail
+	def test_match(self):
+
+		am = AbundanceMatching('stellar_mass', 'halo_mpeak', 
+			self.baldry11, np.logspace(9, 11, 100), np.logspace(9, 11, 100), 
+			halo_abundance_function=self.liwhite09)
+
+		x1 = np.logspace(9.5, 10.5, 100)
+		x2 = np.logspace(9.5, 10.5, 100)
+
+		am.match(self.liwhite09, self.baldry11, x1, x2)
+
+	def test_match2(self):
+
+		am = AbundanceMatching('stellar_mass', 'halo_mpeak', 
+			self.baldry11, np.logspace(9, 11, 100), np.logspace(9, 11, 100), 
+			halo_abundance_function=self.liwhite09)
+
+		x1 = np.logspace(9, 11, 100)
+		x2 = np.logspace(9.5, 10.5, 100)
+
+		am.match(self.liwhite09, self.baldry11, x1, x2)
+
 	def tearDown(self):
 		pass
 
