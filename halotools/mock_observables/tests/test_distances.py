@@ -1,23 +1,12 @@
 #!/usr/bin/env python
 from __future__ import (absolute_import, division, print_function)
-
-from unittest import TestCase
-from copy import deepcopy 
-
-from collections import Counter
-
 import numpy as np 
-
 from astropy.tests.helper import pytest
-from astropy.table import Table 
+from ...custom_exceptions import HalotoolsError
 
 from ..distances import periodic_3d_distance
 
-from ...sim_manager import FakeSim
-
-from ...custom_exceptions import HalotoolsError
-
-__all__ = ['TestCatalogAnalysisHelpers']
+__all__ = ['test_distances1']
 
 def test_distances1():
 	x1 = np.random.rand(5)
