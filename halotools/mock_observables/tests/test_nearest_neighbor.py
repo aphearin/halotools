@@ -24,6 +24,9 @@ def test_diffusely_distributed_points():
     nn2 = nearest_neighbor(sample1, sample2, r_max, 
         nth_nearest=2, period=1.)
 
+
+
+
 def test_tight_locus():
     """ Verify that the `~halotools.mock_observables.nearest_neighbor` 
     function returns a result without raising an exception when passed 
@@ -31,11 +34,11 @@ def test_tight_locus():
     """
 
     npts1, npts2 = npts, npts
-    sample1 = generate_locus_of_3d_points(npts1, loc=0.1)
+    sample1 = generate_locus_of_3d_points(npts1, loc=0.1, epsilon=0.01)
     assert sample1.shape == (npts1, 3)
-    assert np.all(sample1 > 0.099)
-    assert np.all(sample1 < 1.01)
-    sample2 = generate_locus_of_3d_points(npts2, loc=0.9)
+    assert np.all(sample1 >= 0.09)
+    assert np.all(sample1 <= 0.11)
+    sample2 = generate_locus_of_3d_points(npts2, loc=0.9, epsilon=0.01)
 
     r_max = 0.5
     nn = nearest_neighbor(sample1, sample2, r_max, nth_nearest=1)
