@@ -2,14 +2,19 @@
 from __future__ import (absolute_import, division, print_function)
 import numpy as np 
 from astropy.tests.helper import pytest
-from ...custom_exceptions import HalotoolsError
 
+from .cf_helpers import generate_locus_of_3d_points
 from ..nearest_neighbor import nearest_neighbor
 
-__all__ = ['test_nearest_neighbor_func_signature']
+__all__ = ('test_diffusely_distributed_points', 'test_tight_locus')
 
-def test_nearest_neighbor_func_signature():
-    npts = 100
+npts = 100
+
+def test_diffusely_distributed_points():
+    """ Verify that the `~halotools.mock_observables.nearest_neighbor` 
+    function returns a result without raising an exception when passed 
+    two sets of points that evenly sample the full box at random. 
+    """
     sample1 = np.random.rand(npts, 3)
     sample2 = np.random.rand(npts, 3)
     r_max = 0.2
@@ -18,6 +23,22 @@ def test_nearest_neighbor_func_signature():
         nth_nearest=nth_nearest)
     nn2 = nearest_neighbor(sample1, sample2, r_max, 
         nth_nearest=2, period=1.)
+
+def test_tight_locus():
+    """ Verify that the `~halotools.mock_observables.nearest_neighbor` 
+    function returns a result without raising an exception when passed 
+    two distant sets of points, each in a tight locus. 
+    """
+
+    npts1, npts2 = npts, npts
+    sample1 = generate_locus_of_3d_points(npts1, loc=0.1)
+    assert sample1.shape == (npts1, 3)
+    assert np.all(sample1 > 0.099)
+    assert np.all(sample1 < 1.01)
+    sample2 = generate_locus_of_3d_points(npts2, loc=0.9)
+
+    r_max = 0.5
+    nn = nearest_neighbor(sample1, sample2, r_max, nth_nearest=1)
 
 
 
