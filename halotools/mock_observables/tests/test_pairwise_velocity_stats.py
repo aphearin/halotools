@@ -209,11 +209,133 @@ def test_mean_los_velocity_vs_rp2():
 		approx_cell1_size = [0.2, 0.2, 0.2])
 	assert np.allclose(result1, result2, rtol=0.0001)
 
+@pytest.mark.slow
+def test_mean_los_velocity_vs_rp3():
+	np.random.seed(43)
+
+	npts = 200
+	sample1 = np.random.rand(npts, 3)
+	velocities1 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+	sample2 = np.random.rand(npts, 3)
+	velocities2 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+
+	rbins = np.linspace(0, 0.3, 10)
+	pi_max = 0.4
+	result = mean_los_velocity_vs_rp(sample1, velocities1, rbins, pi_max, 
+		sample2 = sample2, velocities2 = velocities2)
+
+@pytest.mark.slow
+def test_mean_los_velocity_vs_rp_auto_consistency():
+	np.random.seed(43)
+
+	npts = 200
+	sample1 = np.random.rand(npts, 3)
+	velocities1 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+	sample2 = np.random.rand(npts, 3)
+	velocities2 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+
+	rbins = np.linspace(0, 0.3, 10)
+	pi_max = 0.2
+	s1s1a, s1s2a, s2s2a = mean_los_velocity_vs_rp(sample1, velocities1, rbins, pi_max, 
+		sample2 = sample2, velocities2 = velocities2)
+	s1s1b, s2s2b = mean_los_velocity_vs_rp(sample1, velocities1, rbins, pi_max, 
+		sample2 = sample2, velocities2 = velocities2, 
+		do_cross = False)
+
+	assert np.allclose(s1s1a,s1s1b, rtol=0.001)
+	assert np.allclose(s2s2a,s2s2b, rtol=0.001)
 
 
+@pytest.mark.slow
+def test_mean_los_velocity_vs_rp_cross_consistency():
+	np.random.seed(43)
+
+	npts = 200
+	sample1 = np.random.rand(npts, 3)
+	velocities1 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+	sample2 = np.random.rand(npts, 3)
+	velocities2 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+
+	rbins = np.linspace(0, 0.3, 10)
+	pi_max = 0.3
+	s1s1a, s1s2a, s2s2a = mean_los_velocity_vs_rp(sample1, velocities1, rbins, pi_max, 
+		sample2 = sample2, velocities2 = velocities2)
+	s1s2b = mean_los_velocity_vs_rp(sample1, velocities1, rbins, pi_max, 
+		sample2 = sample2, velocities2 = velocities2, 
+		do_auto = False)
+
+	assert np.allclose(s1s2a,s1s2b, rtol=0.001)
+
+@pytest.mark.slow
+def test_los_pvd_vs_rp1():
+	np.random.seed(43)
+
+	npts = 200
+	sample1 = np.random.rand(npts, 3)
+	velocities1 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+	rbins = np.linspace(0, 0.3, 10)
+	pi_max = 0.3
+	result = los_pvd_vs_rp(sample1, velocities1, rbins, pi_max)
+
+@pytest.mark.slow
+def test_los_pvd_vs_rp2():
+	np.random.seed(43)
+
+	npts = 200
+	sample1 = np.random.rand(npts, 3)
+	velocities1 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+	rbins = np.linspace(0, 0.3, 10)
+	pi_max = 0.5
+	result1 = los_pvd_vs_rp(sample1, velocities1, rbins, pi_max)
+	result2 = los_pvd_vs_rp(sample1, velocities1, rbins, pi_max,  
+		approx_cell1_size = [0.2, 0.2, 0.2])
+	assert np.allclose(result1, result2, rtol=0.0001)
+
+@pytest.mark.slow
+def test_los_pvd_vs_rp3():
+	np.random.seed(43)
+
+	npts = 200
+	sample1 = np.random.rand(npts, 3)
+	velocities1 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+	sample2 = np.random.rand(npts, 3)
+	velocities2 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+
+	rbins = np.linspace(0, 0.3, 10)
+	pi_max = 0.4
+	result = los_pvd_vs_rp(sample1, velocities1, rbins, pi_max, 
+		sample2 = sample2, velocities2 = velocities2)
 
 
+@pytest.mark.slow
+def test_los_pvd_vs_rp_cross_consistency():
+	np.random.seed(43)
 
+	npts = 200
+	sample1 = np.random.rand(npts, 3)
+	velocities1 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+	sample2 = np.random.rand(npts, 3)
+	velocities2 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
 
+	rbins = np.linspace(0, 0.3, 10)
+	pi_max = 0.3
+	s1s1a, s1s2a, s2s2a = los_pvd_vs_rp(sample1, velocities1, rbins, pi_max, 
+		sample2 = sample2, velocities2 = velocities2)
+	s1s2b = los_pvd_vs_rp(sample1, velocities1, rbins, pi_max, 
+		sample2 = sample2, velocities2 = velocities2, 
+		do_auto = False)
 
+	assert np.allclose(s1s2a,s1s2b, rtol=0.001)
 
