@@ -182,3 +182,38 @@ def test_radial_pvd_vs_r_cross_consistency():
 
 	assert np.allclose(s1s2a,s1s2b, rtol=0.001)
 
+@pytest.mark.slow
+def test_mean_los_velocity_vs_rp1():
+	np.random.seed(43)
+
+	npts = 200
+	sample1 = np.random.rand(npts, 3)
+	velocities1 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+	rbins = np.linspace(0, 0.3, 10)
+	pi_max = 0.5
+	result = mean_los_velocity_vs_rp(sample1, velocities1, rbins, pi_max)
+
+@pytest.mark.slow
+def test_mean_los_velocity_vs_rp2():
+	np.random.seed(43)
+
+	npts = 200
+	sample1 = np.random.rand(npts, 3)
+	velocities1 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+	rbins = np.linspace(0, 0.3, 10)
+	pi_max = 0.5
+	result1 = mean_los_velocity_vs_rp(sample1, velocities1, rbins, pi_max)
+	result2 = mean_los_velocity_vs_rp(sample1, velocities1, rbins, pi_max,  
+		approx_cell1_size = [0.2, 0.2, 0.2])
+	assert np.allclose(result1, result2, rtol=0.0001)
+
+
+
+
+
+
+
+
+
