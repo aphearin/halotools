@@ -34,11 +34,13 @@ def test_tight_locus():
     """
 
     npts1, npts2 = npts, npts
-    sample1 = generate_locus_of_3d_points(npts1, loc=0.1, epsilon=0.01)
+    sample1 = generate_locus_of_3d_points(npts1, 
+        xc=0.1, yc=0.1, zc=0.1, epsilon=0.01)
     assert sample1.shape == (npts1, 3)
     assert np.all(sample1 >= 0.09)
     assert np.all(sample1 <= 0.11)
-    sample2 = generate_locus_of_3d_points(npts2, loc=0.9, epsilon=0.01)
+    sample2 = generate_locus_of_3d_points(npts2, 
+        xc=0.9, yc=0.9, zc=0.9, epsilon=0.01)
 
     r_max = 0.5
     nn = nearest_neighbor(sample1, sample2, r_max, nth_nearest=1)
