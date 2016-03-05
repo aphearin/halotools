@@ -17,13 +17,13 @@ from ..utils import convert_to_ndarray
 
 
 __all__=['void_prob_func', 'underdensity_prob_func']
-__author__ = ['Duncan Campbell']
+__author__ = ['Duncan Campbell', 'Andrew Hearin']
 
 
 np.seterr(divide='ignore', invalid='ignore') #ignore divide by zero in e.g. DD/RR
 
 
-def void_prob_func(sample1, rbins, n_ran, period, num_threads=1,
+def void_prob_func(sample1, rbins, n_ran, period=None, num_threads=1,
                    approx_cell1_size=None, approx_cellran_size=None):
     """
     Calculate the void probability function (VPF), :math:`P_0(r)`.
@@ -48,10 +48,13 @@ def void_prob_func(sample1, rbins, n_ran, period, num_threads=1,
     n_ran : int
         integer number of randoms to use to seeach for voids
     
-    period : array_like
+    period : array_like, optional 
         length 3 array defining axis-aligned periodic boundary conditions. If only
         one number, Lbox, is specified, period is assumed to be np.array([Lbox]*3).
-        If none, PBCs are set to infinity.
+        If set to None, PBCs are set to infinity. Even in this case, it is still necessary 
+        to drop down randomly placed spheres in order to compute the VPF. To do so, 
+        the spheres will be dropped inside a cubical box whose sides are defined by  
+        the smallest/largest coordinate distance of the input ``sample1``. 
     
     num_threads : int, optional
         number of 'threads' to use in the pair counting.  if set to 'max', use all 
@@ -112,14 +115,17 @@ def void_prob_func(sample1, rbins, n_ran, period, num_threads=1,
     :ref:`galaxy_catalog_analysis_tutorial8`
 
     """
-    period = convert_to_ndarray(period)
-    if len(period) == 1:
-        period = np.array([period, period, period])
-    elif len(period) == 3:
+    if period is None:
         pass
     else:
-        msg = ("\nInput ``period`` must either be a float or length-3 sequence")
-        raise HalotoolsError(msg)
+        period = convert_to_ndarray(period)
+        if len(period) == 1:
+            period = np.array([period, period, period])
+        elif len(period) == 3:
+            pass
+        else:
+            msg = ("\nInput ``period`` must either be a float or length-3 sequence")
+            raise HalotoolsError(msg)
 
     #process input
     if type(n_ran) is not int:
@@ -129,7 +135,14 @@ def void_prob_func(sample1, rbins, n_ran, period, num_threads=1,
         raise HalotoolsError(msg)
     
     #create random sphere centers
-    randoms = np.random.uniform(0, period[0], (n_ran,3))
+    if period is None:
+        pmin, pmax = np.min(sample1), np.max(sample1)
+        randoms = np.random.uniform(pmin, pmax, (n_ran, 3))
+    else:
+        xran = np.random.uniform(0, period[0], n_ran)
+        yran = np.random.uniform(0, period[1], n_ran)
+        zran = np.random.uniform(0, period[2], n_ran)
+        randoms = np.vstack([xran, yran, zran]).T
     
     result = per_object_npairs(randoms, sample1, rbins, period = period,\
                               num_threads = num_threads,\
@@ -142,8 +155,9 @@ def void_prob_func(sample1, rbins, n_ran, period, num_threads=1,
     return (n_ran - result)/n_ran
 
 
-def underdensity_prob_func(sample1, rbins, n_ran, period, u=0.2, num_threads=1,
-                           approx_cell1_size=None, approx_cellran_size=None):
+def underdensity_prob_func(sample1, rbins, n_ran, period=None, 
+    sample_volume = None, u=0.2, num_threads=1,
+    approx_cell1_size=None, approx_cellran_size=None):
     """
     Calculate the underdensity probability function (UPF), :math:`P_U(r)`.
     
@@ -167,11 +181,17 @@ def underdensity_prob_func(sample1, rbins, n_ran, period, u=0.2, num_threads=1,
     n_ran : int
         integer number of randoms to use to seeach for voids
     
-    period : array_like
+    period : array_like, optional 
         length 3 array defining axis-aligned periodic boundary conditions. If only
         one number, Lbox, is specified, period is assumed to be np.array([Lbox]*3).
-        If none, PBCs are set to infinity.
+        If set to None, PBCs are set to infinity. Even in this case, it is still necessary 
+        to drop down randomly placed spheres in order to compute the VPF. To do so, 
+        the spheres will be dropped inside a cubical box whose sides are defined by  
+        the smallest/largest coordinate distance of the input ``sample1``. 
     
+    sample_volume : float, optional 
+        If period is set to None, you must specify the effective volume of the sample. 
+
     u : float, optional
         density threshold in units of the mean object density
     
@@ -233,14 +253,21 @@ def underdensity_prob_func(sample1, rbins, n_ran, period, u=0.2, num_threads=1,
     ----------
     :ref:`galaxy_catalog_analysis_tutorial8`
     """
-    period = convert_to_ndarray(period)
-    if len(period) == 1:
-        period = np.array([period, period, period])
-    elif len(period) == 3:
-        pass
+    if period is None:
+        if sample_volume is None:
+            msg = ("If period is set to None, "
+                "you must specify the effective sample_volume of the sample.")
+            raise HalotoolsError(msg)
     else:
-        msg = ("\nInput ``period`` must either be a float or length-3 sequence")
-        raise HalotoolsError(msg)
+        period = convert_to_ndarray(period)
+        if len(period) == 1:
+            period = np.array([period, period, period])
+        elif len(period) == 3:
+            pass
+        else:
+            msg = ("\nInput ``period`` must either be a float or length-3 sequence")
+            raise HalotoolsError(msg)
+        sample_volume = period.prod()
     
     #process input
     if type(n_ran) is not int:
@@ -252,7 +279,14 @@ def underdensity_prob_func(sample1, rbins, n_ran, period, u=0.2, num_threads=1,
     u = float(u)
     
     #create random sphere centers
-    randoms = np.random.uniform(0, period[0], (n_ran,3))
+    if period is None:
+        pmin, pmax = np.min(sample1), np.max(sample1)
+        randoms = np.random.uniform(pmin, pmax, (n_ran, 3))
+    else:
+        xran = np.random.uniform(0, period[0], n_ran)
+        yran = np.random.uniform(0, period[1], n_ran)
+        zran = np.random.uniform(0, period[2], n_ran)
+        randoms = np.vstack([xran, yran, zran]).T
     
     result = per_object_npairs(randoms, sample1, rbins, period = period,\
                                num_threads = num_threads,\
@@ -262,7 +296,7 @@ def underdensity_prob_func(sample1, rbins, n_ran, period, u=0.2, num_threads=1,
     # calculate the number of galaxies as a
     # function of r that corresponds to the
     # specified under-density
-    mean_rho = len(sample1)/period.prod()
+    mean_rho = len(sample1)/sample_volume
     vol = (4.0/3.0)* np.pi * rbins**3
     N_max = mean_rho*vol*u
     mask = (result > N_max)
