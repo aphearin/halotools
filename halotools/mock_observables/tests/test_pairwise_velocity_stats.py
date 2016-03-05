@@ -161,4 +161,24 @@ def test_radial_pvd_vs_r_auto_consistency():
 	assert np.allclose(s1s1a,s1s1b, rtol=0.001)
 	assert np.allclose(s2s2a,s2s2b, rtol=0.001)
 
+@pytest.mark.slow
+def test_radial_pvd_vs_r_cross_consistency():
+	np.random.seed(43)
+
+	npts = 200
+	sample1 = np.random.rand(npts, 3)
+	velocities1 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+	sample2 = np.random.rand(npts, 3)
+	velocities2 = np.random.normal(
+		loc = 0, scale = 100, size=npts*3).reshape((npts, 3))
+
+	rbins = np.linspace(0, 0.3, 10)
+	s1s1a, s1s2a, s2s2a = radial_pvd_vs_r(sample1, velocities1, rbins, 
+		sample2 = sample2, velocities2 = velocities2)
+	s1s2b = radial_pvd_vs_r(sample1, velocities1, rbins, 
+		sample2 = sample2, velocities2 = velocities2, 
+		do_auto = False)
+
+	assert np.allclose(s1s2a,s1s2b, rtol=0.001)
 
