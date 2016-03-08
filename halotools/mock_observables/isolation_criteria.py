@@ -276,7 +276,7 @@ def conditional_spherical_isolation(sample1, sample2, r_max,
     different number of marks per point, N_marks.  The conditonal function gets passed 
     two vectors per pair, w1 and w2, of length N_marks and return a float.  
     
-    A pair pair is counted as a neighbor if the conditonal function evaulates as True.
+    A pair pair is counted as a neighbor if the conditonal function evaluates as True.
     
     The available marking functions, ``cond_func`` and the associated integer 
     ID numbers are:
@@ -321,7 +321,7 @@ def conditional_spherical_isolation(sample1, sample2, r_max,
                 \\end{array}
                 \\right.
     
-    #. tolerance greater than (N_marks = 1)
+    #. tolerance greater than (N_marks = 2)
         .. math::
             f(w_1,w_2) = 
                 \\left \\{
@@ -331,7 +331,7 @@ def conditional_spherical_isolation(sample1, sample2, r_max,
                 \\end{array}
                 \\right.
     
-    #. tolerance less than (N_marks = 1)
+    #. tolerance less than (N_marks = 2)
         .. math::
             f(w_1,w_2) = 
                 \\left \\{

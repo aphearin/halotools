@@ -80,6 +80,82 @@ def test_cylindrical_isolation3():
 	iso = cylindrical_isolation(sample1, sample2, rp_max, pi_max, period=1)
 	assert np.all(iso == True)
 
+# def conditional_spherical_isolation(sample1, sample2, r_max,
+#                         marks1, marks2, cond_func, period=None,
+#                         num_threads=1, approx_cell1_size=None, approx_cell2_size=None):
+
+
+def test_conditional_spherical_isolation_cond_func1():
+	sample1 = generate_locus_of_3d_points(10, xc=0.05, yc=0.05, zc=0.05)
+	sample2 = generate_locus_of_3d_points(10, xc=0.95, yc=0.95, zc=0.95)
+	r_max = 0.2
+	marks1 = np.ones(len(sample1))
+	marks2 = np.zeros(len(sample2))
+	
+	iso = spherical_isolation(sample1, sample2, r_max, period=1)
+	assert np.all(iso == False)
+
+	cond_func = 1
+	marked_iso1a = conditional_spherical_isolation(sample1, sample2, r_max, 
+		marks1, marks2, cond_func, period=1)
+	marked_iso1b = conditional_spherical_isolation(sample1, sample2, r_max, 
+		marks2, marks1, cond_func, period=1)
+	assert np.all(marked_iso1a == False)
+	assert np.all(marked_iso1b == True)
+
+def test_conditional_spherical_isolation_cond_func2():
+	sample1 = generate_locus_of_3d_points(10, xc=0.05, yc=0.05, zc=0.05)
+	sample2 = generate_locus_of_3d_points(10, xc=0.95, yc=0.95, zc=0.95)
+	r_max = 0.2
+	marks1 = np.ones(len(sample1))
+	marks2 = np.zeros(len(sample2))
+	
+	iso = spherical_isolation(sample1, sample2, r_max, period=1)
+	assert np.all(iso == False)
+
+	cond_func = 2
+	marked_iso2a = conditional_spherical_isolation(sample1, sample2, r_max, 
+		marks1, marks2, cond_func, period=1)
+	marked_iso2b = conditional_spherical_isolation(sample1, sample2, r_max, 
+		marks2, marks1, cond_func, period=1)
+	assert np.all(marked_iso2a == True)
+	assert np.all(marked_iso2b == False)
+
+def test_conditional_spherical_isolation_cond_func3():
+	sample1 = generate_locus_of_3d_points(10, xc=0.05, yc=0.05, zc=0.05)
+	sample2 = generate_locus_of_3d_points(10, xc=0.95, yc=0.95, zc=0.95)
+	r_max = 0.2
+	marks1 = np.ones(len(sample1))
+	marks2 = np.zeros(len(sample2))
+	
+	iso = spherical_isolation(sample1, sample2, r_max, period=1)
+	assert np.all(iso == False)
+
+	cond_func = 3
+	marked_iso3 = conditional_spherical_isolation(sample1, sample2, r_max, 
+		marks1, marks2, cond_func, period=1)
+	assert np.all(marked_iso3 == True)
+
+def test_conditional_spherical_isolation_cond_func4():
+	sample1 = generate_locus_of_3d_points(10, xc=0.05, yc=0.05, zc=0.05)
+	sample2 = generate_locus_of_3d_points(10, xc=0.95, yc=0.95, zc=0.95)
+	r_max = 0.2
+	marks1 = np.ones(len(sample1))
+	marks2 = np.zeros(len(sample2))
+	
+	iso = spherical_isolation(sample1, sample2, r_max, period=1)
+	assert np.all(iso == False)
+
+	cond_func = 4
+	marked_iso4 = conditional_spherical_isolation(sample1, sample2, r_max, 
+		marks1, marks1, cond_func, period=1)
+	assert np.all(marked_iso4 == False)
+
+
+
+
+
+
 
 
 
