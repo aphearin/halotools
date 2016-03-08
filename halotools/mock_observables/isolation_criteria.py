@@ -109,9 +109,6 @@ def spherical_isolation(sample1, sample2, r_max, period=None,
     inds = np.arange(0,N)
     
     is_isolated = np.in1d(inds, i, invert=True)
-    print("\n\n")
-    print("Printing spherical distance_matrix")
-    print(distance_matrix)
 
     return is_isolated
 
@@ -193,7 +190,7 @@ def cylindrical_isolation(sample1, sample2, rp_max, pi_max, period=None, num_thr
     """
     
     perp_distance_matrix, para_distance_matrix = \
-        xy_z_pair_matrix(sample1, sample1, rp_max, pi_max, period=period, 
+        xy_z_pair_matrix(sample1, sample2, rp_max, pi_max, period=period, 
                          approx_cell1_size = approx_cell1_size,
                          approx_cell2_size = approx_cell1_size)
     
@@ -206,9 +203,6 @@ def cylindrical_isolation(sample1, sample2, rp_max, pi_max, period=None, num_thr
     inds = np.arange(0,N)
     
     is_isolated = np.in1d(inds, i, invert=True)
-    print("\n\n")
-    print("Printing cylindrical distance_matrix")
-    print(distance_matrix)
     return is_isolated
 
 
@@ -561,7 +555,7 @@ def conditional_cylindrical_isolation(sample1, sample2, rp_max, pi_max,
     """
     
     perp_distance_matrix, para_distance_matrix = \
-        conditional_xy_z_pair_matrix(sample1, sample1, rp_max, pi_max,
+        conditional_xy_z_pair_matrix(sample1, sample2, rp_max, pi_max,
                          marks1, marks2, cond_func, 
                          period = period,
                          approx_cell1_size = approx_cell1_size,

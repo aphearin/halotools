@@ -45,14 +45,11 @@ def test_cylindrical_isolation2():
 	""" For two tight localizations of distant points, 
 	all points in sample1 should be isolated. 
 	"""
-	sample1 = generate_locus_of_3d_points(3, xc=0.1, yc=0.1, zc=0.1)
-	sample2 = generate_locus_of_3d_points(3, xc=0.5, yc=0.5, zc=0.5)
+	sample2 = generate_locus_of_3d_points(100, xc=0.5, yc=0.5, zc=0.5)
 	pi_max = 0.1
 	rp_max = 0.1
-	spherical_iso = spherical_isolation(sample1, sample2, rp_max)
-	assert np.all(spherical_iso == True)
-	cylindrical_iso = cylindrical_isolation(sample1, sample2, rp_max, pi_max)
-	assert np.all(cylindrical_iso == True)
+	iso = cylindrical_isolation(sample1, sample2, rp_max, pi_max)
+	assert np.all(iso == True)
 
 
 
