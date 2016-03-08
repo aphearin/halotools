@@ -109,7 +109,10 @@ def spherical_isolation(sample1, sample2, r_max, period=None,
     inds = np.arange(0,N)
     
     is_isolated = np.in1d(inds, i, invert=True)
-    
+    print("\n\n")
+    print("Printing spherical distance_matrix")
+    print(distance_matrix)
+
     return is_isolated
 
 
@@ -117,7 +120,7 @@ def cylindrical_isolation(sample1, sample2, rp_max, pi_max, period=None, num_thr
                           approx_cell1_size=None, approx_cell2_size=None):
     """
     Determine whether a set of points, ``sample1``, has a neighbor in ``sample2`` within 
-    a cylinderical volume
+    a cylindrical volume
     
     Parameters
     ----------
@@ -131,7 +134,7 @@ def cylindrical_isolation(sample1, sample2, rp_max, pi_max, period=None, num_thr
         radius of the cylinder to seach for neighbors
     
     pi_max : float
-        half the legnth of the cylinder to seach for neighbors
+        half the length of the cylinder to seach for neighbors
     
     period : array_like, optional
         length 3 array defining axis-aligned periodic boundary conditions. If only
@@ -203,7 +206,9 @@ def cylindrical_isolation(sample1, sample2, rp_max, pi_max, period=None, num_thr
     inds = np.arange(0,N)
     
     is_isolated = np.in1d(inds, i, invert=True)
-    
+    print("\n\n")
+    print("Printing cylindrical distance_matrix")
+    print(distance_matrix)
     return is_isolated
 
 
@@ -406,7 +411,7 @@ def conditional_cylindrical_isolation(sample1, sample2, rp_max, pi_max,
         radius of the cylinder to seach for neighbors
     
     pi_max : float
-        half the legnth of the cylinder to seach for neighbors
+        half the length of the cylinder to seach for neighbors
     
     marks1 : array_like
         len(sample1) x N_marks array of marks.  The suplied marks array must have the 
