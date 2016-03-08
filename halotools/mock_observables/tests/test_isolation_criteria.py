@@ -9,7 +9,7 @@ from .cf_helpers import generate_locus_of_3d_points
 
 __all__ = ['test_spherical_isolation_criteria1']
 
-sample1 = generate_locus_of_3d_points(100)
+sample1 = generate_locus_of_3d_points(100, xc=0.1, yc=0.1, zc=0.1)
 
 def test_spherical_isolation_criteria1():
 	sample2 = generate_locus_of_3d_points(100, xc=0.5)
@@ -43,13 +43,44 @@ def test_cylindrical_isolation1():
 
 def test_cylindrical_isolation2():
 	""" For two tight localizations of distant points, 
-	all points in sample1 should be isolated. 
+	all points in sample1 should be isolated unless PBCs are turned on
 	"""
-	sample2 = generate_locus_of_3d_points(100, xc=0.5, yc=0.5, zc=0.5)
-	pi_max = 0.1
-	rp_max = 0.1
+	sample1 = generate_locus_of_3d_points(100, xc=0.05, yc=0.05, zc=0.05)
+	sample2 = generate_locus_of_3d_points(100, xc=0.95, yc=0.95, zc=0.95)
+	pi_max = 0.2
+	rp_max = 0.2
 	iso = cylindrical_isolation(sample1, sample2, rp_max, pi_max)
 	assert np.all(iso == True)
+	iso2 = cylindrical_isolation(sample1, sample2, rp_max, pi_max, period=1.)
+	assert np.all(iso2 == False)
+
+def test_cylindrical_isolation3():
+	""" For two tight localizations of distant points, 
+	verify independently correct behavior for pi_max and rp_max
+	"""
+	sample1 = generate_locus_of_3d_points(10, xc=0.05, yc=0.05, zc=0.05)
+	sample2 = generate_locus_of_3d_points(10, xc=0.95, yc=0.95, zc=0.95)
+
+	rp_max, pi_max = 0.2, 0.2
+	iso = cylindrical_isolation(sample1, sample2, rp_max, pi_max)
+	assert np.all(iso == True)
+	iso = cylindrical_isolation(sample1, sample2, rp_max, pi_max, period=[1, 1, 1])
+	assert np.all(iso == False)
+
+	rp_max, pi_max = 0.2, 0.2
+	iso = cylindrical_isolation(sample1, sample2, rp_max, pi_max, period=[1000, 1000, 1])
+	assert np.all(iso == True)
+	iso = cylindrical_isolation(sample1, sample2, rp_max, pi_max, period=[1, 1, 1000])
+	assert np.all(iso == True)
+
+	rp_max, pi_max = 0.05, 0.2
+	iso = cylindrical_isolation(sample1, sample2, rp_max, pi_max, period=1)
+	assert np.all(iso == True)
+	rp_max, pi_max = 0.2, 0.05
+	iso = cylindrical_isolation(sample1, sample2, rp_max, pi_max, period=1)
+	assert np.all(iso == True)
+
+
 
 
 
