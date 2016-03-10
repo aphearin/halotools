@@ -287,7 +287,7 @@ def conditional_spherical_isolation(sample1, sample2, r_max,
                 \\left \\{
                 \\begin{array}{ll}
                     True & : w_1[0] > w_2[0] \\\\
-                    False & : w_1[0] \\geq w_2[0] \\\\
+                    False & : w_1[0] \\leq w_2[0] \\\\
                 \\end{array}
                 \\right.
     
@@ -297,7 +297,7 @@ def conditional_spherical_isolation(sample1, sample2, r_max,
                 \\left \\{
                 \\begin{array}{ll}
                     True & : w_1[0] < w_2[0] \\\\
-                    False & : w_1[0] \\leq w_2[0] \\\\
+                    False & : w_1[0] \\geq w_2[0] \\\\
                 \\end{array}
                 \\right.
     
@@ -470,7 +470,7 @@ def conditional_cylindrical_isolation(sample1, sample2, rp_max, pi_max,
                 \\left \\{
                 \\begin{array}{ll}
                     True & : w_1[0] > w_2[0] \\\\
-                    False & : w_1[0] \\geq w_2[0] \\\\
+                    False & : w_1[0] \\leq w_2[0] \\\\
                 \\end{array}
                 \\right.
     
@@ -480,7 +480,7 @@ def conditional_cylindrical_isolation(sample1, sample2, rp_max, pi_max,
                 \\left \\{
                 \\begin{array}{ll}
                     True & : w_1[0] < w_2[0] \\\\
-                    False & : w_1[0] \\leq w_2[0] \\\\
+                    False & : w_1[0] \\geq w_2[0] \\\\
                 \\end{array}
                 \\right.
     

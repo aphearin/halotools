@@ -110,7 +110,7 @@ def test_conditional_spherical_isolation_cond_func2():
 	marks1 = np.ones(len(sample1))
 	marks2 = np.zeros(len(sample2))
 	
-	iso = spherical_isolation(sample1, sample2, r_max, period=1)
+	iso = spherical_isolation(sample1, sample2, r_max, period=1.0)
 	assert np.all(iso == False)
 
 	cond_func = 2
@@ -149,7 +149,7 @@ def test_conditional_spherical_isolation_cond_func4():
 	cond_func = 4
 	marked_iso4 = conditional_spherical_isolation(sample1, sample2, r_max, 
 		marks1, marks1, cond_func, period=1)
-	assert np.all(marked_iso4 == False)
+	assert np.all(marked_iso4 == True)
 
 
 

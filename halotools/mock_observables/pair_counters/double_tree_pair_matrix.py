@@ -526,7 +526,7 @@ def conditional_pair_matrix(data1, data2, r_max, weights1, weights2, cond_func_i
                 \\left \\{
                 \\begin{array}{ll}
                     True & : w_1[0] > w_2[0] \\\\
-                    False & : w_1[0] \\geq w_2[0] \\\\
+                    False & : w_1[0] \\leq w_2[0] \\\\
                 \\end{array}
                 \\right.
     
@@ -536,7 +536,7 @@ def conditional_pair_matrix(data1, data2, r_max, weights1, weights2, cond_func_i
                 \\left \\{
                 \\begin{array}{ll}
                     True & : w_1[0] < w_2[0] \\\\
-                    False & : w_1[0] \\leq w_2[0] \\\\
+                    False & : w_1[0] \\geq w_2[0] \\\\
                 \\end{array}
                 \\right.
     
@@ -560,7 +560,7 @@ def conditional_pair_matrix(data1, data2, r_max, weights1, weights2, cond_func_i
                 \\end{array}
                 \\right.
     
-    #. tolerance greater than (N_marks = 1)
+    #. tolerance greater than (N_marks = 2)
         .. math::
             f(w_1,w_2) = 
                 \\left \\{
@@ -570,7 +570,7 @@ def conditional_pair_matrix(data1, data2, r_max, weights1, weights2, cond_func_i
                 \\end{array}
                 \\right.
     
-    #. tolerance less than (N_marks = 1)
+    #. tolerance less than (N_marks = 2)
         .. math::
             f(w_1,w_2) = 
                 \\left \\{
@@ -653,7 +653,7 @@ def conditional_pair_matrix(data1, data2, r_max, weights1, weights2, cond_func_i
               double_tree.num_y2divs,double_tree.num_z2divs,Ncell2))
     
     #create a function to call with only one argument
-    engine = partial(_conditional_pair_matrix_engine, double_tree, weights1, weights2, r_max, period, cond_func_id, PBCs)
+    engine = partial(_conditional_pair_matrix_engine, double_tree, weights1, weights2, r_max, period, PBCs, cond_func_id)
     
     #do the pair counting
     if num_threads>1:
@@ -836,7 +836,7 @@ def conditional_xy_z_pair_matrix(data1, data2, rp_max, pi_max, weights1, weights
                 \\left \\{
                 \\begin{array}{ll}
                     True & : w_1[0] > w_2[0] \\\\
-                    False & : w_1[0] \\geq w_2[0] \\\\
+                    False & : w_1[0] \\leq w_2[0] \\\\
                 \\end{array}
                 \\right.
     
@@ -846,7 +846,7 @@ def conditional_xy_z_pair_matrix(data1, data2, rp_max, pi_max, weights1, weights
                 \\left \\{
                 \\begin{array}{ll}
                     True & : w_1[0] < w_2[0] \\\\
-                    False & : w_1[0] \\leq w_2[0] \\\\
+                    False & : w_1[0] \\geq w_2[0] \\\\
                 \\end{array}
                 \\right.
     
