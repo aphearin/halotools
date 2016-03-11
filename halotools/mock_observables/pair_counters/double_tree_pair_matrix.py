@@ -652,6 +652,10 @@ def conditional_pair_matrix(data1, data2, r_max, weights1, weights2, cond_func_i
               "resulting in {3} cells.".format(double_tree.num_x2divs,\
               double_tree.num_y2divs,double_tree.num_z2divs,Ncell2))
     
+    #sort the weights arrays
+    weights1 = np.ascontiguousarray(weights1[double_tree.tree1.idx_sorted, :])
+    weights2 = np.ascontiguousarray(weights2[double_tree.tree2.idx_sorted, :])
+    
     #create a function to call with only one argument
     engine = partial(_conditional_pair_matrix_engine, double_tree, weights1, weights2, r_max, period, PBCs, cond_func_id)
     
@@ -963,6 +967,10 @@ def conditional_xy_z_pair_matrix(data1, data2, rp_max, pi_max, weights1, weights
         print("volume 2 split {0},{1},{2} times along each dimension,\n"
               "resulting in {3} cells.".format(double_tree.num_x2divs,\
               double_tree.num_y2divs,double_tree.num_z2divs,Ncell2))
+    
+    #sort the weights arrays
+    weights1 = np.ascontiguousarray(weights1[double_tree.tree1.idx_sorted, :])
+    weights2 = np.ascontiguousarray(weights2[double_tree.tree2.idx_sorted, :])
     
     #create a function to call with only one argument
     engine = partial(_conditional_xy_z_pair_matrix_engine, double_tree, weights1, weights2, rp_max, pi_max, period, PBCs, cond_func_id)
