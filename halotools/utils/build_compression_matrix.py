@@ -4,6 +4,7 @@ and building a lookup table, the 'compression_matrix'.
 """
 
 import numpy as np
+from .array_utils import array_is_monotonic 
 
 def retrieve_sample(prop1, prop2, compression_prop, *args):
     """
@@ -41,8 +42,30 @@ def add_infinite_padding_to_abscissa_array(arr):
     return np.append(arr, np.inf)
 
 def nan_array_interpolation(arr, abscissa):
+    """ Interpolate over any possible NaN values in an input array. 
+
+    Parameters 
+    ------------
+    arr : array_like 
+        Input array of length N that may have NaN values 
+
+    abscissa : array_like 
+        Input array of length N used as the abscissa in the interpolation
+
+    Returns 
+    ---------
+    result : array_like 
+        Array of length N equal to the input ``arr``, but for which 
+        `numpy.interp` is used to interpolate over any possible NaN values. 
     """
-    """
+    arr = np.atleast_1d(arr)
+    abscissa = np.atleast_1d(abscissa)
+    try:
+        assert len(arr) == len(abscissa)
+    except AssertionError:
+        msg = ("Input ``arr`` and ``abscissa`` must have the same length")
+        raise ValueError(msg)
+
     mask = ~np.isnan(arr)
     return np.interp(abscissa, abscissa[mask], arr[mask])
 
