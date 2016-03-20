@@ -147,8 +147,7 @@ def _compression_matrix_from_compression_array(arr, shape):
     into a compression matrix. 
     """
     matrix = np.repeat(arr, shape[1])
-    matrix.reshape(shape)
-    return matrix
+    return matrix.reshape(shape)
 
 def build_compression_matrix_single_prop(
     prop1, prop2, compression_prop, prop1_bins, prop2_bins, 
@@ -175,7 +174,6 @@ def build_compression_matrix_single_prop(
 
     output_shape = (len(prop1_bins_midpoints), len(prop2_bins_midpoints))
     compression_matrix = _compression_matrix_from_compression_array(compression_array, output_shape)
-
     compression_matrix = (
         _add_infinite_padding_to_compression_matrix(compression_matrix))
 

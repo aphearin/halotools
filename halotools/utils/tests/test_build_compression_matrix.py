@@ -133,6 +133,20 @@ def test_smallest_nontrivial_row_index3():
 	assert irow == 1
 
 
+def test_build_compression_matrix_single_prop1():
+	npts = 1e4
+	prop1 = np.linspace(0, 1, npts)
+	prop2 = np.linspace(1, 2, npts)
+	compression_prop = np.linspace(-100, 100, npts)
+
+	nbins = 1e2
+	prop1_bins = np.linspace(0, 1, nbins)
+	prop2_bins = np.linspace(1, 2, nbins)
+
+	compression_matrix = bcm.build_compression_matrix_single_prop(
+		prop1, prop2, compression_prop, prop1_bins, prop2_bins, 
+		npts_requirement = 99)
+
 
 
 
