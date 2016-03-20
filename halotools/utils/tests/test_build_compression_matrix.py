@@ -33,6 +33,29 @@ def test_nan_array_interpolation2():
 	substr = "Input ``arr`` and ``abscissa`` must have the same length"
 	assert substr in err.value.message
 
+def test_build_compression_matrix_double_prop1():
+	npts = 1e4
+	prop1 = np.linspace(0, 1, npts)
+	prop2 = np.linspace(1, 2, npts)
+	compression_prop = np.linspace(-100, 100, npts)
+
+	nbins = 1e2
+	prop1_bins = np.linspace(0, 1, nbins)
+	prop2_bins = np.linspace(1, 2, nbins)
+
+	compression_matrix = bcm.build_compression_matrix_double_prop(
+		prop1, prop2, compression_prop, prop1_bins, prop2_bins, 
+		npts_requirement = 99)
+
+	with pytest.raises(ValueError) as err:
+		compression_matrix = bcm.build_compression_matrix_double_prop(
+			prop1, prop2, compression_prop, prop1_bins, prop2_bins, 
+			npts_requirement = 100)
+	substr = "entirely composed of NaN"
+	assert substr in err.value.message
+
+
+
 
 
 

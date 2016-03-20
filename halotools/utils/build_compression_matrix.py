@@ -103,7 +103,7 @@ def largest_nontrivial_row_index(m):
 def smallest_nontrivial_row_index(m):
     return np.argmax(np.any(~np.isnan(m), axis=1))
 
-def add_infinite_padding_to_compression_matrix(input_matrix):
+def _add_infinite_padding_to_compression_matrix(input_matrix):
     """
     """
     r1 = np.ones(input_matrix.shape[0], dtype=int)
@@ -113,12 +113,15 @@ def add_infinite_padding_to_compression_matrix(input_matrix):
     r2[0], r2[-1] = 2,2
     return np.repeat(output_matrix, r2, axis=1)
 
-def add_infinite_padding_to_abscissa_array(arr):
+def _add_infinite_padding_to_abscissa_array(arr):
     arr = np.insert(arr, 0, -np.inf)
     return np.append(arr, np.inf)
 
 
-def compression_matrix_from_array(arr, shape):
+def _compression_matrix_from_compression_array(arr, shape):
+    """ Use `numpy.repeat` to transform a compression array 
+    into a compression matrix. 
+    """
     matrix = np.repeat(arr, shape[1])
     matrix.reshape(shape)
     return matrix
@@ -134,11 +137,11 @@ def build_compression_matrix_single_prop(
     compression_array = np.zeros_like(prop1_bins_midpoints)
 
     # Sample the input data in bins of prop1
-    for ibin1, prop1_bin_low, prop1_bin_high in zip(
+    for ibin1, prop1_low, prop1_high in zip(
         xrange(len(prop1_bins_midpoints)), prop1_bins[:-1], prop1_bins[1:]):
 
         binned_compression_prop = retrieve_sample(
-            prop1, prop2, compression_prop, prop1_bin_low, prop1_bin_high)
+            prop1, prop2, compression_prop, prop1_low, prop1_high)
         if len(binned_compression_prop) > npts_requirement:
             compression_array[ibin1] = summary_stat(binned_compression_prop)
         else:
@@ -147,36 +150,94 @@ def build_compression_matrix_single_prop(
     compression_array = nan_array_interpolation(compression_array, prop1_bins_midpoints)
 
     output_shape = (len(prop1_bins_midpoints), len(prop2_bins_midpoints))
-    compression_matrix = compression_matrix_from_array(compression_array, output_shape)
+    compression_matrix = _compression_matrix_from_compression_array(compression_array, output_shape)
 
     compression_matrix = (
-        add_infinite_padding_to_compression_matrix(compression_matrix))
+        _add_infinite_padding_to_compression_matrix(compression_matrix))
 
-    padded_prop1_bins = add_infinite_padding_to_abscissa_array(prop1_bins)
-    padded_prop2_bins = add_infinite_padding_to_abscissa_array(prop2_bins)
+    padded_prop1_bins = _add_infinite_padding_to_abscissa_array(prop1_bins)
+    padded_prop2_bins = _add_infinite_padding_to_abscissa_array(prop2_bins)
     
     return compression_matrix, padded_prop1_bins, padded_prop2_bins
 
-# def build_compression_matrix_double_prop(
-#     prop1, prop2, compression_prop, prop1_bins, prop2_bins, 
-#     npts_requirement = 100, summary_stat = np.mean):
-#     """
-#     """
-#     prop1_bins_midpoints = (prop1_bins[:-1] + prop1_bins[1:])/2.
-#     prop2_bins_midpoints = (prop2_bins[:-1] + prop2_bins[1:])/2.
+def fill_nan_matrix_rows(compression_matrix):
+    """ If any of the first or final rows of the input ``compression_matrix`` 
+    are composed entirely of NaN, fill in these rows with the smallest (largest) 
+    nontrival rows. If any trivial rows remain, raise an exception.  
 
-#     compression_matrix = np.zeros((len(prop1_bins_midpoints), len(prop2_bins_midpoints)))
+    Parameters 
+    -----------
+    compression_matrix : array_like 
+        N x M matrix which may have rows entirely composed of NaN
 
-#     for ism, sm_low, sm_high in zip(xrange(len(sm_midpoints)), sm_bins[:-1], sm_bins[1:]):
-#         for ilogm, logm_low, logm_high in zip(xrange(len(logm_midpoints)), logm_bins[:-1], logm_bins[1:]):
-#             sat_sample = retrieve_sample(sats, sm_low, sm_high, logm_low, logm_high)
-#             if len(sat_sample) > ngals_requirement:
-#                 compression_matrix[ism, ilogm] = np.mean(sat_sample['iquench'])
-#             else:
-#                 compression_matrix[ism, ilogm] = np.nan
+    Returns 
+    --------
+    result : array_like 
+        N x M matrix with outer rows filled in with the closest nontrivial inner rows 
+    """
+    # The final rows of the compression matrix may be entirely composed of NaN
+    # If that is the case, replace each such row with the largest non-trivial row
+    largest_nontrivial_row = largest_nontrivial_row_index(compression_matrix)
+    if largest_nontrivial_row < compression_matrix.shape[0]-1:
+        compression_matrix[largest_nontrivial_row+1:,:] = compression_matrix[largest_nontrivial_row,:]
+
+    # The first rows of the compression matrix may be entirely composed of NaN
+    # If that is the case, replace each such row with the smallest non-trivial row
+    smallest_nontrivial_row = smallest_nontrivial_row_index(compression_matrix)
+    compression_matrix[:smallest_nontrivial_row,:] = compression_matrix[smallest_nontrivial_row,:]
+
+    return compression_matrix
+
+def _check_for_remaining_nan_rows(compression_matrix, prop1_bins, npts_requirement):
+    # No NaN rows should remain
+    for irow in xrange(compression_matrix.shape[0]):
+        try:
+            assert not np.all(np.isnan(compression_matrix[irow,:]))
+        except AssertionError:
+            msg = ("Row %i of the compression_matrix is entirely composed of NaN. \n"
+                "This row corresponds to the following cut on your data:\n"
+                "%f <= prop1 < %f \n"
+                "There are no 2d cells with %i data points passing this cut.\n"
+                "You should either broaden your bins or relax the ``npts_requirement``\n")
+            prop1_low, prop1_high = prop1_bins[irow], prop1_bins[irow+1]
+            raise ValueError(msg % (irow, prop1_low, prop1_high, npts_requirement))
 
 
+def build_compression_matrix_double_prop(
+    prop1, prop2, compression_prop, prop1_bins, prop2_bins, 
+    npts_requirement = 100, summary_stat = np.mean):
+    """
+    """
+    prop1_bins_midpoints = (prop1_bins[:-1] + prop1_bins[1:])/2.
+    prop2_bins_midpoints = (prop2_bins[:-1] + prop2_bins[1:])/2.
 
+    compression_matrix = np.zeros((len(prop1_bins_midpoints), len(prop2_bins_midpoints)))
+
+    # Sample the input data in bins of prop1 and prop2
+    for ibin1, prop1_low, prop1_high in zip(
+        xrange(len(prop1_bins_midpoints)), prop1_bins[:-1], prop1_bins[1:]):
+
+        for ibin2, prop2_low, prop2_high in zip(
+            xrange(len(prop2_bins_midpoints)), prop2_bins[:-1], prop2_bins[1:]):
+
+            binned_compression_prop = retrieve_sample(prop1, prop2, compression_prop, 
+                prop1_low, prop1_high, prop2_low, prop2_high)
+
+            if len(binned_compression_prop) > npts_requirement:
+                compression_matrix[ibin1, ibin2] = summary_stat(binned_compression_prop)
+            else:
+                compression_matrix[ibin1, ibin2] = np.nan
+
+    compression_matrix = fill_nan_matrix_rows(compression_matrix)
+    _check_for_remaining_nan_rows(compression_matrix, prop1_bins, npts_requirement)
+
+    compression_matrix = (
+        _add_infinite_padding_to_compression_matrix(compression_matrix))
+
+    padded_prop1_bins = _add_infinite_padding_to_abscissa_array(prop1_bins)
+    padded_prop2_bins = _add_infinite_padding_to_abscissa_array(prop2_bins)
+
+    return compression_matrix, padded_prop1_bins, padded_prop2_bins
 
 
 
