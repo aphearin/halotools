@@ -139,7 +139,6 @@ def _add_infinite_padding_to_compression_matrix(input_matrix):
     return np.repeat(output_matrix, r2, axis=1)
 
 def _add_infinite_padding_to_abscissa_array(arr):
-    arr = np.insert(arr, 0, -np.inf)
     return np.append(arr, np.inf)
 
 
