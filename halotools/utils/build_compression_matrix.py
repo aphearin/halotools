@@ -256,6 +256,10 @@ def build_compression_matrix_double_prop(
     compression_matrix = fill_nan_matrix_rows(compression_matrix)
     _check_for_remaining_nan_rows(compression_matrix, prop1_bins, npts_requirement)
 
+    for irow in xrange(compression_matrix.shape[0]):
+        compression_matrix[irow,:] = nan_array_interpolation(
+            compression_matrix[irow,:], prop2_bins_midpoints)
+
     compression_matrix = (
         _add_infinite_padding_to_compression_matrix(compression_matrix))
 
