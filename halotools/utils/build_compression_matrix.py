@@ -1,7 +1,26 @@
 """ Numpy functions to compress some 
 input data by sampling the data on a 2d grid 
-and building a lookup table, the 'compression_matrix'. 
+and building a lookup table: the 'compression_matrix'. 
+
+For example, suppose we have a sample of satellite galaxies, 
+and that these satellites have three attributes: stellar mass, 
+host halo mass, and a binary SFR designation (quenched or star-forming). 
+The `build_compression_matrix_double_prop` function 
+can be used to create a grid of stellar mass and host halo mass, 
+and to create a lookup table of the quenched fraction of satellites on that grid. 
+This lookup table can be used to generate a new model in which 
+the red fraction of satellites as a function of stellar mass and halo mass 
+is identical to the input data, and for the new model there are no other 
+factors determining this red fraction. 
+
+Similarly, the `build_compression_matrix_single_prop` function can be used to 
+build a 2d lookup table in which the red fraction *only* depends on 
+stellar mass. In this case, for each row of the lookup table matrix, 
+all columns are identical. 
 """
+
+__all__ = ('build_compression_matrix_double_prop', 
+    'build_compression_matrix_single_prop')
 
 import numpy as np
 from .array_utils import array_is_monotonic 
