@@ -7,39 +7,67 @@ import numpy as np
 from .array_utils import array_is_monotonic 
 
 def retrieve_sample(prop1, prop2, compression_prop, *args):
-    """
+    """ Return the values of the input ``compression_prop`` array 
+    whose indices fall within the bounds placed on the input ``prop1`` 
+    and optionally ``prop2``.
+
+    Parameters 
+    ------------
+    prop1 : array_like 
+        First length-N array used to define cuts placed on input ``compression_prop``. 
+
+    prop2 : array_like 
+        Second length-N array used to define cuts placed on input ``compression_prop``. 
+
+    compression_prop : array_like 
+        Length-N array upon which cuts are placed. 
+
+    prop1_low : float 
+        Inclusive lower bound defining the cut pertaining to ``prop1``. 
+
+    prop1_high : float 
+        Exclusive upper bound defining the cut pertaining to ``prop1``. 
+
+    prop2_low : float, optional 
+        Inclusive lower bound defining the cut pertaining to ``prop2``. 
+        Default is no cut. 
+
+    prop2_high : float, optional 
+        Exclusive upper bound defining the cut pertaining to ``prop2``. 
+        Default is no cut. 
+
+    Returns 
+    --------
+    result : array_like 
+        Array storing all values of ``compression_prop`` for which 
+        the indices of ``prop1`` meet the cuts defined by ``prop1_low`` and 
+        ``prop1_high``, and optionally for which the indices also meet the 
+        cut defined by ``prop2_low`` and ``prop2_high``. 
+
+    Examples 
+    ---------
+    >>> prop1 = np.arange(-10, 0)
+    >>> prop2 = np.arange(0, 10)
+    >>> compression_prop = np.arange(10, 20)
+
+    >>> result = retrieve_sample(prop1, prop2, compression_prop, -9, -6)
+    >>> assert np.all(result == np.array([11, 12, 13]))
+
+    >>> result = retrieve_sample(prop1, prop2, compression_prop, -9, -6, 2, 5)
+    >>> assert np.all(result == np.array([12, 13]))
+
     """
     if len(args) == 2:
-        prop1_bins_low, prop1_bins_high = args
-        prop2_bins_low, prop2_bins_high = -np.inf, np.inf
+        prop1_low, prop1_high = args
+        prop2_low, prop2_high = -np.inf, np.inf
     elif len(args) == 4:
-        prop1_bins_low, prop1_bins_high, prop2_bins_low, prop2_bins_high = args
+        prop1_low, prop1_high, prop2_low, prop2_high = args
         
-    mask = prop1 >= prop1_bins_low
-    mask *= prop1 < prop1_bins_high
-    mask *= prop2 >= prop2_bins_low
-    mask *= prop2 < prop2_bins_high
+    mask = prop1 >= prop1_low
+    mask *= prop1 < prop1_high
+    mask *= prop2 >= prop2_low
+    mask *= prop2 < prop2_high
     return compression_prop[mask]
-
-def largest_nontrivial_row_index(m):
-    return m.shape[0]-1-np.argmax(np.any(~np.isnan(m), axis=1)[::-1])
-
-def smallest_nontrivial_row_index(m):
-    return np.argmax(np.any(~np.isnan(m), axis=1))
-
-def add_infinite_padding_to_compression_matrix(input_matrix):
-    """
-    """
-    r1 = np.ones(input_matrix.shape[0], dtype=int)
-    r1[0], r1[-1] = 2,2
-    output_matrix = np.repeat(input_matrix, r1, axis=0)
-    r2 = np.ones(output_matrix.shape[1], dtype=int)
-    r2[0], r2[-1] = 2,2
-    return np.repeat(output_matrix, r2, axis=1)
-
-def add_infinite_padding_to_abscissa_array(arr):
-    arr = np.insert(arr, 0, -np.inf)
-    return np.append(arr, np.inf)
 
 def nan_array_interpolation(arr, abscissa):
     """ Interpolate over any possible NaN values in an input array. 
@@ -68,6 +96,27 @@ def nan_array_interpolation(arr, abscissa):
 
     mask = ~np.isnan(arr)
     return np.interp(abscissa, abscissa[mask], arr[mask])
+
+def largest_nontrivial_row_index(m):
+    return m.shape[0]-1-np.argmax(np.any(~np.isnan(m), axis=1)[::-1])
+
+def smallest_nontrivial_row_index(m):
+    return np.argmax(np.any(~np.isnan(m), axis=1))
+
+def add_infinite_padding_to_compression_matrix(input_matrix):
+    """
+    """
+    r1 = np.ones(input_matrix.shape[0], dtype=int)
+    r1[0], r1[-1] = 2,2
+    output_matrix = np.repeat(input_matrix, r1, axis=0)
+    r2 = np.ones(output_matrix.shape[1], dtype=int)
+    r2[0], r2[-1] = 2,2
+    return np.repeat(output_matrix, r2, axis=1)
+
+def add_infinite_padding_to_abscissa_array(arr):
+    arr = np.insert(arr, 0, -np.inf)
+    return np.append(arr, np.inf)
+
 
 def compression_matrix_from_array(arr, shape):
     matrix = np.repeat(arr, shape[1])
