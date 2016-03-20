@@ -85,23 +85,23 @@ def build_compression_matrix_single_prop(
     
     return compression_matrix, padded_prop1_bins, padded_prop2_bins
 
-def build_compression_matrix_double_prop(
-    prop1_bins, prop2_bins, compression_prop, prop1_bins, prop2_bins, 
-    npts_requirement = 100, summary_stat = np.mean):
-    """
-    """
-    prop1_bins_midpoints = (prop1_bins[:-1] + prop1_bins[1:])/2.
-    prop2_bins_midpoints = (prop2_bins[:-1] + prop2_bins[1:])/2.
+# def build_compression_matrix_double_prop(
+#     prop1, prop2, compression_prop, prop1_bins, prop2_bins, 
+#     npts_requirement = 100, summary_stat = np.mean):
+#     """
+#     """
+#     prop1_bins_midpoints = (prop1_bins[:-1] + prop1_bins[1:])/2.
+#     prop2_bins_midpoints = (prop2_bins[:-1] + prop2_bins[1:])/2.
 
-    compression_matrix = np.zeros((len(prop1_bins_midpoints), len(prop2_bins_midpoints)))
+#     compression_matrix = np.zeros((len(prop1_bins_midpoints), len(prop2_bins_midpoints)))
 
-    for ism, sm_low, sm_high in zip(xrange(len(sm_midpoints)), sm_bins[:-1], sm_bins[1:]):
-        for ilogm, logm_low, logm_high in zip(xrange(len(logm_midpoints)), logm_bins[:-1], logm_bins[1:]):
-            sat_sample = retrieve_sample(sats, sm_low, sm_high, logm_low, logm_high)
-            if len(sat_sample) > ngals_requirement:
-                compression_matrix[ism, ilogm] = np.mean(sat_sample['iquench'])
-            else:
-                compression_matrix[ism, ilogm] = np.nan
+#     for ism, sm_low, sm_high in zip(xrange(len(sm_midpoints)), sm_bins[:-1], sm_bins[1:]):
+#         for ilogm, logm_low, logm_high in zip(xrange(len(logm_midpoints)), logm_bins[:-1], logm_bins[1:]):
+#             sat_sample = retrieve_sample(sats, sm_low, sm_high, logm_low, logm_high)
+#             if len(sat_sample) > ngals_requirement:
+#                 compression_matrix[ism, ilogm] = np.mean(sat_sample['iquench'])
+#             else:
+#                 compression_matrix[ism, ilogm] = np.nan
 
 
 
