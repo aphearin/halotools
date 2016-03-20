@@ -98,9 +98,15 @@ def nan_array_interpolation(arr, abscissa):
     return np.interp(abscissa, abscissa[mask], arr[mask])
 
 def largest_nontrivial_row_index(m):
+    """ Identify the index of the largest row of a matrix 
+    that is not entirely composed of NaN.
+    """
     return m.shape[0]-1-np.argmax(np.any(~np.isnan(m), axis=1)[::-1])
 
 def smallest_nontrivial_row_index(m):
+    """ Identify the index of the smallest row of a matrix 
+    that is not entirely composed of NaN.
+    """
     return np.argmax(np.any(~np.isnan(m), axis=1))
 
 def _add_infinite_padding_to_compression_matrix(input_matrix):

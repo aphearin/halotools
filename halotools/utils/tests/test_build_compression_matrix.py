@@ -54,7 +54,83 @@ def test_build_compression_matrix_double_prop1():
 	substr = "entirely composed of NaN"
 	assert substr in err.value.message
 
+def test_largest_nontrivial_row_index1():
+	m = np.array([
+		[1, 1, 1], 
+		[2, np.nan, 2], 
+		[1, 2, 3], 
+		[np.nan, np.nan, np.nan]
+		])
 
+	irow = bcm.largest_nontrivial_row_index(m)
+	assert irow == 2
+
+def test_largest_nontrivial_row_index2():
+	m = np.array([
+		[np.nan, np.nan, np.nan], 
+		[1, 1, 1], 
+		[np.nan, np.nan, np.nan], 
+		[np.nan, np.nan, np.nan], 
+		[2, np.nan, 2], 
+		[1, 2, 3], 
+		[np.nan, np.nan, np.nan], 
+		[np.nan, np.nan, np.nan]
+		])
+
+	irow = bcm.largest_nontrivial_row_index(m)
+	assert irow == 5
+
+def test_largest_nontrivial_row_index3():
+	m = np.array([
+		[np.nan, np.nan, np.nan], 
+		[np.nan, np.nan, np.nan], 
+		[1, 1, 1], 
+		[2, np.nan, 2], 
+		[1, 2, 3]
+		])
+
+	irow = bcm.largest_nontrivial_row_index(m)
+	assert irow == 4
+
+def test_smallest_nontrivial_row_index1():
+	m = np.array([
+		[1, 1, 1], 
+		[2, np.nan, 2], 
+		[1, 2, 3], 
+		[np.nan, np.nan, np.nan]
+		])
+
+	irow = bcm.smallest_nontrivial_row_index(m)
+	assert irow == 0
+
+def test_smallest_nontrivial_row_index2():
+	m = np.array([
+		[np.nan, np.nan, np.nan], 
+		[np.nan, np.nan, np.nan], 
+		[1, 1, 1], 
+		[2, np.nan, 2], 
+		[1, 2, 3], 
+		[np.nan, np.nan, np.nan], 
+		[np.nan, np.nan, np.nan]
+		])
+
+	irow = bcm.smallest_nontrivial_row_index(m)
+	assert irow == 2
+
+def test_smallest_nontrivial_row_index3():
+	m = np.array([
+		[np.nan, np.nan, np.nan], 
+		[1, 1, 1], 
+		[np.nan, np.nan, np.nan], 
+		[np.nan, np.nan, np.nan], 
+		[2, np.nan, 2], 
+		[1, 2, 3], 
+		[np.nan, np.nan, np.nan], 
+		[np.nan, np.nan, np.nan]
+		])
+
+	irow = bcm.smallest_nontrivial_row_index(m)
+	assert irow == 1
 
 
 
