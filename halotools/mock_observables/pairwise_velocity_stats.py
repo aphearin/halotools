@@ -7,8 +7,7 @@ Calculate pairwise velocity statistics.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
-from .pair_counters.marked_double_tree_pairs import (
-    velocity_marked_npairs, xy_z_velocity_marked_npairs)
+from .pair_counters.marked_double_tree_pairs import xy_z_velocity_marked_npairs
 from .pairwise_velocity_helpers import (_pairwise_velocity_stats_process_args, 
     _process_radial_bins, _process_rp_bins)
 
@@ -108,6 +107,8 @@ def mean_radial_velocity_vs_r(sample1, velocities1, rbins,
     
     Pairs and radial velocities are calculated using 
     `~halotools.mock_observables.pair_counters.velocity_marked_npairs`.
+
+    For radial separation bins in which there are zero pairs, function returns zero. 
     
     Examples
     --------
@@ -223,24 +224,25 @@ def mean_radial_velocity_vs_r(sample1, velocities1, rbins,
             marks1, marks2, weight_func_id,
             _sample1_is_sample2,
             approx_cell1_size, approx_cell2_size)
-    
+
     #return results: the sum of radial velocities divided by the number of pairs
     if _sample1_is_sample2:
         M_11 = V1V1/N1N1
-        return M_11
+        return np.where(np.isfinite(M_11), M_11, 0.)
     else:
         if (do_auto is True) & (do_cross is True): 
             M_11 = V1V1/N1N1
             M_12 = V1V2/N1N2
             M_22 = V2V2/N2N2
-            return M_11, M_12, M_22
+            return (np.where(np.isfinite(M_11), M_11, 0.), 
+                np.where(np.isfinite(M_12), M_12, 0.), np.where(np.isfinite(M_22), M_22, 0.))
         elif (do_cross is True):
             M_12 = V1V2/N1N2
-            return M_12
+            return np.where(np.isfinite(M_12), M_12, 0.),
         elif (do_auto is True):
             M_11 = V1V1/N1N1
             M_22 = V2V2/N2N2 
-            return M_11, M_22
+            return np.where(np.isfinite(M_11), M_11, 0.), np.where(np.isfinite(M_22), M_22, 0.)
 
 
 def radial_pvd_vs_r(sample1, velocities1, rbins, sample2=None,
