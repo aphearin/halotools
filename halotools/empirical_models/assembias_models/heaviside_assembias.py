@@ -158,12 +158,22 @@ class HeavisideAssembias(object):
 
         if 'splitting_model' in kwargs:
             self.splitting_model = kwargs['splitting_model']
+            if not hasattr(self.splitting_model, 'param_dict'):
+                self.splitting_model.param_dict = dict()
+
+            try:
+                self.splitting_method_name = kwargs['splitting_method_name']
+            except KeyError:
+                raise KeyError("When passing ``splitting_model`` keyword argument, \n"
+                    "must also pass ``splitting_method_name`` argument")
+
             func = getattr(self.splitting_model, kwargs['splitting_method_name'])
             if isinstance(func, collections.Callable):
-                self._input_split_func = func
+                pass
             else:
                 raise HalotoolsError("Input ``splitting_model`` must have a callable function "
                     "named ``%s``" % kwargs['splitting_method_name'])
+
         elif 'split_abscissa' in list(kwargs.keys()):
             if custom_len(kwargs['split_abscissa']) != custom_len(split):
                 raise HalotoolsError("``split`` and ``split_abscissa`` must have the same length")
@@ -209,6 +219,19 @@ class HeavisideAssembias(object):
         self._assembias_strength_abscissa = abscissa
         for ipar, val in enumerate(strength):
             self.param_dict[self._get_assembias_param_dict_key(ipar)] = val
+
+        if hasattr(self, 'splitting_model'):
+            intersection = set(self.param_dict.keys()) & set(self.splitting_model.param_dict.keys())
+            if len(intersection) > 0:
+                example = list(intersection)[0]
+                msg = ("Input ``splitting_model`` has a param_dict entry = ``{0}``\n"
+                    "This parameter name is also shared by the baseline model, \n"
+                    "which is not permissible. You need to change the name of this \n"
+                    "parameter in one model or the other to ensure disambiguity\n")
+                raise ValueError(msg.format(example))
+            else:
+                for key in self.splitting_model.param_dict.keys():
+                    self.param_dict[key] = self.splitting_model.param_dict[key]
 
     def _decorate_baseline_method(self):
         """
@@ -263,8 +286,13 @@ class HeavisideAssembias(object):
             Fraction of ``type2`` halos at the input primary halo property.
         """
 
-        if hasattr(self, '_input_split_func'):
-            result = self._input_split_func(prim_haloprop=prim_haloprop)
+        if hasattr(self, 'splitting_model'):
+            for key in self.param_dict.keys():
+                if key in self.splitting_model.param_dict.keys():
+                    self.splitting_model.param_dict[key] = self.param_dict[key]
+
+            func = getattr(self.splitting_model, self.splitting_method_name)
+            result = func(prim_haloprop=prim_haloprop)
 
             if np.any(result < 0):
                 msg = ("The input split_func passed to the HeavisideAssembias class"
