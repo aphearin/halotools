@@ -89,9 +89,43 @@ def test_splitting_model2():
     model = HodModelFactory(baseline_model_instance=baseline_model,
             satellites_occupation=satocc_model)
 
-    halocat = FakeSim()
 
-    model.mc_occupation_satellites.additional_kwargs = '_occupation'
-    model.populate_mock(halocat)
+    halocat = FakeSim(seed=43, num_halos_per_massbin=1000)
+
+    testmass = 10**model.param_dict['logMmin']
+    idx = np.argmin(np.abs(halocat.halo_table['halo_mvir'] - testmass))
+    closest_mass = halocat.halo_table['halo_mvir'][idx]
+    mask = halocat.halo_table['halo_mvir'] == closest_mass
+    halocat.halo_table['halo_mvir'][mask] = testmass
+
+    model.param_dict['mean_occupation_satellites_assembias_param1'] = -1
+    model.param_dict['logM1'] = np.log10(10**model.param_dict['logMmin']) - 0.5
+    model.param_dict['logM0'] = model.param_dict['logMmin'] - 0.5
+    model.param_dict['alpha'] = 0.25
+
+    mean_ncen = model.mean_occupation_centrals(prim_haloprop=testmass)
+    print("Mean central occupation = {0}".format(mean_ncen))
+    mean_nsat = model.mean_occupation_satellites(prim_haloprop=testmass, sec_haloprop_percentile=0)
+    print("Mean satellite occupation lower-percentile = {0}".format(mean_nsat))
+    mean_nsat = model.mean_occupation_satellites(prim_haloprop=testmass, sec_haloprop_percentile=1)
+    print("Mean satellite occupation upper-percentile = {0}".format(mean_nsat))
+
+    model.populate_mock(halocat, seed=44)
+
+    host_mask = model.mock.galaxy_table['halo_mvir'] == testmass
+    host_mask_sats = host_mask * (model.mock.galaxy_table['gal_type'] == 'satellites')
+    host_mask_sats_has_cen = host_mask_sats * (model.mock.galaxy_table['halo_num_centrals'] == 1)
+    host_mask_sats_no_cen = host_mask_sats * (model.mock.galaxy_table['halo_num_centrals'] == 0)
+
+    host_mask_cens = host_mask * model.mock.galaxy_table['gal_type'] == 'centrals'
+    print("\nTotal number of centrals in mass bin = {0}\n".format(np.count_nonzero(host_mask_cens)))
+
+    print("Total number of satellites in mass bin = {0}".format(np.count_nonzero(host_mask_sats)))
+    print("Total number of satellites in mass bin WITH a central= {0}".format(
+            np.count_nonzero(host_mask_sats_has_cen)))
+    print("Total number of satellites in mass bin WITHOUT a central= {0}".format(
+            np.count_nonzero(host_mask_sats_no_cen)))
+
+    assert 4 == 5
 
 
