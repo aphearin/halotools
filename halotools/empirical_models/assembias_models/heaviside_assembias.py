@@ -100,7 +100,12 @@ class HeavisideAssembias(object):
 
         self._decorate_baseline_method()
 
-        self._bind_new_haloprop_func_dict()
+        if hasattr(self, 'splitting_model'):
+            pass
+        else:
+            self._bind_new_haloprop_func_dict()
+
+        self._methods_to_inherit.extend(['assembias_strength'])
 
         try:
             self.publications.append('arXiv:1512.03050')
@@ -266,8 +271,6 @@ class HeavisideAssembias(object):
         except AttributeError:
             self.new_haloprop_func_dict = {}
             self.new_haloprop_func_dict[key] = assembias_percentile_calculator
-
-        self._methods_to_inherit.extend(['assembias_strength'])
 
     @model_helpers.bounds_enforcing_decorator_factory(0, 1)
     def percentile_splitting_function(self, prim_haloprop):
