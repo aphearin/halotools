@@ -116,6 +116,7 @@ def test_splitting_model2():
     mean_nsat_baseline = baseline_model.mean_occupation_satellites(prim_haloprop=testmass)[0]
 
     model.populate_mock(halocat, seed=44)
+    baseline_model.populate_mock(halocat, seed=44)
 
     host_mask = model.mock.galaxy_table['halo_mvir'] == testmass
     host_mask_sats = host_mask * (model.mock.galaxy_table['gal_type'] == 'satellites')
@@ -153,6 +154,21 @@ def test_splitting_model2():
             total_num_sats_has_cen))
     print("Total number of satellites in mass bin WITHOUT a central= {0}".format(
             total_num_sats_no_cen))
+
+    print("\n")
+    setmass = sorted(list(set(model.mock.galaxy_table['halo_mvir'])))
+    sats = model.mock.galaxy_table[model.mock.galaxy_table['gal_type'] == 'satellites']
+    counts = [np.count_nonzero(sats['halo_mvir'] == mass) for mass in setmass]
+    counts_has_cen = [np.count_nonzero((sats['halo_mvir'] == mass) & (sats['halo_num_centrals'] == 1)) for mass in setmass]
+    counts_no_cen = [np.count_nonzero((sats['halo_mvir'] == mass) & (sats['halo_num_centrals'] == 0)) for mass in setmass]
+
+    base_sats = baseline_model.mock.galaxy_table[baseline_model.mock.galaxy_table['gal_type'] == 'satellites']
+    base_counts = [np.count_nonzero(base_sats['halo_mvir'] == mass) for mass in setmass]
+
+    for m, c_has, c_no, c, cbase in zip(setmass, counts_has_cen, counts_no_cen, counts, base_counts):
+        msg = ("mass = {0:.2e}, Cen+NoCen = ({1} + {2} = {3}), baseline = {4}")
+        print(msg.format(m, c_has, c_no, c, cbase))
+    print("\n")
 
     assert 4 == 5
 
