@@ -98,17 +98,22 @@ def test_splitting_model2():
     mask = halocat.halo_table['halo_mvir'] == closest_mass
     halocat.halo_table['halo_mvir'][mask] = testmass
 
-    model.param_dict['mean_occupation_satellites_assembias_param1'] = -1
+    testmass_mask = halocat.halo_table['halo_mvir'] == testmass
+    testmass_mask *= halocat.halo_table['halo_upid'] == -1
+    num_hosts = np.count_nonzero(testmass_mask)
+    print("There are a total of {0} host halos with halo_mvir = {1:.2e}\n".format(num_hosts, testmass))
+
+    model.param_dict['mean_occupation_satellites_assembias_param1'] = 0.5
     model.param_dict['logM1'] = np.log10(10**model.param_dict['logMmin']) - 0.5
     model.param_dict['logM0'] = model.param_dict['logMmin'] - 0.5
     model.param_dict['alpha'] = 0.25
 
-    mean_ncen = model.mean_occupation_centrals(prim_haloprop=testmass)
-    print("Mean central occupation = {0}".format(mean_ncen))
-    mean_nsat = model.mean_occupation_satellites(prim_haloprop=testmass, sec_haloprop_percentile=0)
-    print("Mean satellite occupation lower-percentile = {0}".format(mean_nsat))
-    mean_nsat = model.mean_occupation_satellites(prim_haloprop=testmass, sec_haloprop_percentile=1)
-    print("Mean satellite occupation upper-percentile = {0}".format(mean_nsat))
+    baseline_model.param_dict.update(model.param_dict)
+
+    mean_ncen = model.mean_occupation_centrals(prim_haloprop=testmass)[0]
+    mean_nsat0 = model.mean_occupation_satellites(prim_haloprop=testmass, sec_haloprop_percentile=0)[0]
+    mean_nsat1 = model.mean_occupation_satellites(prim_haloprop=testmass, sec_haloprop_percentile=1)[0]
+    mean_nsat_baseline = baseline_model.mean_occupation_satellites(prim_haloprop=testmass)[0]
 
     model.populate_mock(halocat, seed=44)
 
@@ -118,13 +123,29 @@ def test_splitting_model2():
     host_mask_sats_no_cen = host_mask_sats * (model.mock.galaxy_table['halo_num_centrals'] == 0)
 
     host_mask_cens = host_mask * model.mock.galaxy_table['gal_type'] == 'centrals'
-    print("\nTotal number of centrals in mass bin = {0}\n".format(np.count_nonzero(host_mask_cens)))
+    alt_host_mask_cens = model.mock.halo_table['halo_mvir'] == testmass
+    alt_host_mask_cens *= model.mock.halo_table['halo_num_centrals'] == 1
 
-    print("Total number of satellites in mass bin = {0}".format(np.count_nonzero(host_mask_sats)))
+    total_num_cens = np.count_nonzero(host_mask_cens)
+    alt_total_num_cens = np.count_nonzero(alt_host_mask_cens)
+    total_num_sats = np.count_nonzero(host_mask_sats)
+    total_num_sats_no_cen = np.count_nonzero(host_mask_sats_no_cen)
+    total_num_sats_has_cen = np.count_nonzero(host_mask_sats_has_cen)
+
+    print("Mean central occupation = {0}".format(mean_ncen))
+    print("Monte Carlo mean ncen = {0:.4f}".format(total_num_cens/float(num_hosts)))
+    print("Alternate MC mean ncen = {0:.4f}\n".format(alt_total_num_cens/float(num_hosts)))
+    print("Mean satellite occupation baseline = {0:.4f}".format(mean_nsat_baseline))
+    print("Monte Carlo mean nsat = {0:.4f}\n".format(total_num_sats/float(num_hosts)))
+    print("Mean satellite occupation lower-percentile = {0:.4f}".format(mean_nsat0))
+    print("Mean satellite occupation upper-percentile = {0:.4f}".format(mean_nsat1))
+
+    print("\nTotal number of centrals in mass bin = {0}\n".format(total_num_cens))
+    print("Total number of satellites in mass bin = {0}".format(total_num_sats))
     print("Total number of satellites in mass bin WITH a central= {0}".format(
-            np.count_nonzero(host_mask_sats_has_cen)))
+            total_num_sats_has_cen))
     print("Total number of satellites in mass bin WITHOUT a central= {0}".format(
-            np.count_nonzero(host_mask_sats_no_cen)))
+            total_num_sats_no_cen))
 
     assert 4 == 5
 
