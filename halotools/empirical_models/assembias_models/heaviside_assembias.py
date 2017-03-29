@@ -486,6 +486,7 @@ class HeavisideAssembias(object):
             no_edge_result = result[no_edge_mask]
             no_edge_split = split[no_edge_mask]
 
+
             #################################################################################
             # Compute the array type1_mask
             # This array will serve as a boolean mask that divides the halo sample into two subsamples
@@ -497,7 +498,15 @@ class HeavisideAssembias(object):
                 if hasattr(self, 'halo_type_tuple'):
                     halo_type_key = self.halo_type_tuple[0]
                     halo_type1_val = self.halo_type_tuple[1]
+                    halo_type2_val = self.halo_type_tuple[2]
                     type1_mask = table[halo_type_key][no_edge_mask] == halo_type1_val
+
+                    type2_mask = table[halo_type_key][no_edge_mask] == halo_type2_val
+                    num_type1 = np.count_nonzero(type1_mask)
+                    num_type2 = np.count_nonzero(type2_mask)
+                    print("Set of all values of table[halo_type_key] = {0}".format(set(table[halo_type_key])))
+                    print("num_type1 = {0}".format(num_type1))
+                    print("num_type2 = {0}\n".format(num_type2))
 
                 # the value of sec_haloprop_percentile is already stored as a column of the table
                 elif self.sec_haloprop_key + '_percentile' in list(table.keys()):
