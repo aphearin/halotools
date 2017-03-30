@@ -8,6 +8,8 @@ from scipy.special import erf
 from astropy.utils.misc import NumpyRNGContext
 
 from .occupation_model_template import OccupationComponent
+from .tinker13_parameter_dictionaries import (quiescent_fraction_control_masses,
+    param_dict_z1, param_dict_z2)
 
 from .. import model_defaults, model_helpers
 from ..smhm_models import Behroozi10SmHm
@@ -53,10 +55,6 @@ class Tinker13Cens(OccupationComponent):
             Redshift of the stellar-to-halo-mass relation.
             Default is set in `~halotools.sim_manager.sim_defaults`.
 
-        quiescent_fraction_abscissa : array, optional
-            Values of the primary halo property at which the quiescent fraction is specified.
-            Default is [10**12, 10**13.5, 10**15].
-
         quiescent_fraction_ordinates : array, optional
             Values of the quiescent fraction when evaluated at the input abscissa.
             Default is [0.25, 0.7, 0.95]
@@ -75,7 +73,7 @@ class Tinker13Cens(OccupationComponent):
             **kwargs)
         self.redshift = redshift
 
-        self._initialize_param_dict(**kwargs)
+        self._initialize_param_dict(redshift=redshift, **kwargs)
 
         self.sfr_designation_key = 'central_sfr_designation'
 
@@ -100,11 +98,17 @@ class Tinker13Cens(OccupationComponent):
             ('sfr_designation', object),
             ])
 
-    def _initialize_param_dict(self,
-            quiescent_fraction_abscissa=[6.31e10, 3.98e11, 2.51e12, 1.58e13, 1.e14],
+    def _initialize_param_dict(self, redshift=0,
             quiescent_fraction_ordinates=[0.052, 0.14, 0.54, 0.63, 0.77], **kwargs):
         """
         """
+        zchar = self._get_closest_redshift(redshift)
+        if zchar == 'z1':
+            full_param_dict = np.copy(param_dict_z1)
+        elif zchar == 'z2':
+            full_param_dict = np.copy(param_dict_z2)
+        else:
+            raise NotImplementedError("param_dict_z3 not implemented yet")
         self.param_dict = {}
 
         # From Table 2 of Tinker+13
@@ -121,7 +125,7 @@ class Tinker13Cens(OccupationComponent):
         self.param_dict['scatter_model_param1_active'] = 0.21
         self.param_dict['scatter_model_param1_quiescent'] = 0.28
 
-        self._quiescent_fraction_abscissa = np.array(quiescent_fraction_abscissa)/self.littleh
+        self._quiescent_fraction_abscissa = np.array(quiescent_fraction_control_masses)/self.littleh
         ordinates_key_prefix = 'quiescent_fraction_ordinates'
         self._ordinates_keys = (
             [ordinates_key_prefix + '_param' + str(i+1)
@@ -129,6 +133,14 @@ class Tinker13Cens(OccupationComponent):
             )
         for key, value in zip(self._ordinates_keys, quiescent_fraction_ordinates):
             self.param_dict[key] = value
+
+    def _get_closest_redshift(self, z):
+        if z < 0.48:
+            return 'z1'
+        elif 0.48 <= z < 0.74:
+            return 'z2'
+        else:
+            return 'z3'
 
     def _mean_log_halo_mass(self, log_stellar_mass, logm0, logm1, beta, delta, gamma):
         """ Return the halo mass of a central galaxy as a function
@@ -347,10 +359,6 @@ class AssembiasTinker13Cens(Tinker13Cens, HeavisideAssembias):
         redshift : float, optional
             Redshift of the stellar-to-halo-mass relation.
             Default is set in `~halotools.sim_manager.sim_defaults`.
-
-        quiescent_fraction_abscissa : array, optional
-            Values of the primary halo property at which the quiescent fraction is specified.
-            Default is [10**12, 10**13.5, 10**15].
 
         quiescent_fraction_ordinates : array, optional
             Values of the quiescent fraction when evaluated at the input abscissa.

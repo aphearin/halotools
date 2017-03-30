@@ -79,3 +79,8 @@ def test_Tinker13Cens7():
     result = model.mean_stellar_mass_quiescent(prim_haloprop=prim_haloprop)
     result = model.mean_log_halo_mass_active(log_stellar_mass=logsm)
     result = model.mean_log_halo_mass_quiescent(log_stellar_mass=logsm)
+
+
+@pytest.mark.xfail
+def test_tinker13_cens_z3():
+    model = Tinker13Cens(redshift=1)
