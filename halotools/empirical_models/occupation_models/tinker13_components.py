@@ -12,7 +12,6 @@ from .occupation_model_template import OccupationComponent
 from .. import model_defaults, model_helpers
 from ..smhm_models import Behroozi10SmHm
 from ..assembias_models import HeavisideAssembias
-from ..model_helpers import bounds_enforcing_decorator_factory
 
 from ...utils.array_utils import custom_len
 from ... import sim_manager
@@ -76,9 +75,6 @@ class Tinker13Cens(OccupationComponent):
             **kwargs)
         self.redshift = redshift
 
-        self.smhm_model = Behroozi10SmHm(
-            prim_haloprop_key=prim_haloprop_key, **kwargs)
-
         self._initialize_param_dict(**kwargs)
 
         self.sfr_designation_key = 'central_sfr_designation'
@@ -110,11 +106,6 @@ class Tinker13Cens(OccupationComponent):
         """
         """
         self.param_dict = {}
-        for key, value in self.smhm_model.param_dict.items():
-            active_key = key + '_active'
-            quiescent_key = key + '_quiescent'
-            self.param_dict[active_key] = value
-            self.param_dict[quiescent_key] = value
 
         # From Table 2 of Tinker+13
         self.param_dict['smhm_m1_0_active'] = 12.56
@@ -139,7 +130,43 @@ class Tinker13Cens(OccupationComponent):
         for key, value in zip(self._ordinates_keys, quiescent_fraction_ordinates):
             self.param_dict[key] = value
 
-    @bounds_enforcing_decorator_factory(0, 1, warning=False)
+    def _mean_log_halo_mass(self, log_stellar_mass, logm0, logm1, beta, delta, gamma):
+        """ Return the halo mass of a central galaxy as a function
+        of the stellar mass.
+
+        """
+
+        # convert mass from h=1 to h=0.7
+        stellar_mass = (10.**log_stellar_mass)/(self.littleh**2)
+
+        m0 = 10.**logm0
+
+        stellar_mass_by_m0 = stellar_mass/m0
+        term3_numerator = (stellar_mass_by_m0)**delta
+        term3_denominator = 1 + (stellar_mass_by_m0)**(-gamma)
+
+        log_halo_mass = logm1 + beta*np.log10(stellar_mass_by_m0) + (term3_numerator/term3_denominator) - 0.5
+
+        # convert back from h=0.7 to h=1 and return the result
+        return np.log10((10.**log_halo_mass)*self.littleh)
+
+    def _mean_stellar_mass(self, halo_mass, logm0, logm1, beta, delta, gamma):
+        """ Return the stellar mass of a central galaxy as a function
+        of the input table.
+
+        """
+        log_stellar_mass_table = np.linspace(8.5, 12.5, 100)
+        log_halo_mass_table = self._mean_log_halo_mass(log_stellar_mass_table,
+                logm0, logm1, beta, delta, gamma)
+
+        interpol_func = model_helpers.custom_spline(log_halo_mass_table, log_stellar_mass_table)
+
+        log_stellar_mass = interpol_func(np.log10(halo_mass))
+
+        stellar_mass = 10.**log_stellar_mass
+
+        return stellar_mass
+
     def mean_quiescent_fraction(self, **kwargs):
         """
         """
@@ -159,7 +186,8 @@ class Tinker13Cens(OccupationComponent):
                 raise HalotoolsError(msg % self.prim_haloprop_key)
 
         fraction = spline_function(np.log10(prim_haloprop))
-
+        fraction = np.where(fraction < 0, 0, fraction)
+        fraction = np.where(fraction > 1, 1, fraction)
         return fraction
 
     def mc_sfr_designation(self, seed=None, **kwargs):
@@ -222,68 +250,77 @@ class Tinker13Cens(OccupationComponent):
     def mean_occupation_active(self, **kwargs):
         """
         """
-        self._update_smhm_param_dict('active')
+        if 'table' in list(kwargs.keys()):
+            halo_mass = kwargs['table'][self.prim_haloprop_key]
+        elif 'prim_haloprop' in list(kwargs.keys()):
+            halo_mass = np.atleast_1d(kwargs['prim_haloprop'])
+        else:
+            msg = ("\nYou must pass either a ``table`` or ``prim_haloprop`` argument \n"
+                "to the ``mean_occupation_active`` function of the ``Tinker13Cens`` class.\n")
+            raise HalotoolsError(msg)
+        args = self._retrieve_smhm_param_keys('active')
 
-        logmstar = np.log10(self.smhm_model.mean_stellar_mass(
-            redshift=self.redshift, **kwargs))
-        logscatter = math.sqrt(2)*self.smhm_model.mean_scatter(**kwargs)
+        logmstar = np.log10(self._mean_stellar_mass(halo_mass, *args))
+        logscatter = math.sqrt(2)*self.param_dict['scatter_model_param1_active']
 
-        mean_ncen = 0.5*(1.0 -
-            erf((self.threshold - logmstar)/logscatter))
-        mean_ncen *= (1. - self.mean_quiescent_fraction(**kwargs))
+        mean_ncen = 0.5*(1.0 - erf((self.threshold - logmstar)/logscatter))
+        mean_ncen *= (1. - self.mean_quiescent_fraction(prim_haloprop=halo_mass))
 
         return mean_ncen
 
     def mean_occupation_quiescent(self, **kwargs):
         """
         """
-        self._update_smhm_param_dict('quiescent')
+        if 'table' in list(kwargs.keys()):
+            halo_mass = kwargs['table'][self.prim_haloprop_key]
+        elif 'prim_haloprop' in list(kwargs.keys()):
+            halo_mass = np.atleast_1d(kwargs['prim_haloprop'])
+        else:
+            msg = ("\nYou must pass either a ``table`` or ``prim_haloprop`` argument \n"
+                "to the ``mean_occupation_active`` function of the ``Tinker13Cens`` class.\n")
+            raise HalotoolsError(msg)
+        args = self._retrieve_smhm_param_keys('quiescent')
 
-        logmstar = np.log10(self.smhm_model.mean_stellar_mass(
-            redshift=self.redshift, **kwargs))
-        logscatter = math.sqrt(2)*self.smhm_model.mean_scatter(**kwargs)
+        logmstar = np.log10(self._mean_stellar_mass(halo_mass, *args))
+        logscatter = math.sqrt(2)*self.param_dict['scatter_model_param1_quiescent']
 
-        mean_ncen = 0.5*(1.0 -
-            erf((self.threshold - logmstar)/logscatter))
-        mean_ncen *= self.mean_quiescent_fraction(**kwargs)
+        mean_ncen = 0.5*(1.0 - erf((self.threshold - logmstar)/logscatter))
+        mean_ncen *= (1. - self.mean_quiescent_fraction(prim_haloprop=halo_mass))
 
         return mean_ncen
 
-    def mean_stellar_mass_active(self, **kwargs):
+    def mean_stellar_mass_active(self, prim_haloprop):
         """
         """
-        self._update_smhm_param_dict('active')
-        return self.smhm_model.mean_stellar_mass(redshift=self.redshift, **kwargs)
+        args = self._retrieve_smhm_param_keys('active')
+        return self._mean_stellar_mass(prim_haloprop, *args)
 
-    def mean_stellar_mass_quiescent(self, **kwargs):
+    def mean_stellar_mass_quiescent(self, prim_haloprop):
         """
         """
-        self._update_smhm_param_dict('quiescent')
-        return self.smhm_model.mean_stellar_mass(redshift=self.redshift, **kwargs)
+        args = self._retrieve_smhm_param_keys('quiescent')
+        return self._mean_stellar_mass(prim_haloprop, *args)
 
     def mean_log_halo_mass_active(self, log_stellar_mass):
         """
         """
-        self._update_smhm_param_dict('active')
-        return self.smhm_model.mean_log_halo_mass(log_stellar_mass,
-            redshift=self.redshift)
+        args = self._retrieve_smhm_param_keys('quiescent')
+        return self._mean_log_halo_mass(log_stellar_mass, *args)
 
     def mean_log_halo_mass_quiescent(self, log_stellar_mass):
         """
         """
-        self._update_smhm_param_dict('quiescent')
-        return self.smhm_model.mean_log_halo_mass(log_stellar_mass,
-            redshift=self.redshift)
+        args = self._retrieve_smhm_param_keys('quiescent')
+        return self._mean_log_halo_mass(log_stellar_mass, *args)
 
-    def _update_smhm_param_dict(self, sfr_key):
-
-        for key, value in self.param_dict.items():
-            if sfr_key in key:
-                stripped_key = key[:-len(sfr_key)-1]
-            else:
-                stripped_key = key
-            if stripped_key in self.smhm_model.param_dict:
-                self.smhm_model.param_dict[stripped_key] = value
+    def _retrieve_smhm_param_keys(self, sfr_key):
+        if sfr_key == 'active':
+            keys = ('smhm_m0_0_active', 'smhm_m1_0_active', 'smhm_beta_0_active',
+                'smhm_delta_0_active', 'smhm_gamma_0_active')
+        elif sfr_key == 'quiescent':
+            keys = ('smhm_m0_0_quiescent', 'smhm_m1_0_quiescent', 'smhm_beta_0_quiescent',
+                'smhm_delta_0_quiescent', 'smhm_gamma_0_quiescent')
+        return list(self.param_dict[key] for key in keys)
 
 
 class AssembiasTinker13Cens(Tinker13Cens, HeavisideAssembias):
