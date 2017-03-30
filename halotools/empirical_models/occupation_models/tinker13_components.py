@@ -56,11 +56,8 @@ class Tinker13Cens(OccupationComponent):
             Redshift of the stellar-to-halo-mass relation.
             Default is set in `~halotools.sim_manager.sim_defaults`.
 
-        quiescent_fraction_ordinates : array, optional
-            Values of the quiescent fraction when evaluated at the input abscissa.
-            Default is [0.25, 0.7, 0.95]
-
         """
+        self._littleh = 0.7
         upper_occupation_bound = 1.0
 
         # Call the super class constructor, which binds all the
@@ -72,7 +69,7 @@ class Tinker13Cens(OccupationComponent):
             **kwargs)
         self.redshift = redshift
 
-        self._initialize_param_dict(redshift=redshift, **kwargs)
+        self._initialize_param_dict(redshift=self.redshift, **kwargs)
 
         self.sfr_designation_key = 'central_sfr_designation'
 
@@ -97,8 +94,7 @@ class Tinker13Cens(OccupationComponent):
             ('sfr_designation', object),
             ])
 
-    def _initialize_param_dict(self, redshift=0,
-            quiescent_fraction_ordinates=[0.052, 0.14, 0.54, 0.63, 0.77], **kwargs):
+    def _initialize_param_dict(self, redshift=0, **kwargs):
         """
         """
         zchar = self._get_closest_redshift(redshift)
@@ -130,7 +126,8 @@ class Tinker13Cens(OccupationComponent):
         of the stellar mass.
 
         """
-        stellar_mass = 10.**log_stellar_mass
+        stellar_mass_unity_h = 10.**log_stellar_mass
+        stellar_mass = stellar_mass_unity_h*self._littleh*self._littleh  # convert to h=0.7 units
 
         m0 = 10.**logm0
 
@@ -139,23 +136,27 @@ class Tinker13Cens(OccupationComponent):
         term3_denominator = 1 + (stellar_mass_by_m0)**(-gamma)
 
         log_halo_mass = logm1 + beta*np.log10(stellar_mass_by_m0) + (term3_numerator/term3_denominator) - 0.5
-
-        return np.log10(10.**log_halo_mass)
+        halo_mass = 10**log_halo_mass
+        halo_mass_unity_h = halo_mass/self._littleh
+        return np.log10(halo_mass_unity_h)
 
     def _mean_stellar_mass(self, halo_mass, logm0, logm1, beta, delta, gamma):
         """ Return the stellar mass of a central galaxy as a function
         of the input table.
 
         """
+        halo_mass_h0p7 = halo_mass*self._littleh
+
         log_stellar_mass_table = np.linspace(8.5, 12.5, 100)
         log_halo_mass_table = self._mean_log_halo_mass(log_stellar_mass_table,
                 logm0, logm1, beta, delta, gamma)
 
-        log_stellar_mass = np.interp(np.log10(halo_mass),
+        log_stellar_mass = np.interp(np.log10(halo_mass_h0p7),
                 log_halo_mass_table, log_stellar_mass_table)
-        stellar_mass = 10.**log_stellar_mass
+        stellar_mass_h0p7 = 10.**log_stellar_mass
 
-        return stellar_mass
+        stellar_mass_unity_h = stellar_mass_h0p7/self._littleh/self._littleh
+        return stellar_mass_unity_h
 
     def mean_quiescent_fraction(self, **kwargs):
         """
