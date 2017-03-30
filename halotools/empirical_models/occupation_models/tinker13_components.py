@@ -12,7 +12,7 @@ from .occupation_model_template import OccupationComponent
 from .tinker13_parameter_dictionaries import (quiescent_fraction_control_masses,
     param_dict_z1, param_dict_z2)
 
-from .. import model_defaults, model_helpers
+from .. import model_defaults
 from ..smhm_models import Behroozi10SmHm
 from ..assembias_models import HeavisideAssembias
 
@@ -62,8 +62,6 @@ class Tinker13Cens(OccupationComponent):
 
         """
         upper_occupation_bound = 1.0
-
-        self.littleh = 0.72
 
         # Call the super class constructor, which binds all the
         # arguments to the instance.
@@ -134,7 +132,7 @@ class Tinker13Cens(OccupationComponent):
         """
 
         # convert mass from h=1 to h=0.7
-        stellar_mass = (10.**log_stellar_mass)/(self.littleh**2)
+        stellar_mass = 10.**log_stellar_mass
 
         m0 = 10.**logm0
 
@@ -145,7 +143,7 @@ class Tinker13Cens(OccupationComponent):
         log_halo_mass = logm1 + beta*np.log10(stellar_mass_by_m0) + (term3_numerator/term3_denominator) - 0.5
 
         # convert back from h=0.7 to h=1 and return the result
-        return np.log10((10.**log_halo_mass)*self.littleh)
+        return np.log10(10.**log_halo_mass)
 
     def _mean_stellar_mass(self, halo_mass, logm0, logm1, beta, delta, gamma):
         """ Return the stellar mass of a central galaxy as a function
@@ -156,10 +154,8 @@ class Tinker13Cens(OccupationComponent):
         log_halo_mass_table = self._mean_log_halo_mass(log_stellar_mass_table,
                 logm0, logm1, beta, delta, gamma)
 
-        interpol_func = model_helpers.custom_spline(log_halo_mass_table, log_stellar_mass_table)
-
-        log_stellar_mass = interpol_func(np.log10(halo_mass))
-
+        log_stellar_mass = np.interp(np.log10(halo_mass),
+                log_halo_mass_table, log_stellar_mass_table)
         stellar_mass = 10.**log_stellar_mass
 
         return stellar_mass
@@ -167,10 +163,6 @@ class Tinker13Cens(OccupationComponent):
     def mean_quiescent_fraction(self, **kwargs):
         """
         """
-        model_ordinates = [self.param_dict[key] for key in self.param_dict.keys() if 'ordinates' in key]
-        spline_function = model_helpers.custom_spline(
-            np.log10(quiescent_fraction_control_masses/self.littleh), model_ordinates)
-
         if 'prim_haloprop' in kwargs:
             prim_haloprop = np.atleast_1d(kwargs['prim_haloprop'])
         elif 'table' in kwargs:
@@ -182,7 +174,10 @@ class Tinker13Cens(OccupationComponent):
                     "does not have the requested ``%s`` key")
                 raise HalotoolsError(msg % self.prim_haloprop_key)
 
-        fraction = spline_function(np.log10(prim_haloprop))
+        model_ordinates = [self.param_dict[key] for key in self.param_dict.keys() if 'ordinates' in key]
+
+        fraction = np.interp(np.log10(prim_haloprop),
+                np.log10(quiescent_fraction_control_masses), model_ordinates)
         fraction = np.where(fraction < 0, 0, fraction)
         fraction = np.where(fraction > 1, 1, fraction)
         return fraction
@@ -420,8 +415,6 @@ class Tinker13QuiescentSats(OccupationComponent):
         """
         upper_occupation_bound = float("inf")
 
-        self.littleh = 0.72
-
         # Call the super class constructor, which binds all the
         # arguments to the instance.
         super(Tinker13QuiescentSats, self).__init__(
@@ -490,11 +483,11 @@ class Tinker13QuiescentSats(OccupationComponent):
 
         self._update_satellite_params()
 
-        power_law_factor = (mass*self.littleh/self._msat)**self.param_dict['alphasat_quiescent']
+        power_law_factor = (mass/self._msat)**self.param_dict['alphasat_quiescent']
 
         exp_arg_numerator = self._mcut + 10.**self.smhm_model.mean_log_halo_mass(
             log_stellar_mass=self.threshold, redshift=self.redshift)
-        exp_factor = np.exp(-exp_arg_numerator/(mass*self.littleh))
+        exp_factor = np.exp(-exp_arg_numerator/mass)
 
         mean_nsat = exp_factor*power_law_factor
 
@@ -541,7 +534,7 @@ class Tinker13QuiescentSats(OccupationComponent):
 
         log_halo_mass_threshold = self.smhm_model.mean_log_halo_mass(
             log_stellar_mass=self.threshold, redshift=self.redshift)
-        knee_threshold = (10.**log_halo_mass_threshold)*self.littleh
+        knee_threshold = (10.**log_halo_mass_threshold)
 
         knee_mass = 1.e12
 
@@ -585,8 +578,6 @@ class Tinker13ActiveSats(OccupationComponent):
             Default is set in `~halotools.sim_manager.sim_defaults`.
         """
         upper_occupation_bound = float("inf")
-
-        self.littleh = 0.72
 
         # Call the super class constructor, which binds all the
         # arguments to the instance.
@@ -656,11 +647,11 @@ class Tinker13ActiveSats(OccupationComponent):
 
         self._update_satellite_params()
 
-        power_law_factor = (mass*self.littleh/self._msat)**self.param_dict['alphasat_active']
+        power_law_factor = (mass/self._msat)**self.param_dict['alphasat_active']
 
         exp_arg_numerator = self._mcut + 10.**self.smhm_model.mean_log_halo_mass(
             log_stellar_mass=self.threshold, redshift=self.redshift)
-        exp_factor = np.exp(-exp_arg_numerator/(mass*self.littleh))
+        exp_factor = np.exp(-exp_arg_numerator/mass)
 
         mean_nsat = exp_factor*power_law_factor
 
@@ -705,7 +696,7 @@ class Tinker13ActiveSats(OccupationComponent):
 
         log_halo_mass_threshold = self.smhm_model.mean_log_halo_mass(
             log_stellar_mass=self.threshold, redshift=self.redshift)
-        knee_threshold = (10.**log_halo_mass_threshold)*self.littleh
+        knee_threshold = (10.**log_halo_mass_threshold)
 
         knee_mass = 1.e12
 
