@@ -15,9 +15,15 @@ def test_centrals_blue_bin1():
     halo_mass = x[:, 0]
     ncen_diff_tinker = x[:, 1]
 
-    model_low_thresh = Tinker13Cens(redshift=0.5, threshold=9)
+    low_thresh_straight_up = 10**9
+    high_thresh_straight_up = 10**9.5
+    h = 0.7
+    low_thresh_unity_h = low_thresh_straight_up/h/h
+    high_thresh_unity_h = high_thresh_straight_up/h/h
+
+    model_low_thresh = Tinker13Cens(redshift=0.5, threshold=np.log10(low_thresh_unity_h))
     assert model_low_thresh.param_dict['smhm_m0_0_active'] == 10.98
-    model_high_thresh = Tinker13Cens(redshift=0.5, threshold=9.5)
+    model_high_thresh = Tinker13Cens(redshift=0.5, threshold=np.log10(high_thresh_unity_h))
     assert model_high_thresh.param_dict['smhm_m0_0_active'] == 10.98
 
     ncen_low_thresh = model_low_thresh.mean_occupation_active(prim_haloprop=halo_mass)
