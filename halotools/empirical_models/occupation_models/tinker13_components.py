@@ -6,6 +6,7 @@ import numpy as np
 import math
 from scipy.special import erf
 from astropy.utils.misc import NumpyRNGContext
+from copy import deepcopy
 
 from .occupation_model_template import OccupationComponent
 from .tinker13_parameter_dictionaries import (quiescent_fraction_control_masses,
@@ -104,35 +105,19 @@ class Tinker13Cens(OccupationComponent):
         """
         zchar = self._get_closest_redshift(redshift)
         if zchar == 'z1':
-            full_param_dict = np.copy(param_dict_z1)
+            full_param_dict = deepcopy(param_dict_z1)
         elif zchar == 'z2':
-            full_param_dict = np.copy(param_dict_z2)
+            full_param_dict = deepcopy(param_dict_z2)
         else:
             raise NotImplementedError("param_dict_z3 not implemented yet")
         self.param_dict = {}
-
-        # From Table 2 of Tinker+13
-        self.param_dict['smhm_m1_0_active'] = 12.56
-        self.param_dict['smhm_m1_0_quiescent'] = 12.08
-        self.param_dict['smhm_m0_0_active'] = 10.96
-        self.param_dict['smhm_m0_0_quiescent'] = 10.7
-        self.param_dict['smhm_beta_0_active'] = 0.44
-        self.param_dict['smhm_beta_0_quiescent'] = 0.32
-        self.param_dict['smhm_delta_0_active'] = 0.52
-        self.param_dict['smhm_delta_0_quiescent'] = 0.93
-        self.param_dict['smhm_gamma_0_active'] = 1.48
-        self.param_dict['smhm_gamma_0_quiescent'] = 0.81
-        self.param_dict['scatter_model_param1_active'] = 0.21
-        self.param_dict['scatter_model_param1_quiescent'] = 0.28
-
-        self._quiescent_fraction_abscissa = np.array(quiescent_fraction_control_masses)/self.littleh
-        ordinates_key_prefix = 'quiescent_fraction_ordinates'
-        self._ordinates_keys = (
-            [ordinates_key_prefix + '_param' + str(i+1)
-            for i in range(custom_len(self._quiescent_fraction_abscissa))]
-            )
-        for key, value in zip(self._ordinates_keys, quiescent_fraction_ordinates):
-            self.param_dict[key] = value
+        for key in full_param_dict.keys():
+            if 'smhm_' in key:
+                self.param_dict[key] = full_param_dict[key]
+            elif 'scatter_' in key:
+                self.param_dict[key] = full_param_dict[key]
+            elif 'quiescent_fraction_ordinates' in key:
+                self.param_dict[key] = full_param_dict[key]
 
     def _get_closest_redshift(self, z):
         if z < 0.48:
@@ -182,9 +167,9 @@ class Tinker13Cens(OccupationComponent):
     def mean_quiescent_fraction(self, **kwargs):
         """
         """
-        model_ordinates = [self.param_dict[ordinate_key] for ordinate_key in self._ordinates_keys]
+        model_ordinates = [self.param_dict[key] for key in self.param_dict.keys() if 'ordinates' in key]
         spline_function = model_helpers.custom_spline(
-            np.log10(self._quiescent_fraction_abscissa), model_ordinates)
+            np.log10(quiescent_fraction_control_masses/self.littleh), model_ordinates)
 
         if 'prim_haloprop' in kwargs:
             prim_haloprop = np.atleast_1d(kwargs['prim_haloprop'])
