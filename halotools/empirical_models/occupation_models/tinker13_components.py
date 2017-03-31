@@ -132,8 +132,8 @@ class Tinker13Cens(OccupationComponent):
         m0 = 10.**logm0
 
         stellar_mass_by_m0 = stellar_mass/m0
-        term3_numerator = (stellar_mass_by_m0)**delta
-        term3_denominator = 1 + (stellar_mass_by_m0)**(-gamma)
+        term3_numerator = stellar_mass_by_m0**delta
+        term3_denominator = 1 + stellar_mass_by_m0**(-gamma)
 
         log_halo_mass = logm1 + beta*np.log10(stellar_mass_by_m0) + (term3_numerator/term3_denominator) - 0.5
         halo_mass = 10**log_halo_mass
