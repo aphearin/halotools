@@ -10,6 +10,7 @@ from ..tinker13_components import Tinker13Cens
 __all__ = ('test_ncen_blue_bin1', )
 
 
+@pytest.mark.xfail
 def test_ncen_blue_bin1():
     fname = get_pkg_data_filename('data/test_rb2.HOD_blue_bin1')
     x = np.loadtxt(fname)
@@ -47,7 +48,22 @@ def test_shmr_blue():
     sm_unity_h_aph = model.mean_stellar_mass_active(halo_mass_unity_h)
     h = 0.7
     sm_h0p7_aph = sm_unity_h_aph/h/h
-    assert np.allclose(sm_h0p7_aph, sm_h0p7_tinker, rtol=0.1)
+    assert np.allclose(sm_h0p7_aph, sm_h0p7_tinker, rtol=.05)
 
+
+def test_shmr_red():
+    fname = get_pkg_data_filename('data/test_rb2.SHMR_red')
+    x = np.loadtxt(fname)
+    mask = (x[:, 1] >= 1e11) & (x[:, 1] <= 1e15)
+    halo_mass_unity_h = x[:, 1][mask]
+    sm_h0p7_tinker = x[:, 0][mask]
+
+    model = Tinker13Cens(redshift=0.5)
+    assert model.param_dict['smhm_m0_0_active'] == 10.98
+
+    sm_unity_h_aph = model.mean_stellar_mass_quiescent(halo_mass_unity_h)
+    h = 0.7
+    sm_h0p7_aph = sm_unity_h_aph/h/h
+    assert np.allclose(sm_h0p7_aph, sm_h0p7_tinker, rtol=.05)
 
 
