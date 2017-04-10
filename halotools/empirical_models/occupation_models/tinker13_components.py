@@ -252,10 +252,16 @@ class Tinker13Cens(OccupationComponent):
             raise HalotoolsError(msg)
 
         sm_unity_h = self.mean_stellar_mass_active(halo_mass_unity_h)
-        log_sm_unity_h = np.log10(sm_unity_h)
+        sm_h0p7 = sm_unity_h/self._littleh/self._littleh
+        log_sm_h0p7 = np.log10(sm_h0p7)
         logscatter = math.sqrt(2)*self.param_dict['scatter_model_param1_active']
 
-        mean_ncen = 0.5*(1.0 - erf((self.threshold - log_sm_unity_h)/logscatter))
+        sm_thresh_unity_h = 10**self.threshold
+        sm_thresh_h0p7 = sm_thresh_unity_h/self._littleh/self._littleh
+        log_sm_thresh_h0p7 = np.log10(sm_thresh_h0p7)
+
+        erfarg = (log_sm_thresh_h0p7 - log_sm_h0p7)/logscatter
+        mean_ncen = 0.5*(1.0 - erf(erfarg))
         mean_ncen *= (1. - self.mean_quiescent_fraction(prim_haloprop=halo_mass_unity_h))
 
         return mean_ncen
@@ -273,10 +279,16 @@ class Tinker13Cens(OccupationComponent):
             raise HalotoolsError(msg)
 
         sm_unity_h = self.mean_stellar_mass_quiescent(halo_mass)
-        log_sm_unity_h = np.log10(sm_unity_h)
+        sm_h0p7 = sm_unity_h/self._littleh/self._littleh
+        log_sm_h0p7 = np.log10(sm_h0p7)
         logscatter = math.sqrt(2)*self.param_dict['scatter_model_param1_quiescent']
 
-        mean_ncen = 0.5*(1.0 - erf((self.threshold - log_sm_unity_h)/logscatter))
+        sm_thresh_unity_h = 10**self.threshold
+        sm_thresh_h0p7 = sm_thresh_unity_h/self._littleh/self._littleh
+        log_sm_thresh_h0p7 = np.log10(sm_thresh_h0p7)
+
+        erfarg = (log_sm_thresh_h0p7 - log_sm_h0p7)/logscatter
+        mean_ncen = 0.5*(1.0 - erf(erfarg))
         mean_ncen *= (1. - self.mean_quiescent_fraction(prim_haloprop=halo_mass))
 
         return mean_ncen
