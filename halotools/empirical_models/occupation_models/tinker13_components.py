@@ -121,42 +121,44 @@ class Tinker13Cens(OccupationComponent):
         else:
             return 'z3'
 
-    def _mean_log_halo_mass(self, log_stellar_mass_unity_h, logm0, logm1, beta, delta, gamma):
-        """ Return the halo mass of a central galaxy as a function
-        of the stellar mass.
+    def _mean_log_halo_mass(self, log_sm_h0p7, logm0_h0p7, logm1_h0p7, beta, delta, gamma):
+        """ Mean halo mass as a function of stellar mass of central galaxies.
 
+        As in eqn (1) of Tinker+13, numerical values of stellar and halo mass are assuming h=0.7,
+        so inputs and outputs need to be scaled by some
+        external function in order to return results in the h=1 units
+        used throughout the rest of Halotools.
         """
-        stellar_mass_unity_h = 10.**log_stellar_mass_unity_h
-        stellar_mass_h0p7 = stellar_mass_unity_h*self._littleh*self._littleh  # convert to h=0.7 units
+        sm_h0p7 = 10.**log_sm_h0p7
+        m0 = 10.**logm0_h0p7
+        sm_by_m0 = sm_h0p7/m0
 
-        m0 = 10.**logm0
+        term2 = beta*np.log10(sm_by_m0)
 
-        stellar_mass_by_m0 = stellar_mass_h0p7/m0
-        term3_numerator = stellar_mass_by_m0**delta
-        term3_denominator = 1 + stellar_mass_by_m0**(-gamma)
+        term3_numerator = sm_by_m0**delta
+        term3_denominator = 1 + sm_by_m0**(-gamma)
+        term3 = term3_numerator/term3_denominator
 
-        log_halo_mass = logm1 + beta*np.log10(stellar_mass_by_m0) + (term3_numerator/term3_denominator) - 0.5
-        halo_mass = 10**log_halo_mass
-        halo_mass_unity_h = halo_mass/self._littleh
-        return np.log10(halo_mass_unity_h)
+        log_mh_h0p7 = logm1_h0p7 + term2 + term3 - 0.5
+        return log_mh_h0p7
 
-    def _mean_stellar_mass(self, halo_mass, logm0, logm1, beta, delta, gamma):
-        """ Return the stellar mass of a central galaxy as a function
-        of the input table.
+    def _mean_stellar_mass(self, mh_h0p7, logm0_h0p7, logm1_h0p7, beta, delta, gamma):
+        """ Mean stellar mass as a function of halo mass of central galaxies.
 
+        As in eqn (1) of Tinker+13, numerical values of stellar and halo mass are assuming h=0.7,
+        so inputs and outputs need to be scaled by some
+        external function in order to return results in the h=1 units
+        used throughout the rest of Halotools.
         """
-        halo_mass_h0p7 = halo_mass*self._littleh
+        logsm_h0p7_table = np.linspace(8.5, 12.5, 100)
+        log_mh_h0p7_table = self._mean_log_halo_mass(logsm_h0p7_table,
+                logm0_h0p7, logm1_h0p7, beta, delta, gamma)
 
-        log_stellar_mass_table = np.linspace(8.5, 12.5, 100)
-        log_halo_mass_table = self._mean_log_halo_mass(log_stellar_mass_table,
-                logm0, logm1, beta, delta, gamma)
+        log_sm_h0p7 = np.interp(np.log10(mh_h0p7),
+                log_mh_h0p7_table, logsm_h0p7_table)
+        sm_h0p7 = 10.**log_sm_h0p7
 
-        log_stellar_mass = np.interp(np.log10(halo_mass_h0p7),
-                log_halo_mass_table, log_stellar_mass_table)
-        stellar_mass_h0p7 = 10.**log_stellar_mass
-
-        stellar_mass_unity_h = stellar_mass_h0p7/self._littleh/self._littleh
-        return stellar_mass_unity_h
+        return sm_h0p7
 
     def mean_quiescent_fraction(self, **kwargs):
         """
@@ -241,20 +243,20 @@ class Tinker13Cens(OccupationComponent):
         """
         """
         if 'table' in list(kwargs.keys()):
-            halo_mass = kwargs['table'][self.prim_haloprop_key]
+            halo_mass_unity_h = kwargs['table'][self.prim_haloprop_key]
         elif 'prim_haloprop' in list(kwargs.keys()):
-            halo_mass = np.atleast_1d(kwargs['prim_haloprop'])
+            halo_mass_unity_h = np.atleast_1d(kwargs['prim_haloprop'])
         else:
             msg = ("\nYou must pass either a ``table`` or ``prim_haloprop`` argument \n"
                 "to the ``mean_occupation_active`` function of the ``Tinker13Cens`` class.\n")
             raise HalotoolsError(msg)
-        args = self._retrieve_smhm_param_keys('active')
 
-        logmstar = np.log10(self._mean_stellar_mass(halo_mass, *args))
+        sm_unity_h = self.mean_stellar_mass_active(halo_mass_unity_h)
+        log_sm_unity_h = np.log10(sm_unity_h)
         logscatter = math.sqrt(2)*self.param_dict['scatter_model_param1_active']
 
-        mean_ncen = 0.5*(1.0 - erf((self.threshold - logmstar)/logscatter))
-        mean_ncen *= (1. - self.mean_quiescent_fraction(prim_haloprop=halo_mass))
+        mean_ncen = 0.5*(1.0 - erf((self.threshold - log_sm_unity_h)/logscatter))
+        mean_ncen *= (1. - self.mean_quiescent_fraction(prim_haloprop=halo_mass_unity_h))
 
         return mean_ncen
 
@@ -269,12 +271,12 @@ class Tinker13Cens(OccupationComponent):
             msg = ("\nYou must pass either a ``table`` or ``prim_haloprop`` argument \n"
                 "to the ``mean_occupation_active`` function of the ``Tinker13Cens`` class.\n")
             raise HalotoolsError(msg)
-        args = self._retrieve_smhm_param_keys('quiescent')
 
-        logmstar = np.log10(self._mean_stellar_mass(halo_mass, *args))
+        sm_unity_h = self.mean_stellar_mass_quiescent(halo_mass)
+        log_sm_unity_h = np.log10(sm_unity_h)
         logscatter = math.sqrt(2)*self.param_dict['scatter_model_param1_quiescent']
 
-        mean_ncen = 0.5*(1.0 - erf((self.threshold - logmstar)/logscatter))
+        mean_ncen = 0.5*(1.0 - erf((self.threshold - log_sm_unity_h)/logscatter))
         mean_ncen *= (1. - self.mean_quiescent_fraction(prim_haloprop=halo_mass))
 
         return mean_ncen
@@ -282,28 +284,50 @@ class Tinker13Cens(OccupationComponent):
     def mean_stellar_mass_active(self, prim_haloprop):
         """
         """
-        args = self._retrieve_smhm_param_keys('active')
-        return self._mean_stellar_mass(prim_haloprop, *args)
+        args = self._retrieve_smhm_param_values('active')
+
+        halo_mass_unity_h = prim_haloprop
+        halo_mass_h0p7 = halo_mass_unity_h/self._littleh
+        sm_h0p7 = self._mean_stellar_mass(halo_mass_h0p7, *args)
+        sm_unity_h = sm_h0p7*self._littleh*self._littleh
+        return sm_unity_h
 
     def mean_stellar_mass_quiescent(self, prim_haloprop):
         """
         """
-        args = self._retrieve_smhm_param_keys('quiescent')
-        return self._mean_stellar_mass(prim_haloprop, *args)
+        args = self._retrieve_smhm_param_values('quiescent')
+
+        halo_mass_unity_h = prim_haloprop
+        halo_mass_h0p7 = halo_mass_unity_h/self._littleh
+        sm_h0p7 = self._mean_stellar_mass(halo_mass_h0p7, *args)
+        sm_unity_h = sm_h0p7*self._littleh*self._littleh
+        return sm_unity_h
 
     def mean_log_halo_mass_active(self, log_stellar_mass):
         """
         """
-        args = self._retrieve_smhm_param_keys('quiescent')
-        return self._mean_log_halo_mass(log_stellar_mass, *args)
+        args = self._retrieve_smhm_param_values('quiescent')
+
+        sm_unity_h = 10**log_stellar_mass
+        sm_h0p7 = sm_unity_h/self._littleh/self._littleh
+        log_sm_h0p7 = np.log10(sm_h0p7)
+        mh_h0p7 = 10**self._mean_log_halo_mass(log_sm_h0p7, *args)
+        mh_unity_h = mh_h0p7*self._littleh
+        return np.log10(mh_unity_h)
 
     def mean_log_halo_mass_quiescent(self, log_stellar_mass):
         """
         """
-        args = self._retrieve_smhm_param_keys('quiescent')
-        return self._mean_log_halo_mass(log_stellar_mass, *args)
+        args = self._retrieve_smhm_param_values('quiescent')
 
-    def _retrieve_smhm_param_keys(self, sfr_key):
+        sm_unity_h = 10**log_stellar_mass
+        sm_h0p7 = sm_unity_h/self._littleh/self._littleh
+        log_sm_h0p7 = np.log10(sm_h0p7)
+        mh_h0p7 = 10**self._mean_log_halo_mass(log_sm_h0p7, *args)
+        mh_unity_h = mh_h0p7*self._littleh
+        return np.log10(mh_unity_h)
+
+    def _retrieve_smhm_param_values(self, sfr_key):
         if sfr_key == 'active':
             keys = ('smhm_m0_0_active', 'smhm_m1_0_active', 'smhm_beta_0_active',
                 'smhm_delta_0_active', 'smhm_gamma_0_active')
