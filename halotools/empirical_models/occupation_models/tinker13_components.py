@@ -121,17 +121,17 @@ class Tinker13Cens(OccupationComponent):
         else:
             return 'z3'
 
-    def _mean_log_halo_mass(self, log_stellar_mass, logm0, logm1, beta, delta, gamma):
+    def _mean_log_halo_mass(self, log_stellar_mass_unity_h, logm0, logm1, beta, delta, gamma):
         """ Return the halo mass of a central galaxy as a function
         of the stellar mass.
 
         """
-        stellar_mass_unity_h = 10.**log_stellar_mass
-        stellar_mass = stellar_mass_unity_h*self._littleh*self._littleh  # convert to h=0.7 units
+        stellar_mass_unity_h = 10.**log_stellar_mass_unity_h
+        stellar_mass_h0p7 = stellar_mass_unity_h*self._littleh*self._littleh  # convert to h=0.7 units
 
         m0 = 10.**logm0
 
-        stellar_mass_by_m0 = stellar_mass/m0
+        stellar_mass_by_m0 = stellar_mass_h0p7/m0
         term3_numerator = stellar_mass_by_m0**delta
         term3_denominator = 1 + stellar_mass_by_m0**(-gamma)
 

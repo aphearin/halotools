@@ -45,7 +45,7 @@ def test_shmr_blue():
     model = Tinker13Cens(redshift=0.5)
     assert model.param_dict['smhm_m0_0_active'] == 10.98
 
-    stellar_mass_aph = model.stellar_mass_active(halo_mass)
+    stellar_mass_aph = model.mean_stellar_mass_active(halo_mass)
     assert np.allclose(stellar_mass_aph, stellar_mass_tinker, rtol=0.2)
 
 
