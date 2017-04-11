@@ -174,7 +174,8 @@ class Tinker13Cens(OccupationComponent):
                     "does not have the requested ``%s`` key")
                 raise HalotoolsError(msg % self.prim_haloprop_key)
 
-        model_ordinates = [self.param_dict[key] for key in self.param_dict.keys() if 'ordinates' in key]
+        keys = list('quiescent_fraction_ordinates_param'+str(i) for i in range(1, 6))
+        model_ordinates = [self.param_dict[key] for key in keys]
 
         fraction = np.interp(np.log10(prim_haloprop),
                 np.log10(quiescent_fraction_control_masses), model_ordinates)
@@ -289,7 +290,7 @@ class Tinker13Cens(OccupationComponent):
 
         erfarg = (log_sm_thresh_h0p7 - log_sm_h0p7)/logscatter
         mean_ncen = 0.5*(1.0 - erf(erfarg))
-        mean_ncen *= (1. - self.mean_quiescent_fraction(prim_haloprop=halo_mass))
+        mean_ncen *= self.mean_quiescent_fraction(prim_haloprop=halo_mass)
 
         return mean_ncen
 
