@@ -81,6 +81,12 @@ def test_Tinker13Cens7():
     result = model.mean_log_halo_mass_quiescent(log_stellar_mass=logsm)
 
 
-@pytest.mark.xfail
 def test_tinker13_cens_z3():
-    model = Tinker13Cens(redshift=1)
+    model0 = Tinker13Cens(redshift=0)
+    model0p5 = Tinker13Cens(redshift=0.5)
+    model0p6 = Tinker13Cens(redshift=0.6)
+    model1 = Tinker13Cens(redshift=1)
+
+    assert model0.param_dict != model0p5.param_dict
+    assert model0p6.param_dict == model0p5.param_dict
+    assert model0p6.param_dict != model1.param_dict

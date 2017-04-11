@@ -2,7 +2,6 @@
 """
 import numpy as np
 from astropy.utils.data import get_pkg_data_filename
-from astropy.tests.helper import pytest
 
 from ..tinker13_components import Tinker13Cens
 

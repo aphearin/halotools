@@ -10,7 +10,7 @@ from copy import deepcopy
 
 from .occupation_model_template import OccupationComponent
 from .tinker13_parameter_dictionaries import (quiescent_fraction_control_masses,
-    param_dict_z1, param_dict_z2)
+    param_dict_z1, param_dict_z2, param_dict_z3)
 
 from .. import model_defaults
 from ..smhm_models import Behroozi10SmHm
@@ -103,7 +103,7 @@ class Tinker13Cens(OccupationComponent):
         elif zchar == 'z2':
             full_param_dict = deepcopy(param_dict_z2)
         else:
-            raise NotImplementedError("param_dict_z3 not implemented yet")
+            full_param_dict = deepcopy(param_dict_z3)
         self.param_dict = {}
         for key in full_param_dict.keys():
             if 'smhm_' in key:
@@ -150,7 +150,7 @@ class Tinker13Cens(OccupationComponent):
         external function in order to return results in the h=1 units
         used throughout the rest of Halotools.
         """
-        logsm_h0p7_table = np.linspace(8.5, 12.5, 100)
+        logsm_h0p7_table = np.linspace(8., 12.5, 500)
         log_mh_h0p7_table = self._mean_log_halo_mass(logsm_h0p7_table,
                 logm0_h0p7, logm1_h0p7, beta, delta, gamma)
 

@@ -84,3 +84,41 @@ param_dict_z1['quiescent_fraction_ordinates_param3'] = 0.54
 param_dict_z1['quiescent_fraction_ordinates_param4'] = 0.63
 param_dict_z1['quiescent_fraction_ordinates_param5'] = 0.77
 
+param_dict_z3 = dict()
+
+# active centrals
+param_dict_z3['smhm_m1_0_active'] = 12.69
+param_dict_z3['smhm_m0_0_active'] = 10.97
+param_dict_z3['smhm_beta_0_active'] = 0.44
+param_dict_z3['smhm_delta_0_active'] = 0.73
+param_dict_z3['smhm_gamma_0_active'] = 4.71
+param_dict_z3['scatter_model_param1_active'] = 0.25
+
+# active satellites
+param_dict_z3['bcut_active'] = 0.18
+param_dict_z3['bsat_active'] = 112.7
+param_dict_z3['betacut_active'] = 1.00
+param_dict_z3['betasat_active'] = 2.65
+param_dict_z3['alphasat_active'] = 0.84
+
+# quiescent centrals
+param_dict_z3['smhm_m1_0_quiescent'] = 12.21
+param_dict_z3['smhm_m0_0_quiescent'] = 10.83
+param_dict_z3['smhm_beta_0_quiescent'] = 0.02
+param_dict_z3['smhm_delta_0_quiescent'] = 0.44
+param_dict_z3['smhm_gamma_0_quiescent'] = 0.81
+param_dict_z3['scatter_model_param1_quiescent'] = 0.18
+
+# quiescent satellites
+param_dict_z3['bcut_quiescent'] = 0.21
+param_dict_z3['bsat_quiescent'] = 13.16
+param_dict_z3['betacut_quiescent'] = 0.46
+param_dict_z3['betasat_quiescent'] = 0.77
+param_dict_z3['alphasat_quiescent'] = 0.98
+
+# quiescent central fraction
+param_dict_z3['quiescent_fraction_ordinates_param1'] = 10**-6.89
+param_dict_z3['quiescent_fraction_ordinates_param2'] = 10**-1.23
+param_dict_z3['quiescent_fraction_ordinates_param3'] = 0.43
+param_dict_z3['quiescent_fraction_ordinates_param4'] = 0.59
+param_dict_z3['quiescent_fraction_ordinates_param5'] = 0.76
