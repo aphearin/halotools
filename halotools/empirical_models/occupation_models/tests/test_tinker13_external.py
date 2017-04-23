@@ -6,62 +6,60 @@ from astropy.utils.data import get_pkg_data_filename
 from ..tinker13_components import Tinker13Cens
 
 
-__all__ = ('test_ncen_blue_bin1', )
+__all__ = ('test_mean_ncen_blue', )
 
 
-def test_ncen_blue_bin1():
-    fname = get_pkg_data_filename('data/test_rb2.HOD_blue_bin1')
-    x = np.loadtxt(fname)
-    halo_mass_unity_h = x[:, 0]
-    ncen_diff_tinker = x[:, 1]
+def test_mean_ncen_blue():
+    halo_mass_fname = get_pkg_data_filename('data/tinker13_test_data_mass_abscissa.npy')
+    halo_mass = np.load(halo_mass_fname)
+    ncen_blue_fname = get_pkg_data_filename('data/tinker13_test_data_mean_ncen_blue_logsm9p5.npy')
+    ncen_blue_jt = np.load(ncen_blue_fname)
 
-    low_thresh_straight_up = 10**9
-    high_thresh_straight_up = 10**9.5
-    h = 0.7
-    low_thresh_unity_h = low_thresh_straight_up*h*h
-    high_thresh_unity_h = high_thresh_straight_up*h*h
+    logsm_cut_h0p7 = 9.5
+    sm_cut_h0p7 = 10**logsm_cut_h0p7
+    sm_cut_h1p0 = sm_cut_h0p7*0.7*0.7
+    logsm_cut_h1p0 = np.log10(sm_cut_h1p0)
 
-    model_low_thresh = Tinker13Cens(redshift=0.5, threshold=np.log10(low_thresh_unity_h))
-    assert model_low_thresh.param_dict['smhm_m0_0_active'] == 10.98
-    model_high_thresh = Tinker13Cens(redshift=0.5, threshold=np.log10(high_thresh_unity_h))
-    assert model_high_thresh.param_dict['smhm_m0_0_active'] == 10.98
+    model = Tinker13Cens(redshift=0.5, threshold=logsm_cut_h1p0)
+    ncen_blue_halotools = model.mean_occupation_active(prim_haloprop=halo_mass)
 
-    ncen_low_thresh = model_low_thresh.mean_occupation_active(prim_haloprop=halo_mass_unity_h)
-    ncen_high_thresh = model_high_thresh.mean_occupation_active(prim_haloprop=halo_mass_unity_h)
-    ncen_diff_aph = ncen_low_thresh - ncen_high_thresh
-
-    assert np.allclose(ncen_diff_aph, ncen_diff_tinker, atol=0.1)
+    assert np.allclose(ncen_blue_halotools, ncen_blue_jt, rtol=0.1)
 
 
-def test_shmr_blue():
-    fname = get_pkg_data_filename('data/test_rb2.SHMR_blue')
-    x = np.loadtxt(fname)
-    mask = (x[:, 1] >= 1e11) & (x[:, 1] <= 1e15)
-    halo_mass_unity_h = x[:, 1][mask]
-    sm_h0p7_tinker = x[:, 0][mask]
+def test_mean_ncen_red():
+    halo_mass_fname = get_pkg_data_filename('data/tinker13_test_data_mass_abscissa.npy')
+    halo_mass = np.load(halo_mass_fname)
+    ncen_red_fname = get_pkg_data_filename('data/tinker13_test_data_mean_ncen_red_logsm9p5.npy')
+    ncen_red_jt = np.load(ncen_red_fname)
 
-    model = Tinker13Cens(redshift=0.5)
-    assert model.param_dict['smhm_m0_0_active'] == 10.98
+    logsm_cut_h0p7 = 9.5
+    sm_cut_h0p7 = 10**logsm_cut_h0p7
+    sm_cut_h1p0 = sm_cut_h0p7*0.7*0.7
+    logsm_cut_h1p0 = np.log10(sm_cut_h1p0)
 
-    sm_unity_h_aph = model.mean_stellar_mass_active(halo_mass_unity_h)
-    h = 0.7
-    sm_h0p7_aph = sm_unity_h_aph/h/h
-    assert np.allclose(sm_h0p7_aph, sm_h0p7_tinker, rtol=.05)
+    model = Tinker13Cens(redshift=0.5, threshold=logsm_cut_h1p0)
+    ncen_red_halotools = model.mean_occupation_quiescent(prim_haloprop=halo_mass)
+
+    assert np.allclose(ncen_red_halotools, ncen_red_jt, rtol=0.1)
 
 
-def test_shmr_red():
-    fname = get_pkg_data_filename('data/test_rb2.SHMR_red')
-    x = np.loadtxt(fname)
-    mask = (x[:, 1] >= 1e11) & (x[:, 1] <= 1e15)
-    halo_mass_unity_h = x[:, 1][mask]
-    sm_h0p7_tinker = x[:, 0][mask]
+def test_red_fraction():
+    halo_mass_fname = get_pkg_data_filename('data/tinker13_test_data_mass_abscissa.npy')
+    halo_mass = np.load(halo_mass_fname)
+    ncen_red_fname = get_pkg_data_filename('data/tinker13_test_data_mean_ncen_red_logsm9p5.npy')
+    ncen_red_jt = np.load(ncen_red_fname)
+    ncen_blue_fname = get_pkg_data_filename('data/tinker13_test_data_mean_ncen_blue_logsm9p5.npy')
+    ncen_blue_jt = np.load(ncen_blue_fname)
 
-    model = Tinker13Cens(redshift=0.5)
-    assert model.param_dict['smhm_m0_0_active'] == 10.98
+    red_fraction_jt = ncen_red_jt/(ncen_red_jt + ncen_blue_jt)
 
-    sm_unity_h_aph = model.mean_stellar_mass_quiescent(halo_mass_unity_h)
-    h = 0.7
-    sm_h0p7_aph = sm_unity_h_aph/h/h
-    assert np.allclose(sm_h0p7_aph, sm_h0p7_tinker, rtol=.05)
+    logsm_cut_h0p7 = 9.5
+    sm_cut_h0p7 = 10**logsm_cut_h0p7
+    sm_cut_h1p0 = sm_cut_h0p7*0.7*0.7
+    logsm_cut_h1p0 = np.log10(sm_cut_h1p0)
 
+    model = Tinker13Cens(redshift=0.5, threshold=logsm_cut_h1p0)
+    red_fraction_halotools = model.mean_quiescent_fraction(prim_haloprop=halo_mass)
+
+    assert np.allclose(red_fraction_halotools, red_fraction_jt, rtol=0.1)
 
