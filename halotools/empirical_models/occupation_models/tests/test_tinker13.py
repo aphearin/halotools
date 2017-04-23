@@ -90,3 +90,12 @@ def test_tinker13_cens_z3():
     assert model0.param_dict != model0p5.param_dict
     assert model0p6.param_dict == model0p5.param_dict
     assert model0p6.param_dict != model1.param_dict
+
+
+def test_quiescent_fraction_z1():
+    quiescent_fraction_control_masses = np.logspace(10.8, 14, 5)
+    correct_red_fraction = np.array(list((10**(-1.28), 10**(-0.85), 0.54, 0.63, 0.77)))
+    model_z1 = Tinker13Cens(redshift=0.35)
+    model_red_fraction = model_z1.mean_quiescent_fraction(prim_haloprop=quiescent_fraction_control_masses)
+    assert np.allclose(correct_red_fraction, model_red_fraction, rtol=0.01)
+
