@@ -13,7 +13,6 @@ from .tinker13_parameter_dictionaries import (quiescent_fraction_control_masses,
     param_dict_z1, param_dict_z2, param_dict_z3)
 
 from .. import model_defaults
-from ..smhm_models import Behroozi10SmHm
 from ..assembias_models import HeavisideAssembias
 
 from ...utils.array_utils import custom_len
@@ -22,6 +21,15 @@ from ...custom_exceptions import HalotoolsError
 
 __all__ = ('Tinker13Cens', 'Tinker13QuiescentSats',
            'Tinker13ActiveSats', 'AssembiasTinker13Cens')
+
+
+def _get_closest_redshift(z):
+    if z < 0.48:
+        return 'z1'
+    elif 0.48 <= z < 0.74:
+        return 'z2'
+    else:
+        return 'z3'
 
 
 class Tinker13Cens(OccupationComponent):
@@ -97,7 +105,7 @@ class Tinker13Cens(OccupationComponent):
     def _initialize_param_dict(self, redshift=0, **kwargs):
         """
         """
-        zchar = self._get_closest_redshift(redshift)
+        zchar = _get_closest_redshift(redshift)
         if zchar == 'z1':
             full_param_dict = deepcopy(param_dict_z1)
         elif zchar == 'z2':
@@ -112,14 +120,6 @@ class Tinker13Cens(OccupationComponent):
                 self.param_dict[key] = full_param_dict[key]
             elif 'quiescent_fraction_ordinates' in key:
                 self.param_dict[key] = full_param_dict[key]
-
-    def _get_closest_redshift(self, z):
-        if z < 0.48:
-            return 'z1'
-        elif 0.48 <= z < 0.74:
-            return 'z2'
-        else:
-            return 'z3'
 
     def _mean_log_halo_mass(self, log_sm_h0p7, logm0_h0p7, logm1_h0p7, beta, delta, gamma):
         """ Mean halo mass as a function of stellar mass of central galaxies.
@@ -458,10 +458,10 @@ class Tinker13QuiescentSats(OccupationComponent):
             prim_haloprop_key=prim_haloprop_key, **kwargs)
         self.redshift = redshift
 
-        self.smhm_model = Behroozi10SmHm(
-            prim_haloprop_key=prim_haloprop_key, **kwargs)
+        self.central_occupation_model = Tinker13Cens(threshold=threshold,
+            prim_haloprop_key=prim_haloprop_key, redshift=redshift)
 
-        self._initialize_param_dict()
+        self._initialize_param_dict(redshift)
 
         self.sfr_designation_key = 'sfr_designation'
 
@@ -482,7 +482,7 @@ class Tinker13QuiescentSats(OccupationComponent):
             ])
 
     def mean_occupation(self, **kwargs):
-        """ Expected number of central galaxies in a halo of mass halo_mass.
+        """ Expected number of satellite galaxies as a function of halo mass.
         See Equation 12-14 of arXiv:1103.2077.
 
         Parameters
@@ -501,7 +501,7 @@ class Tinker13QuiescentSats(OccupationComponent):
         Examples
         --------
         >>> sat_model = Tinker13QuiescentSats()
-        >>> mean_nsat = sat_model.mean_occupation(prim_haloprop = 1.e13)
+        >>> mean_nsat = sat_model.mean_occupation(prim_haloprop = 1e13)
 
         Notes
         -----
@@ -520,8 +520,11 @@ class Tinker13QuiescentSats(OccupationComponent):
 
         power_law_factor = (mass/self._msat)**self.param_dict['alphasat_quiescent']
 
-        exp_arg_numerator = self._mcut + 10.**self.smhm_model.mean_log_halo_mass(
-            log_stellar_mass=self.threshold, redshift=self.redshift)
+        _mh_q = 10**self.central_occupation_model.mean_log_halo_mass_quiescent(self.threshold)
+        _mh_a = 10**self.central_occupation_model.mean_log_halo_mass_active(self.threshold)
+        _fred_cen = self.central_occupation_model.mean_quiescent_fraction(prim_haloprop=_mh_a)
+        _mh = _mh_q*_fred_cen + _mh_a*(1-_fred_cen)
+        exp_arg_numerator = self._mcut + _mh
         exp_factor = np.exp(-exp_arg_numerator/mass)
 
         mean_nsat = exp_factor*power_law_factor
@@ -533,30 +536,25 @@ class Tinker13QuiescentSats(OccupationComponent):
         """
         table[self.sfr_designation_key][:] = 'quiescent'
 
-    def _initialize_param_dict(self):
+    def _initialize_param_dict(self, redshift):
         """ Set the initial values of ``self.param_dict`` according to
         the SIG_MOD1 values of Table 5 of arXiv:1104.0928 for the
         lowest redshift bin.
 
         """
+        zchar = _get_closest_redshift(redshift)
+        if zchar == 'z1':
+            full_param_dict = deepcopy(param_dict_z1)
+        elif zchar == 'z2':
+            full_param_dict = deepcopy(param_dict_z2)
+        else:
+            full_param_dict = deepcopy(param_dict_z3)
+        self.param_dict = {}
 
-        self.param_dict['bcut_quiescent'] = 21.42
-        self.param_dict['bsat_quiescent'] = 17.9
-        self.param_dict['betacut_quiescent'] = -0.12
-        self.param_dict['betasat_quiescent'] = 0.62
-        self.param_dict['alphasat_quiescent'] = 1.08
-
-        for key, value in self.smhm_model.param_dict.items():
-            quiescent_key = key + '_quiescent'
-            self.param_dict[quiescent_key] = value
-
-        self.param_dict['smhm_m1_0_quiescent'] = 12.08
-        self.param_dict['smhm_m0_0_quiescent'] = 10.7
-        self.param_dict['smhm_beta_0_quiescent'] = 0.32
-        self.param_dict['smhm_delta_0_quiescent'] = 0.93
-        self.param_dict['smhm_gamma_0_quiescent'] = 0.81
-
-        self._update_satellite_params()
+        keygen = (key for key in full_param_dict.keys()
+            if 'quiescent' in key and 'fraction' not in key)
+        for key in keygen:
+            self.param_dict[key] = full_param_dict[key]
 
     def _update_satellite_params(self):
         """ Private method to update the model parameters.
@@ -564,11 +562,11 @@ class Tinker13QuiescentSats(OccupationComponent):
         """
         for key, value in self.param_dict.items():
             stripped_key = key[:-len('_quiescent')]
-            if stripped_key in self.smhm_model.param_dict:
-                self.smhm_model.param_dict[stripped_key] = value
+            if stripped_key in self.central_occupation_model.param_dict:
+                self.central_occupation_model.param_dict[stripped_key] = value
 
-        log_halo_mass_threshold = self.smhm_model.mean_log_halo_mass(
-            log_stellar_mass=self.threshold, redshift=self.redshift)
+        _f = self.central_occupation_model.mean_log_halo_mass_quiescent
+        log_halo_mass_threshold = _f(self.threshold)
         knee_threshold = (10.**log_halo_mass_threshold)
 
         knee_mass = 1.e12
@@ -622,10 +620,10 @@ class Tinker13ActiveSats(OccupationComponent):
             prim_haloprop_key=prim_haloprop_key, **kwargs)
         self.redshift = redshift
 
-        self.smhm_model = Behroozi10SmHm(
-            prim_haloprop_key=prim_haloprop_key, **kwargs)
+        self.central_occupation_model = Tinker13Cens(threshold=threshold,
+            prim_haloprop_key=prim_haloprop_key, redshift=redshift)
 
-        self._initialize_param_dict()
+        self._initialize_param_dict(redshift)
 
         self.sfr_designation_key = 'sfr_designation'
 
@@ -684,8 +682,11 @@ class Tinker13ActiveSats(OccupationComponent):
 
         power_law_factor = (mass/self._msat)**self.param_dict['alphasat_active']
 
-        exp_arg_numerator = self._mcut + 10.**self.smhm_model.mean_log_halo_mass(
-            log_stellar_mass=self.threshold, redshift=self.redshift)
+        _mh_q = 10**self.central_occupation_model.mean_log_halo_mass_quiescent(self.threshold)
+        _mh_a = 10**self.central_occupation_model.mean_log_halo_mass_active(self.threshold)
+        _fred_cen = self.central_occupation_model.mean_quiescent_fraction(prim_haloprop=_mh_a)
+        _mh = _mh_q*_fred_cen + _mh_a*(1-_fred_cen)
+        exp_arg_numerator = self._mcut + _mh
         exp_factor = np.exp(-exp_arg_numerator/mass)
 
         mean_nsat = exp_factor*power_law_factor
@@ -697,28 +698,25 @@ class Tinker13ActiveSats(OccupationComponent):
         """
         table[self.sfr_designation_key][:] = 'active'
 
-    def _initialize_param_dict(self):
+    def _initialize_param_dict(self, redshift):
         """ Set the initial values of ``self.param_dict`` according to
-        the z1 values of Table 2 of arXiv:1308.2974.
+        the SIG_MOD1 values of Table 5 of arXiv:1104.0928 for the
+        lowest redshift bin.
+
         """
+        zchar = _get_closest_redshift(redshift)
+        if zchar == 'z1':
+            full_param_dict = deepcopy(param_dict_z1)
+        elif zchar == 'z2':
+            full_param_dict = deepcopy(param_dict_z2)
+        else:
+            full_param_dict = deepcopy(param_dict_z3)
+        self.param_dict = {}
 
-        self.param_dict['bcut_active'] = 0.28
-        self.param_dict['bsat_active'] = 33.96
-        self.param_dict['betacut_active'] = 0.77
-        self.param_dict['betasat_active'] = 1.05
-        self.param_dict['alphasat_active'] = 0.99
-
-        for key, value in self.smhm_model.param_dict.items():
-            active_key = key + '_active'
-            self.param_dict[active_key] = value
-
-        self.param_dict['smhm_m1_0_active'] = 12.56
-        self.param_dict['smhm_m0_0_active'] = 10.96
-        self.param_dict['smhm_beta_0_active'] = 0.44
-        self.param_dict['smhm_delta_0_active'] = 0.52
-        self.param_dict['smhm_gamma_0_active'] = 1.48
-
-        self._update_satellite_params()
+        keygen = (key for key in full_param_dict.keys()
+            if 'active' in key and 'fraction' not in key)
+        for key in keygen:
+            self.param_dict[key] = full_param_dict[key]
 
     def _update_satellite_params(self):
         """ Private method to update the model parameters.
@@ -726,11 +724,11 @@ class Tinker13ActiveSats(OccupationComponent):
         """
         for key, value in self.param_dict.items():
             stripped_key = key[:-len('_active')]
-            if stripped_key in self.smhm_model.param_dict:
-                self.smhm_model.param_dict[stripped_key] = value
+            if stripped_key in self.central_occupation_model.param_dict:
+                self.central_occupation_model.param_dict[stripped_key] = value
 
-        log_halo_mass_threshold = self.smhm_model.mean_log_halo_mass(
-            log_stellar_mass=self.threshold, redshift=self.redshift)
+        _f = self.central_occupation_model.mean_log_halo_mass_quiescent
+        log_halo_mass_threshold = _f(self.threshold)
         knee_threshold = (10.**log_halo_mass_threshold)
 
         knee_mass = 1.e12
