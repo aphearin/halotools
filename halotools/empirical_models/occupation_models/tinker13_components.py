@@ -774,7 +774,7 @@ class Tinker13QuiescentSats(OccupationComponent):
         return mean_nsat
 
     def mc_sfr_designation(self, table, **kwargs):
-        """
+        """ Assign all satellites a SFR designation of ``quiescent``
         """
         table[self.sfr_designation_key][:] = 'quiescent'
 
@@ -910,7 +910,7 @@ class Tinker13ActiveSats(OccupationComponent):
         Returns
         -------
         mean_nsat : array
-            Mean number of central galaxies in the halo of the input mass.
+            Mean number of active satellite galaxies as a function of the input halos.
 
         Examples
         --------
@@ -945,7 +945,7 @@ class Tinker13ActiveSats(OccupationComponent):
         return mean_nsat
 
     def mc_sfr_designation(self, table, **kwargs):
-        """
+        """ Assign all satellites a SFR designation of ``active``
         """
         table[self.sfr_designation_key][:] = 'active'
 
