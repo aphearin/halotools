@@ -82,6 +82,7 @@ class Zheng07Cens(OccupationComponent):
         prim_haloprop : array, optional
             Array of mass-like variable upon which occupation statistics are based.
             If ``prim_haloprop`` is not passed, then ``table`` keyword argument must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.
@@ -90,7 +91,7 @@ class Zheng07Cens(OccupationComponent):
         Returns
         -------
         mean_ncen : array
-            Mean number of central galaxies in the input table.
+            Mean number of central galaxies as a function of the input halos
 
         Examples
         --------
@@ -347,6 +348,7 @@ class Zheng07Sats(OccupationComponent):
             Array storing a mass-like variable that governs the occupation statistics.
             If ``prim_haloprop`` is not passed, then ``table``
             keyword arguments must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.

@@ -127,6 +127,7 @@ class ZuMandelbaum16QuenchingSats(BinaryGalpropModel):
         prim_haloprop : array, optional
             Array of mass-like variable upon which occupation statistics are based.
             If ``prim_haloprop`` is not passed, then ``table`` keyword argument must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.

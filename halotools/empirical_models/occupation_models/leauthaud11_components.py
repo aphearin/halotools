@@ -108,6 +108,7 @@ class Leauthaud11Cens(OccupationComponent):
         prim_haloprop : array, optional
             Array of mass-like variable upon which occupation statistics are based.
             If ``prim_haloprop`` is not passed, then ``table`` keyword argument must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.
@@ -144,6 +145,7 @@ class Leauthaud11Cens(OccupationComponent):
         prim_haloprop : array, optional
             Array of mass-like variable upon which occupation statistics are based.
             If ``prim_haloprop`` is not passed, then ``table`` keyword argument must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.
@@ -283,6 +285,7 @@ class Leauthaud11Sats(OccupationComponent):
         ----------
         prim_haloprop : array, optional
             array of masses of table in the catalog
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.

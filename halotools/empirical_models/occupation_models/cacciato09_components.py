@@ -93,6 +93,7 @@ class Cacciato09Cens(OccupationComponent):
             Array of mass-like variable upon which the calculation is based.
             If ``prim_haloprop`` is not passed, then ``table`` keyword argument
             must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.
@@ -134,6 +135,7 @@ class Cacciato09Cens(OccupationComponent):
         ----------
         prim_haloprop : array_like, optional
             Array of mass-like variable upon which the calculation is based.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         prim_galprop : array_like, optional
             Array of luminosity-like variable of the galaxy upon which the
@@ -214,6 +216,7 @@ class Cacciato09Cens(OccupationComponent):
             are based.
             If ``prim_haloprop`` is not passed, then ``table`` keyword argument
             must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.
@@ -381,6 +384,7 @@ class Cacciato09Sats(OccupationComponent):
             Array of mass-like variable upon which the calculation is based.
             If ``prim_haloprop`` is not passed, then ``table`` keyword argument
             must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.
@@ -423,6 +427,7 @@ class Cacciato09Sats(OccupationComponent):
             Array of mass-like variable upon which the calculation is based.
             If ``prim_haloprop`` is not passed, then ``table`` keyword argument
             must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.
@@ -464,6 +469,7 @@ class Cacciato09Sats(OccupationComponent):
             Array of mass-like variable upon which the calculation is based.
             If ``prim_haloprop`` is not passed, then ``table`` keyword argument
             must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.
@@ -513,6 +519,7 @@ class Cacciato09Sats(OccupationComponent):
             based.
             If ``prim_haloprop`` is not passed, then ``table`` keyword argument
             must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.
@@ -574,6 +581,7 @@ class Cacciato09Sats(OccupationComponent):
         ----------
         prim_haloprop : array_like, optional
             Array of mass-like variable upon which the calculation is based.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         prim_galprop : array_like, optional
             Array of luminosity-like variable of the galaxy upon which the
@@ -622,6 +630,7 @@ class Cacciato09Sats(OccupationComponent):
             are based.
             If ``prim_haloprop`` is not passed, then ``table`` keyword argument
             must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
 
         table : object, optional
             Data table storing halo catalog.
