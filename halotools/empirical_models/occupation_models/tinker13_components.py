@@ -763,10 +763,7 @@ class Tinker13QuiescentSats(OccupationComponent):
         power_law_factor = (mass/self._msat)**self.param_dict['alphasat_quiescent']
 
         _mh_q = 10**self.central_occupation_model.mean_log_halo_mass_quiescent(self.threshold)
-        _mh_a = 10**self.central_occupation_model.mean_log_halo_mass_active(self.threshold)
-        _fred_cen = self.central_occupation_model.mean_quiescent_fraction(prim_haloprop=_mh_a)
-        _mh = _mh_q*_fred_cen + _mh_a*(1-_fred_cen)
-        exp_arg_numerator = self._mcut + _mh
+        exp_arg_numerator = self._mcut + _mh_q
         exp_factor = np.exp(-exp_arg_numerator/mass)
 
         mean_nsat = exp_factor*power_law_factor
@@ -933,11 +930,8 @@ class Tinker13ActiveSats(OccupationComponent):
 
         power_law_factor = (mass/self._msat)**self.param_dict['alphasat_active']
 
-        _mh_q = 10**self.central_occupation_model.mean_log_halo_mass_quiescent(self.threshold)
         _mh_a = 10**self.central_occupation_model.mean_log_halo_mass_active(self.threshold)
-        _fred_cen = self.central_occupation_model.mean_quiescent_fraction(prim_haloprop=_mh_a)
-        _mh = _mh_q*_fred_cen + _mh_a*(1-_fred_cen)
-        exp_arg_numerator = self._mcut + _mh
+        exp_arg_numerator = self._mcut + _mh_a
         exp_factor = np.exp(-exp_arg_numerator/mass)
 
         mean_nsat = exp_factor*power_law_factor
