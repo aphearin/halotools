@@ -10,16 +10,7 @@ from astropy.tests.helper import pytest
 from ..tinker13_components import Tinker13Cens
 from ....custom_exceptions import HalotoolsError
 
-__all__ = ('test_Tinker13Cens1', )
-
-
-def test_Tinker13Cens1():
-    model = Tinker13Cens()
-    t = Table()
-    with pytest.raises(HalotoolsError) as err:
-        model.mean_quiescent_fraction(table=t)
-    substr = "The ``table`` passed as a keyword argument to the mean_quiescent_fraction method"
-    assert substr in err.value.args[0]
+__all__ = ('test_quiescent_fraction_z1', )
 
 
 def test_Tinker13Cens2():
