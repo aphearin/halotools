@@ -201,7 +201,9 @@ class Tinker13Cens(OccupationComponent):
                 msg = ("The ``table`` passed as a keyword argument "
                     "to the mean_quiescent_fraction method\n"
                     "does not have the requested ``%s`` key")
-                raise HalotoolsError(msg % self.prim_haloprop_key)
+                raise KeyError(msg % self.prim_haloprop_key)
+        else:
+            raise KeyError("Must pass either ``prim_haloprop`` or ``table`` keyword argument")
 
         keys = list('quiescent_fraction_ordinates_param'+str(i) for i in range(1, 6))
         model_ordinates = [self.param_dict[key] for key in keys]
