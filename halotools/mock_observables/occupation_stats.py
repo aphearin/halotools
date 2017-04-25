@@ -14,6 +14,10 @@ def hod_from_mock(haloprop_galaxies, haloprop_halos, haloprop_bins=None):
     r"""
     Calculate the HOD of a mock galaxy sample.
 
+    An attempt will be made to automatically determine the bins used in the
+    calculation, but in some cases this fails and it is necessary to
+    specify the bins.
+
     Parameters
     ----------
     haloprop_galaxies : ndarray
