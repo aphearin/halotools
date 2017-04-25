@@ -33,7 +33,8 @@ def _get_closest_redshift(z):
 
 
 class Tinker13Cens(OccupationComponent):
-    """ HOD-style model for a central galaxy occupation that derives from
+    """ HOD-style model for central galaxy occupation statistics,
+    with behavior deriving from
     two distinct active/quiescent stellar-to-halo-mass relations.
 
     .. note::
@@ -77,7 +78,7 @@ class Tinker13Cens(OccupationComponent):
             **kwargs)
         self.redshift = redshift
 
-        self._initialize_param_dict(redshift=self.redshift, **kwargs)
+        self._initialize_param_dict(self.redshift)
 
         self.sfr_designation_key = 'central_sfr_designation'
 
@@ -102,7 +103,7 @@ class Tinker13Cens(OccupationComponent):
             ('sfr_designation', object),
             ])
 
-    def _initialize_param_dict(self, redshift=0, **kwargs):
+    def _initialize_param_dict(self, redshift):
         """
         """
         zchar = _get_closest_redshift(redshift)
@@ -124,10 +125,11 @@ class Tinker13Cens(OccupationComponent):
     def _mean_log_halo_mass(self, log_sm_h0p7, logm0_h0p7, logm1_h0p7, beta, delta, gamma):
         """ Mean halo mass as a function of stellar mass of central galaxies.
 
-        As in eqn (1) of Tinker+13, numerical values of stellar and halo mass are assuming h=0.7,
-        so inputs and outputs need to be scaled by some
-        external function in order to return results in the h=1 units
-        used throughout the rest of Halotools.
+        As in eqn (1) of arXiv:1308.2974, h=0.7 is assumed when quoting values for
+        the input stellar mass, M0, M1, and also the returned value of halo mass.
+        Inputs and outputs thus need to be scaled by the user or some
+        external function in order to calculate results in the h=1 units
+        used throughout the rest of Halotools, which is why this is a private function.
         """
         sm_h0p7 = 10.**log_sm_h0p7
         m0 = 10.**logm0_h0p7
@@ -145,10 +147,12 @@ class Tinker13Cens(OccupationComponent):
     def _mean_stellar_mass(self, mh_h0p7, logm0_h0p7, logm1_h0p7, beta, delta, gamma):
         """ Mean stellar mass as a function of halo mass of central galaxies.
 
-        As in eqn (1) of Tinker+13, numerical values of stellar and halo mass are assuming h=0.7,
-        so inputs and outputs need to be scaled by some
-        external function in order to return results in the h=1 units
-        used throughout the rest of Halotools.
+        As in eqn (1) of arXiv:1308.2974, h=0.7 is assumed when quoting values for
+        the input halo mass, M0, M1, and also the returned value of stellar mass.
+        Inputs and outputs thus need to be scaled by the user or some
+        external function in order to calculate results in the h=1 units
+        used throughout the rest of Halotools, which is why this is a private function.
+
         """
         logsm_h0p7_table = np.linspace(8., 12.5, 500)
         log_mh_h0p7_table = self._mean_log_halo_mass(logsm_h0p7_table,
@@ -162,6 +166,28 @@ class Tinker13Cens(OccupationComponent):
 
     def mean_quiescent_fraction(self, **kwargs):
         """
+        Central galaxy quiescent fraction vs. halo mass
+
+        Parameters
+        ----------
+        prim_haloprop : array, optional
+            Array of mass-like variable upon which occupation statistics are based.
+            If ``prim_haloprop`` is not passed, then ``table`` keyword argument must be passed.
+
+        table : object, optional
+            Data table storing halo catalog.
+            If ``table`` is not passed, then ``prim_haloprop`` keyword argument must be passed.
+
+        Returns
+        -------
+        quiescent_fraction : array
+            Quiescent fraction of centrals
+
+        Examples
+        ---------
+        >>> model = Tinker13Cens()
+        >>> frac_q = model.mean_quiescent_fraction(prim_haloprop=1e12)
+        >>> frac_q = model.mean_quiescent_fraction(prim_haloprop=np.logspace(10, 15, 100))
         """
         if 'prim_haloprop' in kwargs:
             prim_haloprop = np.atleast_1d(kwargs['prim_haloprop'])
@@ -170,7 +196,8 @@ class Tinker13Cens(OccupationComponent):
             try:
                 prim_haloprop = table[self.prim_haloprop_key]
             except KeyError:
-                msg = ("The ``table`` passed as a keyword argument to the mean_quiescent_fraction method\n"
+                msg = ("The ``table`` passed as a keyword argument "
+                    "to the mean_quiescent_fraction method\n"
                     "does not have the requested ``%s`` key")
                 raise HalotoolsError(msg % self.prim_haloprop_key)
 
@@ -184,7 +211,38 @@ class Tinker13Cens(OccupationComponent):
         return fraction
 
     def mc_sfr_designation(self, seed=None, **kwargs):
-        """
+        """ Monte Carlo realization of the SFR designation of centrals
+        (quiescent vs. active).
+
+        Parameters
+        ----------
+        prim_haloprop : array, optional
+            Array of mass-like variable upon which occupation statistics are based.
+            If ``prim_haloprop`` is not passed,
+            then ``table`` keyword argument must be passed.
+
+        table : object, optional
+            Data table storing halo catalog.
+            If ``table`` is not passed,
+            then ``prim_haloprop`` keyword argument must be passed.
+
+        seed : int, optional
+            Random number seed used to generate the Monte Carlo realization.
+            Default is None.
+
+        Returns
+        -------
+        sfr_designation : array
+            String array storing values of either ``quiescent`` or ``active``.
+
+        Examples
+        ---------
+        >>> model = Tinker13Cens()
+        >>> sfr_designation = model.mc_sfr_designation(prim_haloprop=1e12)
+        >>> halo_mass_array = np.logspace(10, 15, 100)
+        >>> sfr_designation = model.mc_sfr_designation(prim_haloprop=halo_mass_array)
+        >>> sfr_designation = model.mc_sfr_designation(prim_haloprop=halo_mass_array, seed=43)
+
         """
         quiescent_fraction = self.mean_quiescent_fraction(**kwargs)
 
@@ -199,7 +257,59 @@ class Tinker13Cens(OccupationComponent):
         return result
 
     def mean_occupation(self, **kwargs):
-        """
+        r""" Expected number of central galaxies as a function of halo mass.
+        See Equation 3 of arXiv:1308.2974.
+
+        .. note::
+
+            In the Tinker+13 model, :math:`\langle N_{\rm cen}|M_{\rm halo} \rangle`
+            depends is distinct for quiescent vs. active samples. Internally, the
+            `mean_occupation` function separately calls the functions
+            `mean_occupation_quiescent` and `mean_occupation_active`.
+            The `mean_occupation` function the applies the
+            mapping that is appropriate for the input SFR-designation,
+            which can either be specified by an additional input ``sfr_designation``
+            argument, or alternatively as a ``central_sfr_designation`` column
+            of the input ``table``. See the Examples section below.
+
+        Parameters
+        ----------
+        prim_haloprop : array, optional
+            Array of mass-like variable upon which occupation statistics are based.
+            If ``prim_haloprop`` is not passed, then ``table`` keyword argument must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
+
+        table : object, optional
+            Data table storing halo catalog.
+            If ``table`` is not passed, then ``prim_haloprop`` keyword argument must be passed.
+
+        Returns
+        -------
+        mean_ncen : array
+            Mean number of central galaxies as a function of the input halos
+
+        Examples
+        --------
+        In the first example call below, we'll use the ``prim_haloprop`` and
+        ``sfr_designation`` keyword arguments:
+
+        >>> model = Tinker13Cens(threshold=10, redshift=1)
+        >>> halo_mass = 1e12
+        >>> sfr_designation = 'quiescent'
+        >>> mean_ncen = model.mean_occupation(prim_haloprop=1e12, sfr_designation=sfr_designation)
+
+        In the next example, we'll use the ``table`` argument, as is done during
+        mock-population. To do this, we will need to make sure that the input table
+        contains a ``sfr_designation`` column. This column will automatically be
+        added during mock-population, but for these demonstration purposes we will
+        need to add it manually:
+
+        >>> from halotools.sim_manager import FakeSim
+        >>> halocat = FakeSim(redshift=1)
+        >>> random_sfr = np.random.choice(['quiescent', 'active'], len(halocat.halo_table))
+        >>> halocat.halo_table['central_sfr_designation'] = random_sfr
+        >>> mean_ncen = model.mean_occupation(table=halocat.halo_table)
+
         """
         if 'table' in kwargs:
             table = kwargs['table']
@@ -241,7 +351,29 @@ class Tinker13Cens(OccupationComponent):
         return result
 
     def mean_occupation_active(self, **kwargs):
-        """
+        r""" Expected number of active central galaxies as a function of halo mass.
+        See Equation 3 of arXiv:1308.2974.
+
+        Parameters
+        ----------
+        prim_haloprop : array, optional
+            Array of mass-like variable upon which occupation statistics are based.
+            If ``prim_haloprop`` is not passed, then ``table`` keyword argument must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
+
+        table : object, optional
+            Data table storing halo catalog.
+            If ``table`` is not passed, then ``prim_haloprop`` keyword argument must be passed.
+
+        Returns
+        -------
+        mean_ncen : array
+            Mean number of active central galaxies as a function of the input halos
+
+        Examples
+        --------
+        >>> model = Tinker13Cens(threshold=10.5, redshift=0.5)
+        >>> mean_ncen = model.mean_occupation_active(prim_haloprop=1e12)
         """
         if 'table' in list(kwargs.keys()):
             halo_mass_unity_h = kwargs['table'][self.prim_haloprop_key]
@@ -268,7 +400,29 @@ class Tinker13Cens(OccupationComponent):
         return mean_ncen
 
     def mean_occupation_quiescent(self, **kwargs):
-        """
+        r""" Expected number of quiescent central galaxies as a function of halo mass.
+        See Equation 3 of arXiv:1308.2974.
+
+        Parameters
+        ----------
+        prim_haloprop : array, optional
+            Array of mass-like variable upon which occupation statistics are based.
+            If ``prim_haloprop`` is not passed, then ``table`` keyword argument must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
+
+        table : object, optional
+            Data table storing halo catalog.
+            If ``table`` is not passed, then ``prim_haloprop`` keyword argument must be passed.
+
+        Returns
+        -------
+        mean_ncen : array
+            Mean number of quiescent central galaxies as a function of the input halos
+
+        Examples
+        --------
+        >>> model = Tinker13Cens(threshold=10.5, redshift=0.5)
+        >>> mean_ncen = model.mean_occupation_quiescent(prim_haloprop=1e12)
         """
         if 'table' in list(kwargs.keys()):
             halo_mass = kwargs['table'][self.prim_haloprop_key]
