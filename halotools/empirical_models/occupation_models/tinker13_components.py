@@ -53,18 +53,20 @@ class Tinker13Cens(OccupationComponent):
         Parameters
         ----------
         threshold : float, optional
-            Stellar mass threshold of the mock galaxy sample in h=1 solar mass units.
+            Logarithm of the stellar mass threshold of the mock galaxy sample
+            assuming h=1.
             Default value is specified in the `~halotools.empirical_models.model_defaults` module.
 
         prim_haloprop_key : string, optional
             String giving the column name of the primary halo property governing
-            the occupation statistics of gal_type galaxies.
+            the occupation statistics of gal_type galaxies, e.g., ``halo_mvir``.
             Default value is specified in the `~halotools.empirical_models.model_defaults` module.
 
         redshift : float, optional
-            Redshift of the stellar-to-halo-mass relation.
+            Redshift of the galaxy population being modeled. This parameter will also
+            determine the default values of the model parameters, according to
+            Table 2 of arXiv:1308.2974.
             Default is set in `~halotools.sim_manager.sim_defaults`.
-
         """
         self._littleh = 0.7
         upper_occupation_bound = 1.0
@@ -449,7 +451,30 @@ class Tinker13Cens(OccupationComponent):
         return mean_ncen
 
     def mean_stellar_mass_active(self, prim_haloprop):
-        """
+        r""" Average stellar mass of active central galaxies
+        as a function of halo mass.
+        See Equation 1 of arXiv:1308.2974.
+
+        Parameters
+        ----------
+        prim_haloprop : array, optional
+            Array of mass-like variable upon which occupation statistics are based.
+            If ``prim_haloprop`` is not passed, then ``table`` keyword argument must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
+
+        table : object, optional
+            Data table storing halo catalog.
+            If ``table`` is not passed, then ``prim_haloprop`` keyword argument must be passed.
+
+        Returns
+        -------
+        mstar : array
+            stellar mass
+
+        Examples
+        --------
+        >>> model = Tinker13Cens(threshold=10.5, redshift=0.5)
+        >>> mstar = model.mean_stellar_mass_active(prim_haloprop=1e12)
         """
         args = self._retrieve_smhm_param_values('active')
 
@@ -460,7 +485,30 @@ class Tinker13Cens(OccupationComponent):
         return sm_unity_h
 
     def mean_stellar_mass_quiescent(self, prim_haloprop):
-        """
+        r""" Average stellar mass of quiescent central galaxies
+        as a function of halo mass.
+        See Equation 1 of arXiv:1308.2974.
+
+        Parameters
+        ----------
+        prim_haloprop : array, optional
+            Array of mass-like variable upon which occupation statistics are based.
+            If ``prim_haloprop`` is not passed, then ``table`` keyword argument must be passed.
+            Halo mass units are in Msun/h, here and throughout Halotools.
+
+        table : object, optional
+            Data table storing halo catalog.
+            If ``table`` is not passed, then ``prim_haloprop`` keyword argument must be passed.
+
+        Returns
+        -------
+        mstar : array
+            stellar mass
+
+        Examples
+        --------
+        >>> model = Tinker13Cens(threshold=10.5, redshift=0.5)
+        >>> mstar = model.mean_stellar_mass_quiescent(prim_haloprop=1e12)
         """
         args = self._retrieve_smhm_param_values('quiescent')
 
@@ -471,7 +519,23 @@ class Tinker13Cens(OccupationComponent):
         return sm_unity_h
 
     def mean_log_halo_mass_active(self, log_stellar_mass):
-        """
+        r""" Average halo mass as a function of stellar mass for active central galaxies.
+        See Equation 1 of arXiv:1308.2974.
+
+        Parameters
+        ----------
+        log_stellar_mass : array, optional
+            Array of shape (num_gals, ) storing log10(M*) assuming h=1.
+
+        Returns
+        -------
+        log_halo_mass : array
+            log10(Mh) assuming h=1
+
+        Examples
+        --------
+        >>> model = Tinker13Cens(threshold=10.5, redshift=0.5)
+        >>> halo_mass = 10**model.mean_log_halo_mass_active(10.5)
         """
         args = self._retrieve_smhm_param_values('quiescent')
 
@@ -483,7 +547,23 @@ class Tinker13Cens(OccupationComponent):
         return np.log10(mh_unity_h)
 
     def mean_log_halo_mass_quiescent(self, log_stellar_mass):
-        """
+        r""" Average halo mass as a function of stellar mass for quiescent central galaxies.
+        See Equation 1 of arXiv:1308.2974.
+
+        Parameters
+        ----------
+        log_stellar_mass : array, optional
+            Array of shape (num_gals, ) storing log10(M*) assuming h=1.
+
+        Returns
+        -------
+        log_halo_mass : array
+            log10(Mh) assuming h=1
+
+        Examples
+        --------
+        >>> model = Tinker13Cens(threshold=10.5, redshift=0.5)
+        >>> halo_mass = 10**model.mean_log_halo_mass_quiescent(10.5)
         """
         args = self._retrieve_smhm_param_values('quiescent')
 
@@ -508,7 +588,6 @@ class AssembiasTinker13Cens(Tinker13Cens, HeavisideAssembias):
     """ HOD-style model for a central galaxy occupation that derives from
     two distinct active/quiescent stellar-to-halo-mass relations.
     """
-
     def __init__(self, threshold=model_defaults.default_stellar_mass_threshold,
             prim_haloprop_key=model_defaults.prim_haloprop_key,
             redshift=sim_manager.sim_defaults.default_redshift,
@@ -517,21 +596,20 @@ class AssembiasTinker13Cens(Tinker13Cens, HeavisideAssembias):
         Parameters
         ----------
         threshold : float, optional
-            Stellar mass threshold of the mock galaxy sample in h=1 solar mass units.
+            Logarithm of the stellar mass threshold of the mock galaxy sample
+            assuming h=1.
             Default value is specified in the `~halotools.empirical_models.model_defaults` module.
 
         prim_haloprop_key : string, optional
             String giving the column name of the primary halo property governing
-            the occupation statistics of gal_type galaxies.
+            the occupation statistics of gal_type galaxies, e.g., ``halo_mvir``.
             Default value is specified in the `~halotools.empirical_models.model_defaults` module.
 
         redshift : float, optional
-            Redshift of the stellar-to-halo-mass relation.
+            Redshift of the galaxy population being modeled. This parameter will also
+            determine the default values of the model parameters, according to
+            Table 2 of arXiv:1308.2974.
             Default is set in `~halotools.sim_manager.sim_defaults`.
-
-        quiescent_fraction_ordinates : array, optional
-            Values of the quiescent fraction when evaluated at the input abscissa.
-            Default is [0.25, 0.7, 0.95]
 
         sec_haloprop_key : string, optional
             String giving the column name of the secondary halo property
@@ -572,8 +650,8 @@ class AssembiasTinker13Cens(Tinker13Cens, HeavisideAssembias):
 
 
 class Tinker13QuiescentSats(OccupationComponent):
-    """ HOD-style model for a central galaxy occupation that derives from
-    two distinct active/quiescent stellar-to-halo-mass relations.
+    """ HOD-style model for a quiescent satellite galaxy occupation that derives
+    from a stellar-to-halo-mass relation, as in arXiv:1308.2974.
 
     .. note::
 
@@ -589,17 +667,25 @@ class Tinker13QuiescentSats(OccupationComponent):
         Parameters
         ----------
         threshold : float, optional
-            Stellar mass threshold of the mock galaxy sample in h=1 solar mass units.
+            Logarithm of the stellar mass threshold of the mock galaxy sample
+            assuming h=1.
             Default value is specified in the `~halotools.empirical_models.model_defaults` module.
 
         prim_haloprop_key : string, optional
             String giving the column name of the primary halo property governing
-            the occupation statistics of gal_type galaxies.
+            the occupation statistics of gal_type galaxies, e.g., ``halo_mvir``.
             Default value is specified in the `~halotools.empirical_models.model_defaults` module.
 
         redshift : float, optional
-            Redshift of the stellar-to-halo-mass relation.
+            Redshift of the galaxy population being modeled. This parameter will also
+            determine the default values of the model parameters, according to
+            Table 2 of arXiv:1308.2974.
             Default is set in `~halotools.sim_manager.sim_defaults`.
+
+        Examples
+        ---------
+        >>> model = Tinker13QuiescentSats()
+        >>> model = Tinker13QuiescentSats(threshold=10.25, prim_haloprop_key='halo_m200b', redshift=0.5)
 
         """
         upper_occupation_bound = float("inf")
@@ -636,8 +722,8 @@ class Tinker13QuiescentSats(OccupationComponent):
             ])
 
     def mean_occupation(self, **kwargs):
-        """ Expected number of satellite galaxies as a function of halo mass.
-        See Equation 12-14 of arXiv:1103.2077.
+        """ Expected number of quiescent satellite galaxies as a function of halo mass.
+        See Equation 4 of arXiv:1308.2974.
 
         Parameters
         ----------
@@ -650,12 +736,12 @@ class Tinker13QuiescentSats(OccupationComponent):
         Returns
         -------
         mean_nsat : array
-            Mean number of central galaxies in the halo of the input mass.
+            Mean number of quiescent satellite galaxies as a function of the input halos.
 
         Examples
         --------
         >>> sat_model = Tinker13QuiescentSats()
-        >>> mean_nsat = sat_model.mean_occupation(prim_haloprop = 1e13)
+        >>> mean_nsat = sat_model.mean_occupation(prim_haloprop=1e13)
 
         Notes
         -----
@@ -735,8 +821,8 @@ class Tinker13QuiescentSats(OccupationComponent):
 
 
 class Tinker13ActiveSats(OccupationComponent):
-    """ HOD-style model for a central galaxy occupation that derives from
-    two distinct active/active stellar-to-halo-mass relations.
+    """ HOD-style model for an active satellite galaxy occupation that derives
+    from a stellar-to-halo-mass relation, as in arXiv:1308.2974.
 
     .. note::
 
@@ -752,17 +838,26 @@ class Tinker13ActiveSats(OccupationComponent):
         Parameters
         ----------
         threshold : float, optional
-            Stellar mass threshold of the mock galaxy sample in h=1 solar mass units.
+            Logarithm of the stellar mass threshold of the mock galaxy sample
+            assuming h=1.
             Default value is specified in the `~halotools.empirical_models.model_defaults` module.
 
         prim_haloprop_key : string, optional
             String giving the column name of the primary halo property governing
-            the occupation statistics of gal_type galaxies.
+            the occupation statistics of gal_type galaxies, e.g., ``halo_mvir``.
             Default value is specified in the `~halotools.empirical_models.model_defaults` module.
 
         redshift : float, optional
-            Redshift of the stellar-to-halo-mass relation.
+            Redshift of the galaxy population being modeled. This parameter will also
+            determine the default values of the model parameters, according to
+            Table 2 of arXiv:1308.2974.
             Default is set in `~halotools.sim_manager.sim_defaults`.
+
+        Examples
+        ---------
+        >>> model = Tinker13ActiveSats()
+        >>> model = Tinker13ActiveSats(threshold=10.25, prim_haloprop_key='halo_m200b', redshift=0.5)
+
         """
         upper_occupation_bound = float("inf")
 
@@ -798,8 +893,8 @@ class Tinker13ActiveSats(OccupationComponent):
             ])
 
     def mean_occupation(self, **kwargs):
-        """ Expected number of central galaxies in a halo of mass halo_mass.
-        See Equation 12-14 of arXiv:1103.2077.
+        """ Expected number of active satellite galaxies as a function of halo mass.
+        See Equation 4 of arXiv:1308.2974.
 
         Parameters
         ----------
