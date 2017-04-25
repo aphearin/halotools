@@ -576,11 +576,11 @@ class Tinker13Cens(OccupationComponent):
 
     def _retrieve_smhm_param_values(self, sfr_key):
         if sfr_key == 'active':
-            keys = ('smhm_m0_0_active', 'smhm_m1_0_active', 'smhm_beta_0_active',
-                'smhm_delta_0_active', 'smhm_gamma_0_active')
+            keys = ('smhm_m0_active', 'smhm_m1_active', 'smhm_beta_active',
+                'smhm_delta_active', 'smhm_gamma_active')
         elif sfr_key == 'quiescent':
-            keys = ('smhm_m0_0_quiescent', 'smhm_m1_0_quiescent', 'smhm_beta_0_quiescent',
-                'smhm_delta_0_quiescent', 'smhm_gamma_0_quiescent')
+            keys = ('smhm_m0_quiescent', 'smhm_m1_quiescent', 'smhm_beta_quiescent',
+                'smhm_delta_quiescent', 'smhm_gamma_quiescent')
         return list(self.param_dict[key] for key in keys)
 
 

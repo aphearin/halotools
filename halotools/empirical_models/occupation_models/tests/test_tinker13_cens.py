@@ -36,8 +36,8 @@ def test_Tinker13Cens_init2():
 
 def test_Tinker13Cens_init3():
     model = Tinker13Cens(redshift=0.35)
-    assert model.param_dict['smhm_m1_0_active'] == 12.56
-    assert model.param_dict['smhm_beta_0_quiescent'] == 0.32
+    assert model.param_dict['smhm_m1_active'] == 12.56
+    assert model.param_dict['smhm_beta_quiescent'] == 0.32
 
 
 
