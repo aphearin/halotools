@@ -690,6 +690,7 @@ class Tinker13QuiescentSats(OccupationComponent):
         >>> model = Tinker13QuiescentSats(threshold=10.25, prim_haloprop_key='halo_m200b', redshift=0.5)
 
         """
+        self._littleh = 0.7
         upper_occupation_bound = float("inf")
 
         # Call the super class constructor, which binds all the
@@ -751,20 +752,22 @@ class Tinker13QuiescentSats(OccupationComponent):
         """
         # Retrieve the array storing the mass-like variable
         if 'table' in list(kwargs.keys()):
-            mass = kwargs['table'][self.prim_haloprop_key]
+            halo_mass_h1p0 = kwargs['table'][self.prim_haloprop_key]
         elif 'prim_haloprop' in list(kwargs.keys()):
-            mass = np.atleast_1d(kwargs['prim_haloprop'])
+            halo_mass_h1p0 = np.atleast_1d(kwargs['prim_haloprop'])
         else:
             function_name = "Tinker13QuiescentSats.mean_occupation"
             raise HalotoolsError(function_name)
+        halo_mass_h0p7 = halo_mass_h1p0/self._littleh
 
         self._update_satellite_params()
 
-        power_law_factor = (mass/self._msat)**self.param_dict['alphasat_quiescent']
+        power_law_factor = (halo_mass_h0p7/self._msat)**self.param_dict['alphasat_quiescent']
 
-        _mh_q = 10**self.central_occupation_model.mean_log_halo_mass_quiescent(self.threshold)
-        exp_arg_numerator = self._mcut + _mh_q
-        exp_factor = np.exp(-exp_arg_numerator/mass)
+        _logmh_q_h1p0 = self.central_occupation_model.mean_log_halo_mass_quiescent(self.threshold)
+        _logmh_q_h0p7 = _logmh_q_h1p0 - np.log10(self._littleh)
+        exp_arg_numerator = self._mcut + 10**_logmh_q_h0p7
+        exp_factor = np.exp(-exp_arg_numerator/halo_mass_h0p7)
 
         mean_nsat = exp_factor*power_law_factor
 
@@ -805,10 +808,10 @@ class Tinker13QuiescentSats(OccupationComponent):
                 self.central_occupation_model.param_dict[stripped_key] = value
 
         _f = self.central_occupation_model.mean_log_halo_mass_quiescent
-        log_halo_mass_threshold = _f(self.threshold)
-        knee_threshold = (10.**log_halo_mass_threshold)
-
-        knee_mass = 1.e12
+        log_halo_mass_threshold_h1p0 = _f(self.threshold)  #  assuming h=1
+        log_halo_mass_threshold_h0p7 = log_halo_mass_threshold_h1p0 - np.log10(self._littleh)
+        knee_threshold = (10.**log_halo_mass_threshold_h0p7)  #  assuming h=0.7
+        knee_mass = 1.e12  #  assuming h=0.7
 
         self._msat = (
             knee_mass*self.param_dict['bsat_quiescent'] *
@@ -858,6 +861,7 @@ class Tinker13ActiveSats(OccupationComponent):
         >>> model = Tinker13ActiveSats(threshold=10.25, prim_haloprop_key='halo_m200b', redshift=0.5)
 
         """
+        self._littleh = 0.7
         upper_occupation_bound = float("inf")
 
         # Call the super class constructor, which binds all the
@@ -919,20 +923,22 @@ class Tinker13ActiveSats(OccupationComponent):
         """
         # Retrieve the array storing the mass-like variable
         if 'table' in list(kwargs.keys()):
-            mass = kwargs['table'][self.prim_haloprop_key]
+            halo_mass_h1p0 = kwargs['table'][self.prim_haloprop_key]  #  assuming h=1
         elif 'prim_haloprop' in list(kwargs.keys()):
-            mass = np.atleast_1d(kwargs['prim_haloprop'])
+            halo_mass_h1p0 = np.atleast_1d(kwargs['prim_haloprop'])  #  assuming h=1
         else:
             function_name = "Tinker13ActiveSats.mean_occupation"
             raise HalotoolsError(function_name)
+        halo_mass_h0p7 = halo_mass_h1p0/self._littleh
 
         self._update_satellite_params()
 
-        power_law_factor = (mass/self._msat)**self.param_dict['alphasat_active']
+        power_law_factor = (halo_mass_h0p7/self._msat)**self.param_dict['alphasat_active']
 
-        _mh_a = 10**self.central_occupation_model.mean_log_halo_mass_active(self.threshold)
-        exp_arg_numerator = self._mcut + _mh_a
-        exp_factor = np.exp(-exp_arg_numerator/mass)
+        _logmh_a_h1p0 = self.central_occupation_model.mean_log_halo_mass_active(self.threshold)
+        _logmh_a_h0p7 = _logmh_a_h1p0 - np.log10(self._littleh)
+        exp_arg_numerator = self._mcut + 10**_logmh_a_h0p7
+        exp_factor = np.exp(-exp_arg_numerator/halo_mass_h0p7)
 
         mean_nsat = exp_factor*power_law_factor
 
@@ -972,11 +978,11 @@ class Tinker13ActiveSats(OccupationComponent):
             if stripped_key in self.central_occupation_model.param_dict:
                 self.central_occupation_model.param_dict[stripped_key] = value
 
-        _f = self.central_occupation_model.mean_log_halo_mass_quiescent
-        log_halo_mass_threshold = _f(self.threshold)
-        knee_threshold = (10.**log_halo_mass_threshold)
-
-        knee_mass = 1.e12
+        _f = self.central_occupation_model.mean_log_halo_mass_active
+        log_halo_mass_threshold_h1p0 = _f(self.threshold)  #  assuming h=1
+        log_halo_mass_threshold_h0p7 = log_halo_mass_threshold_h1p0 - np.log10(self._littleh)
+        knee_threshold = (10.**log_halo_mass_threshold_h0p7)  #  assuming h=0.7
+        knee_mass = 1.e12  #  assuming h=0.7
 
         self._msat = (
             knee_mass*self.param_dict['bsat_active'] *
