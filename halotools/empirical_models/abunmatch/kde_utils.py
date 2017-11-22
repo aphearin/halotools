@@ -10,7 +10,7 @@ __all__ = ('kde_cdf', 'kde_conditional_percentile', 'percentile_curves')
 
 
 def kde_cdf(data, y):
-    """ Estimate the cumulative distribution function P(> y) defined by an input data sample.
+    r""" Estimate the cumulative distribution function P(> y) defined by an input data sample.
 
     Parameters
     ----------
@@ -36,7 +36,7 @@ def kde_cdf(data, y):
 
 
 def kde_cdf_interpol(data, y, npts_interpol=None, npts_sample=None):
-    """ Estimate the cumulative distribution function P(> y) defined by an input data sample,
+    r""" Estimate the cumulative distribution function P(> y) defined by an input data sample,
     optionally interpolating from a downsampling of the data
     to improve performance at the cost of precision.
 
@@ -72,21 +72,36 @@ def kde_cdf_interpol(data, y, npts_interpol=None, npts_sample=None):
     >>> cdf = kde_cdf_interpol(data, y, npts_sample=1000)
     """
     if npts_sample is not None:
-        msg = "npts_sample ={0} cannot eyceed number of len(sample) = {1}"
+        msg = "npts_sample ={0} cannot exceed number of len(sample) = {1}"
         assert npts_sample <= len(data), msg.format(npts_sample, len(data))
         data = np.random.choice(data, npts_sample, replace=False)
 
     y = np.atleast_1d(y)
+    result = np.zeros_like(y)
     if npts_interpol is not None:
-        y_table = np.linspace(y.min(), y.max(), npts_interpol)
+        y_table = np.linspace(data.min(), data.max(), npts_interpol)
         cdf_table = kde_cdf(data, y_table)
-        return np.interp(y, y_table, cdf_table)
+
+        raise ValueError("Did not finish correcting edge case behavior")
+        y_too_high_mask = (y > data.max())
+        y_too_low_mask = (y < data.min())
+
+        inmask = ~y_too_low_mask & ~y_too_high_mask
+        yin = y[inmask]
+        result[inmask] = np.interp(yin, y_table, cdf_table)
+
+        epsilon = 0.00001
+        ylow = y[y_too_low_mask]
+        result[y_too_low_mask] = np.interp(ylow, (y.min(), data.min()), (epsilon, cdf_table.min()))
+        yhigh = y[y_too_high_mask]
+        result[y_too_high_mask] = np.interp(yhigh, (data.max(), y.max()), (cdf_table.max(), 1-epsilon))
+        return result
     else:
         return kde_cdf(data, y)
 
 
 def kde_conditional_percentile(y, x, x_bins, npts_interpol=2000, npts_sample=5000):
-    """ Estimate P(> y | x) for each input point (x, y) by using Gaussian kernel density
+    r""" Estimate P(> y | x) for each input point (x, y) by using Gaussian kernel density
     estimation within each bin defined by x_bins.
 
     Points outside the bounds of x_bins
@@ -131,7 +146,7 @@ def kde_conditional_percentile(y, x, x_bins, npts_interpol=2000, npts_sample=500
 
 
 def percentile_curves(p, x, y, x_bins, **kwargs):
-    """ Calculate the p-percentile curves of y as a function of x.
+    r""" Calculate the p-percentile curves of y as a function of x.
 
     A common use of this function is to compute, for example,
     the 95-percentile region enveloping :math:`\langle y \vert x \rangle`.

@@ -2,12 +2,28 @@
 """
 import numpy as np
 from astropy.utils import NumpyRNGContext
+from .noisy_percentile import noisy_percentile
+from .kde_utils import kde_cdf_interpol
 from ...utils import inverse_transformation_sampling as its
 from ...utils import unsorting_indices
 
 
 __author__ = ('Andrew Hearin', 'Duncan Campbell')
-__all__ = ('conditional_abunmatch', 'randomly_resort')
+__all__ = ('conditional_abunmatch', 'conditional_abunmatch_kde', 'randomly_resort')
+
+
+def conditional_abunmatch_kde(haloprop, galprop, sigma=0., halo_percentile_precision=0.01,
+            galaxy_percentile_precision=0.01):
+    """ Primary function used in Conditional Abundance Matching.
+    """
+    num_halos_min = int(1./halo_percentile_precision)
+    haloprop_percentiles = kde_cdf_interpol(haloprop, haloprop,
+                npts_interpol=num_halos_min, npts_sample=num_halos_min)
+    num_gals_min = int(1./galaxy_percentile_precision)
+    galprop_percentiles = kde_cdf_interpol(galprop, galprop,
+                npts_interpol=num_gals_min, npts_sample=num_gals_min)
+    noisy_haloprop_percentiles = noisy_percentile(haloprop_percentiles, sigma)
+    return np.interp(noisy_haloprop_percentiles, galprop, galprop_percentiles)
 
 
 def conditional_abunmatch(haloprop, galprop, sigma=0., npts_lookup_table=1000, seed=None):
