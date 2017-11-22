@@ -9,8 +9,8 @@ from scipy.stats import gaussian_kde
 __all__ = ('kde_cdf', 'kde_conditional_percentile', 'percentile_curves')
 
 
-def kde_cdf(data, y):
-    r""" Estimate the cumulative distribution function P(> y) defined by an input data sample.
+def kde_cdf(data, y, ymin=-np.inf, ymax=np.inf):
+    r""" Estimate the cumulative distribution function P(< y) defined by an input data sample.
 
     Parameters
     ----------
@@ -19,6 +19,12 @@ def kde_cdf(data, y):
 
     y : ndarray
         Numpy array of shape (num_pts, )
+
+    ymin : float, optional
+        Minimum value for the data. Default is -np.inf
+
+    ymax : float, optional
+        Maximum value for the data. Default is np.inf
 
     Returns
     -------
@@ -31,12 +37,38 @@ def kde_cdf(data, y):
     >>> y = np.linspace(-4, 4, 100)
     >>> cdf = kde_cdf(data, y)
     """
+    y = np.atleast_1d(y)
+
     kde = gaussian_kde(data)
-    return np.fromiter((kde.integrate_box_1d(-np.inf, high) for high in np.atleast_1d(y)), dtype='f4')
+    cdf = np.fromiter((kde.integrate_box_1d(ymin, high) for high in y), dtype='f4')
+
+    #  Over-write CDF values below ymin
+    lowmask = y < ymin
+    highmask = y > ymax
+
+    if ymin > -np.inf:
+        cdf[lowmask] = 0.
+        lowprob = kde.integrate_box_1d(-np.inf, ymin)
+    else:
+        lowprob = 0.0
+
+    #  Over-write CDF values above ymax
+    if ymax < np.inf:
+        cdf[highmask] = 1.
+        highprob = kde.integrate_box_1d(ymax, np.inf)
+    else:
+        highprob = 0.0
+
+    #  Add back in the incorrectly missed CDF outside the boundaries
+    if (ymax < np.inf) | (ymin > -np.inf):
+        cdf[~lowmask & ~highmask] = cdf[~lowmask & ~highmask] + lowprob + highprob
+
+    return cdf
 
 
-def kde_cdf_interpol(data, y, npts_interpol=None, npts_sample=None):
-    r""" Estimate the cumulative distribution function P(> y) defined by an input data sample,
+def kde_cdf_interpol(data, y, npts_interpol=None, npts_sample=None,
+            ymin=-np.inf, ymax=np.inf):
+    r""" Estimate the cumulative distribution function P(< y) defined by an input data sample,
     optionally interpolating from a downsampling of the data
     to improve performance at the cost of precision.
 
@@ -77,31 +109,18 @@ def kde_cdf_interpol(data, y, npts_interpol=None, npts_sample=None):
         data = np.random.choice(data, npts_sample, replace=False)
 
     y = np.atleast_1d(y)
-    result = np.zeros_like(y)
     if npts_interpol is not None:
         y_table = np.linspace(data.min(), data.max(), npts_interpol)
-        cdf_table = kde_cdf(data, y_table)
+        cdf_table = kde_cdf(data, y_table, ymin=ymin, ymax=ymax)
 
-        raise ValueError("Did not finish correcting edge case behavior")
-        y_too_high_mask = (y > data.max())
-        y_too_low_mask = (y < data.min())
-
-        inmask = ~y_too_low_mask & ~y_too_high_mask
-        yin = y[inmask]
-        result[inmask] = np.interp(yin, y_table, cdf_table)
-
-        epsilon = 0.00001
-        ylow = y[y_too_low_mask]
-        result[y_too_low_mask] = np.interp(ylow, (y.min(), data.min()), (epsilon, cdf_table.min()))
-        yhigh = y[y_too_high_mask]
-        result[y_too_high_mask] = np.interp(yhigh, (data.max(), y.max()), (cdf_table.max(), 1-epsilon))
-        return result
+        return np.interp(y, y_table, cdf_table)
     else:
-        return kde_cdf(data, y)
+        return kde_cdf(data, y, ymin=ymin, ymax=ymax)
 
 
-def kde_conditional_percentile(y, x, x_bins, npts_interpol=2000, npts_sample=5000):
-    r""" Estimate P(> y | x) for each input point (x, y) by using Gaussian kernel density
+def kde_conditional_percentile(y, x, x_bins, npts_interpol=2000, npts_sample=5000,
+            ymin=-np.inf, ymax=np.inf):
+    r""" Estimate P(< y | x) for each input point (x, y) by using Gaussian kernel density
     estimation within each bin defined by x_bins.
 
     Points outside the bounds of x_bins
@@ -140,7 +159,9 @@ def kde_conditional_percentile(y, x, x_bins, npts_interpol=2000, npts_sample=500
         if npts_bin > 0:
             data = y[mask]
             result[mask] = kde_cdf_interpol(data, data,
-                npts_interpol=min(npts_interpol, npts_bin), npts_sample=min(npts_sample, npts_bin))
+                npts_interpol=min(npts_interpol, npts_bin),
+                npts_sample=min(npts_sample, npts_bin),
+                ymin=ymin, ymax=ymax)
 
     return result
 
