@@ -12,11 +12,11 @@ __author__ = ('Andrew Hearin', 'Duncan Campbell')
 __all__ = ('conditional_abunmatch', 'conditional_abunmatch_kde', 'randomly_resort')
 
 
-def conditional_abunmatch_kde(haloprop_percentiles, galprop, sigma=0.,
+def conditional_abunmatch_kde(haloprop_percentiles, galprop, correlation_coeff=1.,
             galaxy_percentile_precision=0.01, galprop_min=-np.inf, galprop_max=np.inf):
     """ Primary function used in Conditional Abundance Matching.
     """
-    noisy_haloprop_percentiles = noisy_percentile(haloprop_percentiles, sigma)
+    noisy_haloprop_percentiles = noisy_percentile(haloprop_percentiles, correlation_coeff)
 
     num_gals_table = int(1./galaxy_percentile_precision)
     galprop_table = np.linspace(galprop.min(), galprop.max(), num_gals_table)
