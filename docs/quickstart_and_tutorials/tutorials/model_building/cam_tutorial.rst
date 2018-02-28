@@ -97,6 +97,21 @@ can be found in the following Jupyter notebook:
     **halotools/docs/notebooks/galcat_analysis/intermediate_examples/quenching_gradient_tutorial.ipynb**
 
 
+Correlating Galaxy Disk Size with Halo Spin
+===========================================
+
+In models where a galaxy's disk acquires roughly the same specific angular momentum
+as its dark matter halo, there arises a correlation between halo spin and the size
+of the (rotationally supported) disk. At fixed disk mass, the distribution of
+disk size is roughly log-normal. So one natural empirical model for disk size
+is a draw from a log-normal distribution, where the stochasticity in the draw
+is correlated with the halo spin, such that above-average draws for log-normal sizes
+will correspond with above-average values of halo spin, and conversely.
+
+
+
+
+
 
 
 
