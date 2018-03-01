@@ -23,10 +23,13 @@ some statistical distribution of the galaxy property being modeled,
 so that Monte Carlo realizations can be drawn from the distribution.
 The most convenient distribution to use for this purpose is the cumulative
 distribution function (CDF), :math:`{\rm CDF}(x) = {\rm Prob}(< x).`
-Once the CDF is specified, you only need to generate
+Once the CDF is specified, the standard Monte Carlo technique is to generate
 a realization of a random uniform distribution and pass those draws to the
 CDF inverse,  :math:`{\rm CDF}^{-1}(p),` which evaluates to the variable
 :math:`x` being painted on the model galaxies.
+See Section 3.7 of `The AstroML textbook <http://www.astroml.org/>`_
+and `Transformation of Probability tutorial <https://github.com/jbailinua/probability/>`_
+for more information about the inverse transformation sampling technique.
 
 CAM introduces correlations between the
 galaxy property :math:`x` and some halo property :math:`h,`
@@ -34,13 +37,6 @@ without changing :math:`{\rm CDF}(x)`. Rather than evaluating :math:`{\rm CDF}^{
 with random uniform variables,
 instead you evaluate with :math:`p = {\rm CDF}(h) = {\rm Prob}(< h),`
 introducing a monotonic correlation between :math:`x` and :math:`h`.
-
-The function `~halotools.empirical_models.noisy_percentile` can be used to
-add controllable levels of noise to :math:`p = {\rm CDF}(h).`
-This allows you to control the correlation coefficient
-between :math:`x` and :math:`h,`
-always exactly preserving the 1-point statistics of the output distribution.
-
 
 The "Conditional" part of CAM is that this technique naturally generalizes to
 introduce a galaxy property correlation while holding some other property fixed.
@@ -52,11 +48,29 @@ so that galaxies which have
 large SFR for their stellar mass are associated with subhalos that have
 large mass accretion rates for their mass dark matter mass.
 
+Bin-based vs. bin-free methods
+------------------------------
+This still needs to be written
+
+Implementing correlations of intermediate strength
+--------------------------------------------------
+This still needs to be written
+
+The function `~halotools.empirical_models.noisy_percentile` can be used to
+add controllable levels of noise to :math:`p = {\rm CDF}(h).`
+This allows you to control the correlation coefficient
+between :math:`x` and :math:`h,`
+always exactly preserving the 1-point statistics of the output distribution.
+
+
+Worked Examples
+===============
+
 Each of the sections below illustrates a different application of the same underlying method.
 Each section has an accompanying annotated Jupyter notebook with the code used to generate the plots.
 
 Satellite Galaxy Quenching Gradients
-=====================================
+--------------------------------------------------
 
 Observations indicate that satellite galaxies are redder in the
 inner regions of their host dark matter halos. One way to model this phenomenon is to use CAM
@@ -98,7 +112,7 @@ can be found in the following Jupyter notebook:
 
 
 Correlating Galaxy Disk Size with Halo Spin
-===========================================
+--------------------------------------------------
 
 In models where a galaxy's disk acquires roughly the same specific angular momentum
 as its dark matter halo, there arises a correlation between halo spin and disk size.
