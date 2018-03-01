@@ -93,6 +93,8 @@ def conditional_abunmatch(haloprop, galprop, sigma=0., npts_lookup_table=1000, s
     see the `deconvolution abundance matching code <https://bitbucket.org/yymao/abundancematching/>`_
     written by Yao-Yuan Mao.
 
+    See :ref:`cam_tutorial` for several worked examples of different applications of CAM
+
     """
     haloprop_table, galprop_table = its.build_cdf_lookup(galprop, npts_lookup_table)
     haloprop_percentiles = its.rank_order_percentile(haloprop)
