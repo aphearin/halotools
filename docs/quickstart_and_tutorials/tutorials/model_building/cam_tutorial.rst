@@ -101,16 +101,38 @@ Correlating Galaxy Disk Size with Halo Spin
 ===========================================
 
 In models where a galaxy's disk acquires roughly the same specific angular momentum
-as its dark matter halo, there arises a correlation between halo spin and the size
-of the (rotationally supported) disk. At fixed disk mass, the distribution of
-disk size is roughly log-normal. So one natural empirical model for disk size
-is a draw from a log-normal distribution, where the stochasticity in the draw
-is correlated with the halo spin, such that above-average draws for log-normal sizes
-will correspond with above-average values of halo spin, and conversely.
+as its dark matter halo, there arises a correlation between halo spin and disk size.
+At fixed disk mass, the observed distribution of disk size is roughly log-normal
+with 0.2 dex of scatter. To empirically model the scale length
+or half-light radius of the disk, a simple model would be to
+draw from a log-normal distribution, such that the stochasticity in the
+Monte Carlo realization is correlated with the halo spin,
+so that above-average draws from the log-normal distribution of sizes
+will get mapped onto halos with above-average values of spin, and conversely.
 
 
+So in this application, CAM introduces a correlation between
+:math:`{\rm Prob(<R_{1/2}\vert M_{\ast})}` and
+:math:`{\rm Prob(<\lambda_{spin}\vert M_{halo})}.`
+The figure below illustrates the result of such a model.
 
+In the left panel, we see a scatter plot of the size-mass relation.
+Halos in the bottom quartile of :math:`\lambda_{\rm spin}` host galaxies
+with the smallest half-light radius for their stellar mass; halos in the top quartile
+host the largest galaxies for their mass, and likewise for the middle quartiles.
 
+In the right panel we show the average disk size as function of halo mass.
+The model shown in the left panel is shown as the solid curves in the right panel.
+In the model illustrated with the dashed curves,
+we have introduced scatter in the correlation between
+:math:`\lambda_{\rm spin}` and :math:`R_{1/2}`.
+
+.. image:: /_static/size_mass_spin.png
+
+For implementation details, the code producing these plots
+can be found in the following Jupyter notebook:
+
+    **halotools/docs/notebooks/galcat_analysis/intermediate_examples/demo_cam_disk_sizes.ipynb**
 
 
 
