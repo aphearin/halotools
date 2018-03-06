@@ -4,4 +4,6 @@
 Traditional Abundance Matching Model
 *********************************************
 
-Tutorial coming soon!
+See the `AbundanceMatching repo <https://bitbucket.org/yymao/abundancematching/>`_
+for a python implementation of the deconvolution algorithm used in
+`Behroozi 2010 <https://arxiv.org/abs/1001.0015/>`_
