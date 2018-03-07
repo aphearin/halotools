@@ -97,7 +97,7 @@ def cython_bin_free_cam_kernel(double[:] y1, int[:] i2_match,
     cdef int idx_in1, idx_out1, idx_in2, idx_out2
     cdef double value_in1, value_out1, value_in2, value_out2
 
-    cdef double[:] y1_new = np.zeros(npts1, dtype='f8')
+    cdef double[:] y1_new = np.zeros(npts1, dtype='f8') - 1
     cdef int rank1, rank2
 
     #  Set up window arrays for y1
