@@ -18,6 +18,12 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
     >>> nwin = 51
     >>> result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
     """
+    x = np.atleast_1d(x).astype('f8')
+    y = np.atleast_1d(y).astype('f8')
+    x2 = np.atleast_1d(x2).astype('f8')
+    y2 = np.atleast_1d(y2).astype('f8')
+    nwin = int(nwin)
+
     if assume_x_is_sorted:
         x_sorted = x
         y_sorted = y
