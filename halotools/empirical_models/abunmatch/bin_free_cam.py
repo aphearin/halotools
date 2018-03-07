@@ -52,19 +52,20 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
     leftmost_window_x2 = x2_sorted[:nwin]
     leftmost_window_i2 = np.searchsorted(leftmost_window_x2, leftmost_window_x).astype('i4')
     leftmost_window_i2 = np.where(leftmost_window_i2 >= nwin, nwin-1, leftmost_window_i2)
-    leftmost_window_y2 = y2_sorted[:nwin]
+    leftmost_sorted_window_y2 = np.sort(y2_sorted[:nwin])
+
     leftmost_window_ranks = rank_order_function(y_sorted[:nwin])
-    leftmost_window_y = leftmost_window_y2[leftmost_window_ranks[leftmost_window_i2]]
+    leftmost_window_y = leftmost_sorted_window_y2[leftmost_window_ranks[leftmost_window_i2]]
     result[:nhalfwin] = leftmost_window_y[:nhalfwin]
 
     rightmost_window_x = x_sorted[-nwin:]
     rightmost_window_x2 = x2_sorted[-nwin:]
     rightmost_window_i2 = np.searchsorted(rightmost_window_x2, rightmost_window_x).astype('i4')
     rightmost_window_i2 = np.where(rightmost_window_i2 >= nwin, nwin-1, rightmost_window_i2)
-    rightmost_window_y2 = y2_sorted[-nwin:]
+    rightmost_sorted_window_y2 = y2_sorted[-nwin:]
     rightmost_window_ranks = rank_order_function(y_sorted[-nwin:])
-    rightmost_window_y = rightmost_window_y2[rightmost_window_ranks[rightmost_window_i2]]
-    result[-nhalfwin-1:] = rightmost_window_y[-nhalfwin-1:]
+    rightmost_window_y = rightmost_sorted_window_y2[rightmost_window_ranks[rightmost_window_i2]]
+    result[-nhalfwin:] = rightmost_window_y[-nhalfwin:]
 
     if assume_x_is_sorted:
         return result
