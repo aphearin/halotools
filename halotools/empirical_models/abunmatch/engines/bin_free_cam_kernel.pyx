@@ -117,8 +117,12 @@ def cython_bin_free_cam_kernel(double[:] y1, int[:] i2_match,
         unsorting_indices(idx_sorted_cdf_values2)[::-1], dtype='i4')
 
     for iy1 in range(nhalfwin, npts1-nhalfwin-1):
+        print("\niy1 = {0}".format(iy1))
+
         rank1 = correspondence_indx1[nhalfwin]
+        print("rank1 = {0}".format(rank1))
         iy2_match = i2_match[iy1]
+        print("iy2_match = {0}".format(iy2_match))
 
         while iy2 < iy2_match:
             value_in2 = y2[iy2 + nhalfwin + 1]
@@ -141,6 +145,7 @@ def cython_bin_free_cam_kernel(double[:] y1, int[:] i2_match,
 
         if add_subgrid_noise == 0:
             y1_new[iy1] = sorted_cdf_values2[rank1]
+            print("y1_new[iy1] = {0}".format(y1_new[iy1]))
         else:
             raise NotImplementedError
 

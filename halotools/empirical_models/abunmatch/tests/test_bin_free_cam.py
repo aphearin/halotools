@@ -11,21 +11,21 @@ fixed_seed = 43
 def test1():
     nwin = 3
 
-    x = [1, 2, 3, 4, 5, 6, 7]
-    x2 = [2.5, 3.5, 4.5, 5.5, 6.5]
+    x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    x2 = x
 
-    y = np.arange(0, len(x))
-    y2 = np.arange(5, len(x2)+5)
+    y = np.arange(1, len(x)+1)
+    y2 = y*10.
 
     i2_matched = np.searchsorted(x2, x)
     i2_matched = np.where(i2_matched >= len(y2), len(y2)-1, i2_matched)
 
     result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
 
-    print("i  = {0}\n".format(i2_matched.astype('f4')))
+    print("i  = {0}\n".format(i2_matched.astype('i4')))
 
     print("y  = {0}".format(y))
     print("y2 = {0}\n".format(y2))
-    print("r  = {0}".format(result))
+    print("ynew  = {0}".format(result.astype('i4')))
 
     assert 4 == 5
