@@ -25,5 +25,9 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin):
     x2_sorted = x2[idx_x2_sorted]
     y2_sorted = y2[idx_x2_sorted]
 
-    result = np.array(cython_bin_free_cam_kernel(y_sorted, x2_sorted, y2_sorted, nwin))
+    i2_matched = np.searchsorted(x2_sorted, x_sorted).astype('i8')
+
+    result = np.array(cython_bin_free_cam_kernel(
+        y_sorted, i2_matched, x2_sorted, y2_sorted, nwin))
+
     return result[unsorting_indices(idx_x_sorted)]

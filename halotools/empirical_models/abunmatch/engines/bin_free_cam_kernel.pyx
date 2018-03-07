@@ -84,7 +84,8 @@ cdef void _insert_pop_kernel(double* arr, int idx_in1, int idx_out1, double valu
 @cython.boundscheck(False)
 @cython.nonecheck(False)
 @cython.wraparound(False)
-def cython_bin_free_cam_kernel(double[:] y1, double[:] x2, double[:] y2, int nwin):
+def cython_bin_free_cam_kernel(double[:] y1, long[:] i2_match,
+        double[:] x2, double[:] y2, int nwin):
     """
     """
     cdef int nhalfwin = int(nwin/2)
@@ -95,7 +96,8 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] x2, double[:] y2, int nwi
     cdef int idx_in1, idx_out1, idx_in2, idx_out2
     cdef double value_in1, value_out1, value_in2, value_out2
 
-    cdef double[:] rank1 = np.zeros(npts1, dtype='f8')
+    cdef double[:] y1_new = np.zeros(npts1, dtype='f8')
+    cdef int rank1, rank2
 
     #  Set up window arrays for y1
     cdf_values1 = np.copy(y1[:nwin])
@@ -114,7 +116,9 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] x2, double[:] y2, int nwi
         unsorting_indices(idx_sorted_cdf_values2)[::-1], dtype='i4')
 
     for iy1 in range(nhalfwin, npts1-nhalfwin-1):
-        rank1[iy1] = correspondence_indx1[nhalfwin]
+        rank1 = correspondence_indx1[nhalfwin]
+
+
         value_in1 = y1[iy1 + nhalfwin + 1]
 
         idx_out1 = correspondence_indx1[nwin-1]
@@ -132,4 +136,4 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] x2, double[:] y2, int nwi
 
         _insert_pop_kernel(&sorted_cdf_values1[0], idx_in1, idx_out1, value_in1)
 
-    return rank1
+    return y1_new
