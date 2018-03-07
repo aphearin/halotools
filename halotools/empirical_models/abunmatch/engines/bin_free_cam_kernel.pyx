@@ -84,7 +84,7 @@ cdef void _insert_pop_kernel(double* arr, int idx_in1, int idx_out1, double valu
 @cython.boundscheck(False)
 @cython.nonecheck(False)
 @cython.wraparound(False)
-def cython_bin_free_cam_kernel(double[:] y1, long[:] i2_match,
+def cython_bin_free_cam_kernel(double[:] y1, int[:] i2_match,
         double[:] x2, double[:] y2, int nwin):
     """
     """
@@ -92,7 +92,8 @@ def cython_bin_free_cam_kernel(double[:] y1, long[:] i2_match,
     cdef int npts1 = y1.shape[0]
     cdef int npts2 = y2.shape[0]
 
-    cdef int iy1, iy2, i, idx
+    cdef int iy1, i, j, idx, idx2, iy2_match
+    cdef int iy2 = 0
     cdef int idx_in1, idx_out1, idx_in2, idx_out2
     cdef double value_in1, value_out1, value_in2, value_out2
 
@@ -117,8 +118,29 @@ def cython_bin_free_cam_kernel(double[:] y1, long[:] i2_match,
 
     for iy1 in range(nhalfwin, npts1-nhalfwin-1):
         rank1 = correspondence_indx1[nhalfwin]
+        iy2_match = i2_match[iy1]
 
+        while iy2 < iy2_match:
+            rank2 = correspondence_indx2[nhalfwin]
+            value_in2 = y2[iy2 + nhalfwin + 1]
+            idx_out2 = correspondence_indx2[nwin-1]
+            value_out2 = sorted_cdf_values2[idx_out2]
 
+            idx_in2 = _bisect_left_kernel(sorted_cdf_values2, value_in2)
+            if value_in2 > value_out2:
+                idx_in2 -= 1
+
+            _insert_first_pop_last_kernel(&correspondence_indx2[0], idx_in2, nwin)
+            for j in range(1, nwin):
+                idx2 = correspondence_indx2[j]
+                correspondence_indx2[j] += _correspondence_indices_shift(
+                    idx_in2, idx_out2, idx2)
+
+            _insert_pop_kernel(&sorted_cdf_values2[0], idx_in2, idx_out2, value_in2)
+
+            iy2 += 1
+
+        #  Move on to the next value in y1
         value_in1 = y1[iy1 + nhalfwin + 1]
 
         idx_out1 = correspondence_indx1[nwin-1]

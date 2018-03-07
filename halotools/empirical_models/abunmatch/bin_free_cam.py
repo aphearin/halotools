@@ -12,7 +12,7 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin):
     >>> npts1, npts2 = 5000, 3000
     >>> x = np.linspace(0, 1, npts1)
     >>> y = np.random.uniform(-1, 1, npts1)
-    >>> x2 = np.linspace(0, 1, npts2)
+    >>> x2 = np.linspace(0.5, 0.6, npts2)
     >>> y2 = np.random.uniform(-5, 3, npts2)
     >>> nwin = 51
     >>> result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
@@ -25,7 +25,7 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin):
     x2_sorted = x2[idx_x2_sorted]
     y2_sorted = y2[idx_x2_sorted]
 
-    i2_matched = np.searchsorted(x2_sorted, x_sorted).astype('i8')
+    i2_matched = np.searchsorted(x2_sorted, x_sorted).astype('i4')
 
     result = np.array(cython_bin_free_cam_kernel(
         y_sorted, i2_matched, x2_sorted, y2_sorted, nwin))
