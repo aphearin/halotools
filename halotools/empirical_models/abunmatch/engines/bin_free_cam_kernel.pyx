@@ -89,9 +89,11 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] x2, double[:] y2, int nwi
     """
     cdef int nhalfwin = int(nwin/2)
     cdef int npts1 = y1.shape[0]
+    cdef int npts2 = y2.shape[0]
 
-    cdef int iy, idx_in1, idx_out1, i, idx
-    cdef double value_in1, value_out1
+    cdef int iy1, iy2, i, idx
+    cdef int idx_in1, idx_out1, idx_in2, idx_out2
+    cdef double value_in1, value_out1, value_in2, value_out2
 
     cdef double[:] rank1 = np.zeros(npts1, dtype='f8')
 
@@ -103,9 +105,17 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] x2, double[:] y2, int nwi
     cdef int[:] correspondence_indx1 = np.ascontiguousarray(
         unsorting_indices(idx_sorted_cdf_values1)[::-1], dtype='i4')
 
-    for iy in range(nhalfwin, npts1-nhalfwin-1):
-        rank1[iy] = correspondence_indx1[nhalfwin]
-        value_in1 = y1[iy + nhalfwin + 1]
+    #  Set up window arrays for y2
+    cdf_values2 = np.copy(y2[:nwin])
+    idx_sorted_cdf_values2 = np.argsort(cdf_values2)
+    cdef double[:] sorted_cdf_values2 = np.ascontiguousarray(
+        cdf_values2[idx_sorted_cdf_values2], dtype='f8')
+    cdef int[:] correspondence_indx2 = np.ascontiguousarray(
+        unsorting_indices(idx_sorted_cdf_values2)[::-1], dtype='i4')
+
+    for iy1 in range(nhalfwin, npts1-nhalfwin-1):
+        rank1[iy1] = correspondence_indx1[nhalfwin]
+        value_in1 = y1[iy1 + nhalfwin + 1]
 
         idx_out1 = correspondence_indx1[nwin-1]
         value_out1 = sorted_cdf_values1[idx_out1]
