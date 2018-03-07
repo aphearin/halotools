@@ -18,6 +18,7 @@ def test1():
     y2 = np.arange(5, len(x2)+5)
 
     i2_matched = np.searchsorted(x2, x)
+    i2_matched = np.where(i2_matched >= len(y2), len(y2)-1, i2_matched)
 
     result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
 

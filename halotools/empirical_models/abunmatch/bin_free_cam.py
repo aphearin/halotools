@@ -41,6 +41,7 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
         y2_sorted = y2[idx_x2_sorted]
 
     i2_matched = np.searchsorted(x2_sorted, x_sorted).astype('i4')
+    i2_matched = np.where(i2_matched >= len(y2), len(y2)-1, i2_matched)
 
     result = np.array(cython_bin_free_cam_kernel(
         y_sorted, i2_matched, x2_sorted, y2_sorted, nwin))
