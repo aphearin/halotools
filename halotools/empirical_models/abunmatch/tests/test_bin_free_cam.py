@@ -28,4 +28,27 @@ def test1():
     print("y2 = {0}\n".format(y2))
     print("ynew  = {0}".format(result.astype('i4')))
 
-    assert 4 == 5
+    assert np.all(result == y2)
+
+
+def test2():
+    nwin = 3
+
+    x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    x2 = x
+
+    y = np.random.rand(len(x))
+    y2 = np.random.rand(len(x2))
+
+    i2_matched = np.searchsorted(x2, x)
+    i2_matched = np.where(i2_matched >= len(y2), len(y2)-1, i2_matched)
+
+    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
+
+    print("i  = {0}\n".format(i2_matched.astype('i4')))
+
+    print("y  = {0}".format(y))
+    print("y2 = {0}\n".format(y2))
+    print("ynew  = {0}".format(result))
+
+    assert np.all(result == y2)
