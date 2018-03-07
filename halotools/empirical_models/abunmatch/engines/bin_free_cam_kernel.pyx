@@ -145,6 +145,7 @@ def cython_bin_free_cam_kernel(double[:] y1, int[:] i2_match,
 
             iy2 += 1
 
+        print("sorted_cdf_values2 = {0}".format(np.array(sorted_cdf_values2)))
         if add_subgrid_noise == 0:
             y1_new[iy1] = sorted_cdf_values2[rank1]
             print("y1_new[iy1] = {0}".format(y1_new[iy1]))
