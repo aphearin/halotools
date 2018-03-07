@@ -88,20 +88,17 @@ def cython_bin_free_cam_kernel(double[:] y_sorted, int nwin):
     """
     """
     cdef int nhalfwin = int(nwin/2)
-    cdef int iy, idx_in, idx_out, idx_temp, i, idx
+    cdef int iy, idx_in, idx_out, i, idx
     cdef double value_in, value_out
     cdef int npts = y_sorted.shape[0]
     cdef double[:] result = np.zeros(npts, dtype='f8')
 
-    cdef int ifirst_subarr, ilast_subarr, imid_subarr, shift
-
     cdf_value_table = np.copy(y_sorted[:nwin])
     idx_sorted_cdf_values = np.argsort(cdf_value_table)
-    _sorted_cdf_value_table = np.copy(cdf_value_table[idx_sorted_cdf_values])
-    _correspondence_indices = np.copy(unsorting_indices(idx_sorted_cdf_values)[::-1])
-
-    cdef double[:] sorted_cdf_value_table = np.array(_sorted_cdf_value_table, dtype='f8')
-    cdef int[:] correspondence_indices = np.array(_correspondence_indices, dtype='i4')
+    cdef double[:] sorted_cdf_value_table = np.ascontiguousarray(
+        cdf_value_table[idx_sorted_cdf_values], dtype='f8')
+    cdef int[:] correspondence_indices = np.ascontiguousarray(
+        unsorting_indices(idx_sorted_cdf_values)[::-1], dtype='i4')
 
     for iy in range(nhalfwin, npts-nhalfwin-1):
         result[iy] = correspondence_indices[nhalfwin]
@@ -110,13 +107,11 @@ def cython_bin_free_cam_kernel(double[:] y_sorted, int nwin):
         idx_out = correspondence_indices[nwin-1]
         value_out = sorted_cdf_value_table[idx_out]
 
-        if value_in <= value_out:
-            idx_in = _bisect_left_kernel(sorted_cdf_value_table, value_in)
-        else:
-            idx_in = _bisect_left_kernel(sorted_cdf_value_table, value_in) - 1
+        idx_in = _bisect_left_kernel(sorted_cdf_value_table, value_in)
+        if value_in > value_out:
+            idx_in -= 1
 
         _insert_first_pop_last_kernel(&correspondence_indices[0], idx_in, nwin)
-
         for i in range(1, nwin):
             idx = correspondence_indices[i]
             correspondence_indices[i] += _correspondence_indices_shift(idx_in, idx_out, idx)
