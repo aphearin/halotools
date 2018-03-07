@@ -38,27 +38,27 @@ cdef int _bisect_left_kernel(double[:] arr, double value):
 @cython.boundscheck(False)
 @cython.nonecheck(False)
 @cython.wraparound(False)
-cdef void _insert_first_pop_last_kernel(int* arr, int value_in, int n):
-    """ Insert the element ``value_in`` into the input array and pop out the last element
+cdef void _insert_first_pop_last_kernel(int* arr, int value_in1, int n):
+    """ Insert the element ``value_in1`` into the input array and pop out the last element
     """
     cdef int i
     for i in range(n-2, -1, -1):
         arr[i+1] = arr[i]
-    arr[0] = value_in
+    arr[0] = value_in1
 
 
 @cython.boundscheck(False)
 @cython.nonecheck(False)
 @cython.wraparound(False)
-cdef int _correspondence_indices_shift(int idx_in, int idx_out, int idx):
+cdef int _correspondence_indices_shift(int idx_in1, int idx_out1, int idx):
     """ Update the correspondence indices array
     """
     cdef int shift = 0
-    if idx_in < idx_out:
-        if idx_in <= idx < idx_out:
+    if idx_in1 < idx_out1:
+        if idx_in1 <= idx < idx_out1:
             shift = 1
-    elif idx_in > idx_out:
-        if idx_out < idx <= idx_in:
+    elif idx_in1 > idx_out1:
+        if idx_out1 < idx <= idx_in1:
             shift = -1
     return shift
 
@@ -66,56 +66,60 @@ cdef int _correspondence_indices_shift(int idx_in, int idx_out, int idx):
 @cython.boundscheck(False)
 @cython.nonecheck(False)
 @cython.wraparound(False)
-cdef void _insert_pop_kernel(double* arr, int idx_in, int idx_out, double value_in):
-    """ Pop out the value stored in index ``idx_out`` of array ``arr``,
-    and insert ``value_in`` at index ``idx_in`` of the final array.
+cdef void _insert_pop_kernel(double* arr, int idx_in1, int idx_out1, double value_in1):
+    """ Pop out the value stored in index ``idx_out1`` of array ``arr``,
+    and insert ``value_in1`` at index ``idx_in1`` of the final array.
     """
     cdef int i
 
-    if idx_in <= idx_out:
-        for i in range(idx_out-1, idx_in-1, -1):
+    if idx_in1 <= idx_out1:
+        for i in range(idx_out1-1, idx_in1-1, -1):
             arr[i+1] = arr[i]
     else:
-        for i in range(idx_out, idx_in):
+        for i in range(idx_out1, idx_in1):
             arr[i] = arr[i+1]
-    arr[idx_in] = value_in
+    arr[idx_in1] = value_in1
 
 
 @cython.boundscheck(False)
 @cython.nonecheck(False)
 @cython.wraparound(False)
-def cython_bin_free_cam_kernel(double[:] y_sorted, int nwin):
+def cython_bin_free_cam_kernel(double[:] y1, double[:] x2, double[:] y2, int nwin):
     """
     """
     cdef int nhalfwin = int(nwin/2)
-    cdef int iy, idx_in, idx_out, i, idx
-    cdef double value_in, value_out
-    cdef int npts = y_sorted.shape[0]
-    cdef double[:] result = np.zeros(npts, dtype='f8')
+    cdef int npts1 = y1.shape[0]
 
-    cdf_value_table = np.copy(y_sorted[:nwin])
-    idx_sorted_cdf_values = np.argsort(cdf_value_table)
-    cdef double[:] sorted_cdf_value_table = np.ascontiguousarray(
-        cdf_value_table[idx_sorted_cdf_values], dtype='f8')
-    cdef int[:] correspondence_indices = np.ascontiguousarray(
-        unsorting_indices(idx_sorted_cdf_values)[::-1], dtype='i4')
+    cdef int iy, idx_in1, idx_out1, i, idx
+    cdef double value_in1, value_out1
 
-    for iy in range(nhalfwin, npts-nhalfwin-1):
-        result[iy] = correspondence_indices[nhalfwin]
-        value_in = y_sorted[iy + nhalfwin + 1]
+    cdef double[:] rank1 = np.zeros(npts1, dtype='f8')
 
-        idx_out = correspondence_indices[nwin-1]
-        value_out = sorted_cdf_value_table[idx_out]
+    #  Set up window arrays for y1
+    cdf_values1 = np.copy(y1[:nwin])
+    idx_sorted_cdf_values1 = np.argsort(cdf_values1)
+    cdef double[:] sorted_cdf_values1 = np.ascontiguousarray(
+        cdf_values1[idx_sorted_cdf_values1], dtype='f8')
+    cdef int[:] correspondence_indx1 = np.ascontiguousarray(
+        unsorting_indices(idx_sorted_cdf_values1)[::-1], dtype='i4')
 
-        idx_in = _bisect_left_kernel(sorted_cdf_value_table, value_in)
-        if value_in > value_out:
-            idx_in -= 1
+    for iy in range(nhalfwin, npts1-nhalfwin-1):
+        rank1[iy] = correspondence_indx1[nhalfwin]
+        value_in1 = y1[iy + nhalfwin + 1]
 
-        _insert_first_pop_last_kernel(&correspondence_indices[0], idx_in, nwin)
+        idx_out1 = correspondence_indx1[nwin-1]
+        value_out1 = sorted_cdf_values1[idx_out1]
+
+        idx_in1 = _bisect_left_kernel(sorted_cdf_values1, value_in1)
+        if value_in1 > value_out1:
+            idx_in1 -= 1
+
+        _insert_first_pop_last_kernel(&correspondence_indx1[0], idx_in1, nwin)
         for i in range(1, nwin):
-            idx = correspondence_indices[i]
-            correspondence_indices[i] += _correspondence_indices_shift(idx_in, idx_out, idx)
+            idx = correspondence_indx1[i]
+            correspondence_indx1[i] += _correspondence_indices_shift(
+                idx_in1, idx_out1, idx)
 
-        _insert_pop_kernel(&sorted_cdf_value_table[0], idx_in, idx_out, value_in)
+        _insert_pop_kernel(&sorted_cdf_values1[0], idx_in1, idx_out1, value_in1)
 
-    return result
+    return rank1
