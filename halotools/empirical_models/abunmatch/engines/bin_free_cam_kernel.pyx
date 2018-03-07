@@ -93,7 +93,6 @@ def cython_bin_free_cam_kernel(double[:] y1, int[:] i2_match,
     cdef int npts2 = y2.shape[0]
 
     cdef int iy1, i, j, idx, idx2, iy2_match
-    cdef int iy2 = 0
     cdef int idx_in1, idx_out1, idx_in2, idx_out2
     cdef double value_in1, value_out1, value_in2, value_out2
 
@@ -109,14 +108,16 @@ def cython_bin_free_cam_kernel(double[:] y1, int[:] i2_match,
         unsorting_indices(idx_sorted_cdf_values1)[::-1], dtype='i4')
 
     #  Set up window arrays for y2
-    cdf_values2 = np.copy(y2[:nwin])
+    cdef int iy2 = i2_match[nhalfwin]
+
+    cdf_values2 = np.copy(y2[iy2-nhalfwin:iy2+nhalfwin+1])
     idx_sorted_cdf_values2 = np.argsort(cdf_values2)
     cdef double[:] sorted_cdf_values2 = np.ascontiguousarray(
         cdf_values2[idx_sorted_cdf_values2], dtype='f8')
     cdef int[:] correspondence_indx2 = np.ascontiguousarray(
         unsorting_indices(idx_sorted_cdf_values2)[::-1], dtype='i4')
 
-    for iy1 in range(nhalfwin, npts1-nhalfwin-1):
+    for iy1 in range(nhalfwin, npts1-nhalfwin):
         print("\niy1 = {0}".format(iy1))
 
         rank1 = correspondence_indx1[nhalfwin]
@@ -125,6 +126,7 @@ def cython_bin_free_cam_kernel(double[:] y1, int[:] i2_match,
         print("iy2_match = {0}".format(iy2_match))
 
         while iy2 < iy2_match:
+            print("Traversing while loop for iy2 = {0}".format(iy2))
             value_in2 = y2[iy2 + nhalfwin + 1]
             idx_out2 = correspondence_indx2[nwin-1]
             value_out2 = sorted_cdf_values2[idx_out2]

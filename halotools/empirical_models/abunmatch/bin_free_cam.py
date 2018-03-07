@@ -2,6 +2,7 @@
 """
 import numpy as np
 from ...utils import unsorting_indices
+from ...utils.conditional_percentile import _check_xyn_bounds, rank_order_function
 from .engines import cython_bin_free_cam_kernel
 
 
@@ -23,6 +24,7 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
     x2 = np.atleast_1d(x2).astype('f8')
     y2 = np.atleast_1d(y2).astype('f8')
     nwin = int(nwin)
+    nhalfwin = int(nwin/2)
 
     if assume_x_is_sorted:
         x_sorted = x
@@ -45,6 +47,24 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
 
     result = np.array(cython_bin_free_cam_kernel(
         y_sorted, i2_matched, x2_sorted, y2_sorted, nwin))
+
+    leftmost_window_x = x_sorted[:nwin]
+    leftmost_window_x2 = x2_sorted[:nwin]
+    leftmost_window_i2 = np.searchsorted(leftmost_window_x2, leftmost_window_x).astype('i4')
+    leftmost_window_i2 = np.where(leftmost_window_i2 >= nwin, nwin-1, leftmost_window_i2)
+    leftmost_window_y2 = y2_sorted[:nwin]
+    leftmost_window_ranks = rank_order_function(y_sorted[:nwin])
+    leftmost_window_y = leftmost_window_y2[leftmost_window_ranks[leftmost_window_i2]]
+    result[:nhalfwin+1] = leftmost_window_y[:nhalfwin+1]
+
+    rightmost_window_x = x_sorted[-nwin:]
+    rightmost_window_x2 = x2_sorted[-nwin:]
+    rightmost_window_i2 = np.searchsorted(rightmost_window_x2, rightmost_window_x).astype('i4')
+    rightmost_window_i2 = np.where(rightmost_window_i2 >= nwin, nwin-1, rightmost_window_i2)
+    rightmost_window_y2 = y2_sorted[-nwin:]
+    rightmost_window_ranks = rank_order_function(y_sorted[-nwin:])
+    rightmost_window_y = rightmost_window_y2[rightmost_window_ranks[rightmost_window_i2]]
+    result[-nhalfwin-1:] = rightmost_window_y[-nhalfwin-1:]
 
     if assume_x_is_sorted:
         return result
