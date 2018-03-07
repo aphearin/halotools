@@ -85,7 +85,7 @@ cdef void _insert_pop_kernel(double* arr, int idx_in1, int idx_out1, double valu
 @cython.nonecheck(False)
 @cython.wraparound(False)
 def cython_bin_free_cam_kernel(double[:] y1, int[:] i2_match,
-        double[:] x2, double[:] y2, int nwin):
+        double[:] x2, double[:] y2, int nwin, int add_subgrid_noise=0):
     """
     """
     cdef int nhalfwin = int(nwin/2)
@@ -121,7 +121,6 @@ def cython_bin_free_cam_kernel(double[:] y1, int[:] i2_match,
         iy2_match = i2_match[iy1]
 
         while iy2 < iy2_match:
-            rank2 = correspondence_indx2[nhalfwin]
             value_in2 = y2[iy2 + nhalfwin + 1]
             idx_out2 = correspondence_indx2[nwin-1]
             value_out2 = sorted_cdf_values2[idx_out2]
@@ -139,6 +138,11 @@ def cython_bin_free_cam_kernel(double[:] y1, int[:] i2_match,
             _insert_pop_kernel(&sorted_cdf_values2[0], idx_in2, idx_out2, value_in2)
 
             iy2 += 1
+
+        if add_subgrid_noise == 0:
+            y1_new[iy1] = sorted_cdf_values2[rank1]
+        else:
+            raise NotImplementedError
 
         #  Move on to the next value in y1
         value_in1 = y1[iy1 + nhalfwin + 1]
