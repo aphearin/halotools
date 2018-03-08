@@ -113,7 +113,7 @@ def test3():
     nhalfwin = int(nwin/2)
 
     x = np.sort(np.random.rand(10))
-    x2 = np.sort(np.random.rand(10))
+    x2 = np.sort(np.random.uniform(0.5, 0.6, 10))
 
     with NumpyRNGContext(fixed_seed):
         y = np.round(np.random.rand(len(x)), 2)
@@ -136,4 +136,3 @@ def test3():
         itest_correct_result = sorted_window2[itest_rank]
         itest_result = result[itest]
         assert itest_result == itest_correct_result
-
