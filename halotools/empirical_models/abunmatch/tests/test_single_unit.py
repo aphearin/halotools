@@ -13,19 +13,26 @@ fixed_seed = 43
 def test4():
 
     n1, n2, nwin = 8, 8, 3
-    x = np.linspace(0, 1, n1)
+    x = np.round(np.linspace(0.15, 1.3, n1), 2)
     with NumpyRNGContext(fixed_seed):
-        y = np.random.uniform(0, 1, n1)
+        y = np.round(np.random.uniform(0, 1, n1), 2)
     ranks_sample1 = cython_sliding_rank(x, y, nwin)
 
-    x2 = np.linspace(0, 1, n2)
+    x2 = np.round(np.linspace(0.15, 1.3, n2), 2)
     with NumpyRNGContext(fixed_seed):
-        y2 = np.random.uniform(-4, -3, n2)
+        y2 = np.round(np.random.uniform(-4, -3, n2), 2)
     ranks_sample2 = cython_sliding_rank(x2, y2, nwin)
 
     pure_python_result = pure_python_rank_matching(x, ranks_sample1,
             x2, ranks_sample2, y2, nwin)
 
     result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
+
+    print("x = {0}".format(x))
+    print("x2 = {0}\n".format(x2))
+    print("y = {0}".format(y))
+    print("y2 = {0}".format(y2))
+
+    print("result = {0}".format(result))
 
     assert np.allclose(result, pure_python_result)
