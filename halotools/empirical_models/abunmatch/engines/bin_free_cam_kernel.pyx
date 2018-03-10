@@ -101,6 +101,7 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int 
 
     #  Set up window arrays for y1
     cdf_values1 = np.copy(y1[:nwin])
+    # print("initial cdf_values1 = {0}".format(np.array(cdf_values1)))
     idx_sorted_cdf_values1 = np.argsort(cdf_values1)
     cdef double[:] sorted_cdf_values1 = np.ascontiguousarray(
         cdf_values1[idx_sorted_cdf_values1], dtype='f8')
@@ -109,13 +110,39 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int 
 
     #  Set up window arrays for y2
     cdef int iy2 = i2_match[nhalfwin]
+    # print("initial iy2 = {0}".format(np.array(iy2)))
 
-    cdf_values2 = np.copy(y2[iy2-nhalfwin:iy2+nhalfwin+1])
+    cdef int init_iy2_low = iy2 - nhalfwin
+    cdef int init_iy2_high = iy2+nhalfwin+1
+
+    if init_iy2_low < 0:
+        init_iy2_low = 0
+        init_iy2_high = init_iy2_low + nwin
+    elif init_iy2_high > npts2 - nhalfwin:
+        init_iy2_high = npts2 - nhalfwin
+        init_iy2_low = init_iy2_high - nwin
+
+    msg = ("Bookkeeping error internal to cython_bin_free_cam_kernel\n"
+        "init_iy2_low = {0}, init_iy2_high = {1}, nwin = {2}")
+    assert init_iy2_high - init_iy2_low == nwin, msg.format(
+            init_iy2_low, init_iy2_high, nwin)
+
+    # print("initial low = {0}".format(init_iy2_low))
+    # print("initial high = {0}".format(init_iy2_high))
+
+    cdf_values2 = np.copy(y2[init_iy2_low:init_iy2_high])
+    # print("initial cdf_values2 = {0}".format(np.array(cdf_values2)))
+
     idx_sorted_cdf_values2 = np.argsort(cdf_values2)
+    # print("initial idx_sorted_cdf_values2 = {0}".format(
+    #     np.array(idx_sorted_cdf_values2)))
+
     cdef double[:] sorted_cdf_values2 = np.ascontiguousarray(
         cdf_values2[idx_sorted_cdf_values2], dtype='f8')
     cdef int[:] correspondence_indx2 = np.ascontiguousarray(
         unsorting_indices(idx_sorted_cdf_values2)[::-1], dtype='i4')
+
+    # print("initial sorted_cdf_values2 = {0}".format(np.array(sorted_cdf_values2)))
 
     for iy1 in range(nhalfwin, npts1-nhalfwin):
         print("\niy1 = {0}".format(iy1))
@@ -144,6 +171,7 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int 
             _insert_pop_kernel(&sorted_cdf_values2[0], idx_in2, idx_out2, value_in2)
 
             iy2 += 1
+
 
         print("sorted_cdf_values2 = {0}".format(np.array(sorted_cdf_values2)))
         if add_subgrid_noise == 0:
