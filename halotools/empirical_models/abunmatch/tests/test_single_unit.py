@@ -13,15 +13,16 @@ fixed_seed = 5
 def test5():
     """
     """
-    n1, n2, nwin = 8, 6, 5
-    x = np.round(np.linspace(0.15, 1.3, n1), 2)
-    with NumpyRNGContext(fixed_seed):
-        y = np.round(np.random.uniform(0, 1, n1), 2)
-    ranks_sample1 = cython_sliding_rank(x, y, nwin)
 
-    x2 = np.round(np.linspace(0.15, 1.3, n2), 2)
-    with NumpyRNGContext(fixed_seed):
-        y2 = np.round(np.random.uniform(-4, -3, n2), 2)
+    x = [0.15, 0.31, 0.48, 0.64, 0.81, 0.97, 1.14, 1.3]
+    x2 = [0.15, 0.38, 0.61, 0.84, 1.07, 1.3]
+
+    y = [0.22, 0.87, 0.21, 0.92, 0.49, 0.61, 0.77, 0.52]
+    y2 = [-3.78, -3.13, -3.79, -3.08, -3.51, -3.39]
+
+    nwin = 5
+
+    ranks_sample1 = cython_sliding_rank(x, y, nwin)
     ranks_sample2 = cython_sliding_rank(x2, y2, nwin)
 
     pure_python_result = pure_python_rank_matching(x, ranks_sample1,
