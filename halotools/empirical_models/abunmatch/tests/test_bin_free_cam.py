@@ -201,3 +201,78 @@ def test_brute_force_endpoints():
 
     #  Test right edge
     assert np.allclose(pure_python_result[-nwin:], cython_result[-nwin:])
+
+
+def test_hard_coded_case1():
+    nwin = 3
+
+    x = np.array([0.1,  0.36, 0.5, 0.74, 0.83])
+    x2 = np.copy(x)
+
+    y = np.array([0.12, 0.13, 0.24, 0.33, 0.61])
+    y2 = np.array([0.03, 0.54, 0.67, 0.73, 0.86])
+
+    correct_result = [0.03, 0.54, 0.67, 0.73, 0.86]
+    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
+
+    assert np.allclose(result, correct_result)
+
+def test_hard_coded_case2():
+    nwin = 3
+
+    x = np.array([0.1,  0.36, 0.36, 0.74, 0.83])
+    x2 = np.array([0.54, 0.54, 0.55, 0.56, 0.57])
+
+    y = np.array([0.12, 0.13, 0.24, 0.33, 0.61])
+    y2 = np.array([0.03, 0.54, 0.67, 0.73, 0.86])
+
+    correct_result = [0.03, 0.54, 0.54, 0.73, 0.86]
+    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
+
+    assert np.allclose(result, correct_result)
+
+
+def test_hard_coded_case3():
+    nwin = 3
+
+    x = np.array([0.1,  0.36, 0.5, 0.74, 0.83])
+    x2 = np.copy(x)
+
+    y = np.array([0.12, 0.13, 0.24, 0.33, 0.61])
+    y2 = np.array([0.3, 0.04, 0.6, 10., 5.])
+
+    correct_result = [0.04, 0.3, 0.6, 5., 10.]
+    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
+
+    assert np.allclose(result, correct_result)
+
+
+def test_hard_coded_case4():
+    nwin = 3
+
+    x = np.array((0., 0., 0., 0., 0.))
+    x2 = np.array([0.1,  0.36, 0.5, 0.74, 0.83])
+
+    y = np.array([0.12, 0.13, 0.24, 0.33, 0.61])
+    y2 = np.array([0.3, 0.04, 0.6, 10., 5.])
+
+    correct_result = [0.04, 0.3, 0.3, 0.3, 0.6]
+    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
+
+    assert np.allclose(result, correct_result)
+
+
+def test_hard_coded_case5():
+    nwin = 3
+
+    x = np.array((1., 1., 1, 1, 1))
+    x2 = np.array([0.1,  0.36, 0.5, 0.74, 0.83])
+
+    y = np.array([0.12, 0.13, 0.24, 0.33, 0.61])
+    y2 = np.array([0.3, 0.04, 0.6, 10., 5.])
+
+    correct_result = [0.6, 5, 5, 5, 10]
+    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
+
+    assert np.allclose(result, correct_result)
+
