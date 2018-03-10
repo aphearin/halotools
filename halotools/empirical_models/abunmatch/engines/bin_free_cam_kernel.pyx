@@ -130,6 +130,8 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int 
     _iy2, init_iy2_low, init_iy2_high = setup_initial_indices(
                 iy2_init, nwin, npts2)
     cdef int iy2 = _iy2
+    cdef int iy2_max = npts2 - nhalfwin - 1
+
     # print("initial iy2 = {0}".format(np.array(iy2)))
 
     msg = ("Bookkeeping error internal to cython_bin_free_cam_kernel\n"
@@ -157,33 +159,41 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int 
         rank1 = correspondence_indx1[nhalfwin]
         print("rank1 = {0}".format(rank1))
         iy2_match = i2_match[iy1]
+        if iy2_match > iy2_max:
+            iy2_match = iy2_max
         print("iy2_match = {0}".format(iy2_match))
+        print("iy2 = {0}".format(iy2))
 
-        while iy2 < iy2_match:
-            print("Traversing while loop for iy2 = {0}".format(iy2))
-            value_in2 = y2[iy2 + nhalfwin + 1]
-            idx_out2 = correspondence_indx2[nwin-1]
-            value_out2 = sorted_cdf_values2[idx_out2]
+        if iy2 > iy2_max:
+            iy2 = iy2_max
+        else:
+            while iy2 < iy2_match:
+                msg = "While loop update to sorted_cdf_values2 for iy2 = {0}"
+                print(msg.format(iy2))
 
-            idx_in2 = _bisect_left_kernel(sorted_cdf_values2, value_in2)
-            if value_in2 > value_out2:
-                idx_in2 -= 1
+                value_in2 = y2[iy2 + nhalfwin + 1]
+                idx_out2 = correspondence_indx2[nwin-1]
+                value_out2 = sorted_cdf_values2[idx_out2]
 
-            _insert_first_pop_last_kernel(&correspondence_indx2[0], idx_in2, nwin)
-            for j in range(1, nwin):
-                idx2 = correspondence_indx2[j]
-                correspondence_indx2[j] += _correspondence_indices_shift(
-                    idx_in2, idx_out2, idx2)
+                idx_in2 = _bisect_left_kernel(sorted_cdf_values2, value_in2)
+                if value_in2 > value_out2:
+                    idx_in2 -= 1
 
-            _insert_pop_kernel(&sorted_cdf_values2[0], idx_in2, idx_out2, value_in2)
+                _insert_first_pop_last_kernel(&correspondence_indx2[0], idx_in2, nwin)
+                for j in range(1, nwin):
+                    idx2 = correspondence_indx2[j]
+                    correspondence_indx2[j] += _correspondence_indices_shift(
+                        idx_in2, idx_out2, idx2)
 
-            iy2 += 1
+                _insert_pop_kernel(&sorted_cdf_values2[0], idx_in2, idx_out2, value_in2)
+
+                iy2 += 1
 
 
         print("sorted_cdf_values2 = {0}".format(np.array(sorted_cdf_values2)))
         if add_subgrid_noise == 0:
             y1_new[iy1] = sorted_cdf_values2[rank1]
-            print("y1_new[iy1] = {0}".format(y1_new[iy1]))
+            print("y1_new[{0}] being set to {1}".format(iy1, y1_new[iy1]))
         else:
             raise NotImplementedError
 
