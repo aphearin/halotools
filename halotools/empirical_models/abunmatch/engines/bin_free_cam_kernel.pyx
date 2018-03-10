@@ -84,8 +84,8 @@ cdef void _insert_pop_kernel(double* arr, int idx_in1, int idx_out1, double valu
 @cython.boundscheck(False)
 @cython.nonecheck(False)
 @cython.wraparound(False)
-def cython_bin_free_cam_kernel(double[:] y1, int[:] i2_match,
-        double[:] x2, double[:] y2, int nwin, int add_subgrid_noise=0):
+def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int nwin,
+            int add_subgrid_noise=0):
     """
     """
     cdef int nhalfwin = int(nwin/2)
