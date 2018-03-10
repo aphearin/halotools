@@ -28,11 +28,4 @@ def test4():
 
     result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
 
-    print("x = {0}".format(x))
-    print("x2 = {0}\n".format(x2))
-    print("y = {0}".format(y))
-    print("y2 = {0}".format(y2))
-
-    print("result = {0}".format(result))
-
     assert np.allclose(result, pure_python_result)
