@@ -151,7 +151,7 @@ def test4():
     assert np.allclose(result, pure_python_result)
 
 
-def test_brute_force():
+def test_brute_force_interior_points():
     """
     """
 
@@ -172,4 +172,32 @@ def test_brute_force():
 
     cython_result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
 
-    assert np.allclose(pure_python_result, cython_result)
+    assert np.allclose(pure_python_result[nwin:-nwin], cython_result[nwin:-nwin])
+
+
+def test_brute_force_endpoints():
+    """
+    """
+
+    n1, n2, nwin = 101, 31, 11
+    nhalfwin = nwin/2
+    x = np.linspace(0, 1, n1)
+    with NumpyRNGContext(fixed_seed):
+        y = np.random.uniform(0, 1, n1)
+    ranks_sample1 = cython_sliding_rank(x, y, nwin)
+
+    x2 = np.linspace(0, 1, n2)
+    with NumpyRNGContext(fixed_seed):
+        y2 = np.random.uniform(-4, -3, n2)
+    ranks_sample2 = cython_sliding_rank(x2, y2, nwin)
+
+    pure_python_result = pure_python_rank_matching(x, ranks_sample1,
+            x2, ranks_sample2, y2, nwin)
+
+    cython_result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
+
+    #  Test left edge
+    assert np.allclose(pure_python_result[:nwin], cython_result[:nwin])
+
+    #  Test right edge
+    assert np.allclose(pure_python_result[-nwin:], cython_result[-nwin:])
