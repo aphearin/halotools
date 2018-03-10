@@ -17,7 +17,6 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
     >>> x2 = np.linspace(0.5, 0.6, npts2)
     >>> y2 = np.random.uniform(-5, 3, npts2)
     >>> nwin = 51
-    >>> result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
     """
     x = np.atleast_1d(x).astype('f8')
     y = np.atleast_1d(y).astype('f8')
@@ -46,7 +45,7 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
     i2_matched = np.where(i2_matched >= len(y2), len(y2)-1, i2_matched)
 
     result = np.array(cython_bin_free_cam_kernel(
-        y_sorted, i2_matched, x2_sorted, y2_sorted, nwin))
+        y_sorted, y2_sorted, i2_matched, nwin))
 
     leftmost_window_x = x_sorted[:nwin]
     leftmost_window_x2 = x2_sorted[:nwin]
