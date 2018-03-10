@@ -63,3 +63,24 @@ def test_pure_python1():
         sorted_window2 = np.sort(y_sample2[low:high])
         correct_result_ix1 = sorted_window2[rank1]
         assert correct_result_ix1 == result[ix1]
+
+
+def test_hard_coded_case():
+    nwin = 3
+
+    x = np.array([0.1,  0.36, 0.36, 0.74, 0.83])
+    x2 = np.array([0.54, 0.54, 0.55, 0.56, 0.57])
+
+    y = np.array([0.12, 0.13, 0.24, 0.33, 0.61])
+    y2 = np.array([0.03, 0.54, 0.67, 0.73, 0.86])
+
+    ranks_sample1 = cython_sliding_rank(x, y, nwin)
+    ranks_sample2 = cython_sliding_rank(x2, y2, nwin)
+
+    pure_python_result = pure_python_rank_matching(x, ranks_sample1,
+            x2, ranks_sample2, y2, nwin)
+
+    correct_result = [0.03, 0.54, 0.54, 0.73, 0.86]
+
+    assert np.allclose(pure_python_result, correct_result)
+
