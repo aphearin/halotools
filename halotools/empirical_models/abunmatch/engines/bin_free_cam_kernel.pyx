@@ -81,6 +81,23 @@ cdef void _insert_pop_kernel(double* arr, int idx_in1, int idx_out1, double valu
     arr[idx_in1] = value_in1
 
 
+def setup_initial_indices(iy2, nwin, npts2):
+    nhalfwin = int(nwin/2)
+    init_iy2_low = iy2 - nhalfwin
+    init_iy2_high = init_iy2_low+nwin
+
+    if init_iy2_low < 0:
+        init_iy2_low = 0
+        init_iy2_high = init_iy2_low + nwin
+        iy2 = init_iy2_low + nhalfwin
+    elif init_iy2_high > npts2 - nhalfwin:
+        init_iy2_high = npts2
+        init_iy2_low = init_iy2_high - nwin
+        iy2 = init_iy2_low + nhalfwin
+
+    return iy2, init_iy2_low, init_iy2_high
+
+
 @cython.boundscheck(False)
 @cython.nonecheck(False)
 @cython.wraparound(False)
@@ -109,26 +126,16 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int 
         unsorting_indices(idx_sorted_cdf_values1)[::-1], dtype='i4')
 
     #  Set up window arrays for y2
-    cdef int iy2 = i2_match[nhalfwin]
+    cdef int iy2_init = i2_match[nhalfwin]
+    _iy2, init_iy2_low, init_iy2_high = setup_initial_indices(
+                iy2_init, nwin, npts2)
+    cdef int iy2 = _iy2
     # print("initial iy2 = {0}".format(np.array(iy2)))
-
-    cdef int init_iy2_low = iy2 - nhalfwin
-    cdef int init_iy2_high = iy2+nhalfwin+1
-
-    if init_iy2_low < 0:
-        init_iy2_low = 0
-        init_iy2_high = init_iy2_low + nwin
-    elif init_iy2_high > npts2 - nhalfwin:
-        init_iy2_high = npts2 - nhalfwin
-        init_iy2_low = init_iy2_high - nwin
 
     msg = ("Bookkeeping error internal to cython_bin_free_cam_kernel\n"
         "init_iy2_low = {0}, init_iy2_high = {1}, nwin = {2}")
     assert init_iy2_high - init_iy2_low == nwin, msg.format(
             init_iy2_low, init_iy2_high, nwin)
-
-    # print("initial low = {0}".format(init_iy2_low))
-    # print("initial high = {0}".format(init_iy2_high))
 
     cdf_values2 = np.copy(y2[init_iy2_low:init_iy2_high])
     # print("initial cdf_values2 = {0}".format(np.array(cdf_values2)))
