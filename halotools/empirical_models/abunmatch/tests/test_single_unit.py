@@ -7,12 +7,13 @@ from ....utils.conditional_percentile import cython_sliding_rank, rank_order_fun
 from .test_pure_python import pure_python_rank_matching
 
 
-fixed_seed = 43
+fixed_seed = 5
 
 
-def test4():
-
-    n1, n2, nwin = 8, 8, 3
+def test5():
+    """
+    """
+    n1, n2, nwin = 8, 6, 5
     x = np.round(np.linspace(0.15, 1.3, n1), 2)
     with NumpyRNGContext(fixed_seed):
         y = np.round(np.random.uniform(0, 1, n1), 2)
