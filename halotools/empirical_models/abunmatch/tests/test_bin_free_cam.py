@@ -197,10 +197,10 @@ def test_brute_force_endpoints():
     cython_result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
 
     #  Test left edge
-    assert np.allclose(pure_python_result[:nwin], cython_result[:nwin])
+    assert np.allclose(pure_python_result[:nhalfwin], cython_result[:nhalfwin])
 
     #  Test right edge
-    assert np.allclose(pure_python_result[-nwin:], cython_result[-nwin:])
+    assert np.allclose(pure_python_result[-nhalfwin:], cython_result[-nhalfwin:])
 
 
 def test_hard_coded_case1():
