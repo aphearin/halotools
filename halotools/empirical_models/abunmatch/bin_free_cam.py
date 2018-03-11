@@ -52,10 +52,10 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
     leftmost_window_y = leftmost_sorted_window_y2[leftmost_window_ranks]
     result[:nhalfwin] = leftmost_window_y[:nhalfwin]
 
-    rightmost_sorted_window_y2 = np.sort(y2_sorted[-nwin:])
-    rightmost_window_ranks = rank_order_function(y_sorted[-nwin:])
-    rightmost_window_y = rightmost_sorted_window_y2[rightmost_window_ranks]
-    result[-nhalfwin:] = rightmost_window_y[-nhalfwin:]
+    # rightmost_sorted_window_y2 = np.sort(y2_sorted[-nwin:])
+    # rightmost_window_ranks = rank_order_function(y_sorted[-nwin:])
+    # rightmost_window_y = rightmost_sorted_window_y2[rightmost_window_ranks]
+    # result[-nhalfwin:] = rightmost_window_y[-nhalfwin:]
 
     if assume_x_is_sorted:
         return result

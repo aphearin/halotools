@@ -274,25 +274,6 @@ def test_hard_coded_case3():
     assert np.allclose(result, correct_result)
 
 
-def test_hard_coded_case4():
-    """ Every x2 is larger than the largest x.
-
-    So the only CAM window ever used is the first 3 elements of y2.
-    """
-    nwin = 3
-
-    x = np.array((0., 0., 0., 0., 0.))
-    x2 = np.array([0.1,  0.36, 0.5, 0.74, 0.83])
-
-    y = np.array([0.12, 0.13, 0.24, 0.33, 0.61])
-    y2 = np.array([0.3, 0.04, 0.6, 10., 5.])
-
-    correct_result = [0.04, 0.3, 0.3, 0.3, 0.6]
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
-
-    assert np.allclose(result, correct_result)
-
-
 def test_hard_coded_case6():
     """
     """

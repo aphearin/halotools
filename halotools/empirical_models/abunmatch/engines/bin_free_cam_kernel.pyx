@@ -153,7 +153,7 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int 
 
     # print("initial sorted_cdf_values2 = {0}".format(np.array(sorted_cdf_values2)))
 
-    for iy1 in range(nhalfwin, npts1-nhalfwin):
+    for iy1 in range(nhalfwin, npts1):
         print("\niy1 = {0}".format(iy1))
 
         rank1 = correspondence_indx1[nhalfwin]
