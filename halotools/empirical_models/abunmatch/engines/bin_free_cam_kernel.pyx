@@ -1,11 +1,17 @@
 """
 """
+from libc.stdlib cimport rand, RAND_MAX
+from libc.math cimport floor
 import numpy as np
 cimport cython
-
 from ....utils import unsorting_indices
 
 __all__ = ('cython_bin_free_cam_kernel', )
+
+
+cdef double random_uniform():
+    cdef double r = rand()
+    return r / RAND_MAX
 
 
 @cython.boundscheck(False)
@@ -131,6 +137,9 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int 
     cdef int iy2 = _iy2
     cdef int iy2_max = npts2 - nhalfwin - 1
 
+    cdef int low_rank, high_rank
+    cdef double low_cdf, high_cdf
+
     msg = ("Bookkeeping error internal to cython_bin_free_cam_kernel\n"
         "init_iy2_low = {0}, init_iy2_high = {1}, nwin = {2}")
     assert init_iy2_high - init_iy2_low == nwin, msg.format(
@@ -178,7 +187,15 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int 
         if add_subgrid_noise == 0:
             y1_new[iy1] = sorted_cdf_values2[rank1]
         else:
-            raise NotImplementedError
+            low_rank = rank1 - 1
+            high_rank = rank1 + 1
+            if low_rank < 0:
+                low_rank = 0
+            elif high_rank >= nwin:
+                high_rank = nwin - 1
+            low_cdf = sorted_cdf_values2[low_rank]
+            high_cdf = sorted_cdf_values2[high_rank]
+            y1_new[iy1] = low_cdf + (high_cdf-low_cdf)*random_uniform()
 
         #  Move on to the next value in y1
         value_in1 = y1[iy1 + nhalfwin + 1]
