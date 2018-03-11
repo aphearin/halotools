@@ -8,7 +8,7 @@ from .tests.naive_python_cam import sample2_window_indices
 
 
 def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
-            assume_x_is_sorted=False, assume_x2_is_sorted=False):
+            assume_x_is_sorted=False, assume_x2_is_sorted=False, add_subgrid_noise=False):
     """
     Examples
     --------
@@ -44,7 +44,7 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
     i2_matched = np.searchsorted(x2_sorted, x_sorted).astype('i4')
 
     result = np.array(cython_bin_free_cam_kernel(
-        y_sorted, y2_sorted, i2_matched, nwin))
+        y_sorted, y2_sorted, i2_matched, nwin, int(add_subgrid_noise)))
 
     #  Finish the leftmost points in pure python
     iw = 0
