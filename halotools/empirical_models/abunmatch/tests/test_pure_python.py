@@ -28,9 +28,8 @@ def test_pure_python1():
 
     for ix1 in range(2*nwin, n1-2*nwin):
 
-        x1 = x_sample1[ix1]
         rank1 = ranks_sample1[ix1]
-        low, high = sample2_window_indices(x1, x_sample2, nwin)
+        low, high = sample2_window_indices(ix1, x_sample1, x_sample2, nwin)
 
         sorted_window2 = np.sort(y_sample2[low:high])
         assert len(sorted_window2) == nwin
@@ -61,6 +60,8 @@ def test_hard_coded_case1():
 
 
 def test_hard_coded_case2():
+    """
+    """
     nwin = 3
 
     x = np.array([0.1,  0.36, 0.36, 0.74, 0.83])
@@ -81,6 +82,13 @@ def test_hard_coded_case2():
 
 
 def test_hard_coded_case3():
+    """ x==x2.
+
+    So the CAM windows are always the same.
+    So the first two windows are the leftmost edge,
+    the middle entry uses the middle window,
+    and the last two entries use the rightmost edge window.
+    """
     nwin = 3
 
     x = np.array([0.1,  0.36, 0.5, 0.74, 0.83])
@@ -101,6 +109,10 @@ def test_hard_coded_case3():
 
 
 def test_hard_coded_case4():
+    """ Every x2 is larger than the largest x.
+
+    So the only CAM window ever used is the first 3 elements of y2.
+    """
     nwin = 3
 
     x = np.array((0., 0., 0., 0., 0.))
@@ -121,6 +133,10 @@ def test_hard_coded_case4():
 
 
 def test_hard_coded_case5():
+    """ Every x2 is smaller than the smallest x.
+
+    So the only CAM window ever used is the final 3 elements of y2.
+    """
     nwin = 3
 
     x = np.array((1., 1., 1, 1, 1))
@@ -135,6 +151,6 @@ def test_hard_coded_case5():
     pure_python_result = pure_python_rank_matching(x, ranks_sample1,
             x2, ranks_sample2, y2, nwin)
 
-    correct_result = [0.04, 5, 5, 5, 10]
+    correct_result = [0.6, 5, 5, 5, 10]
 
     assert np.allclose(pure_python_result, correct_result)
