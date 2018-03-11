@@ -5,6 +5,7 @@ from astropy.utils.misc import NumpyRNGContext
 from ..bin_free_cam import bin_free_conditional_abunmatch
 from ....utils.conditional_percentile import cython_sliding_rank, rank_order_function
 from .naive_python_cam import pure_python_rank_matching
+from ....utils import unsorting_indices
 
 
 fixed_seed = 43
@@ -389,3 +390,116 @@ def test_subgrid_noise1():
     result2 = bin_free_conditional_abunmatch(x, y, x2, y2, nwin2, add_subgrid_noise=True)
     assert np.allclose(result, result2, atol=0.02)
 
+
+def test_initial_sorting1():
+    """
+    """
+    n1, n2 = int(2e3), int(1e3)
+
+    with NumpyRNGContext(fixed_seed):
+        x = np.sort(np.random.uniform(0, 10, n1))
+        y = np.random.uniform(0, 1, n1)
+
+    with NumpyRNGContext(fixed_seed):
+        x2 = np.sort(np.random.uniform(0, 10, n2))
+        y2 = np.random.uniform(-4, -3, n2)
+
+    nwin1 = 101
+    result = bin_free_conditional_abunmatch(
+        x, y, x2, y2, nwin1, assume_x_is_sorted=False, assume_x2_is_sorted=False,
+            add_subgrid_noise=False)
+    result2 = bin_free_conditional_abunmatch(
+        x, y, x2, y2, nwin1, assume_x_is_sorted=True, assume_x2_is_sorted=True,
+            add_subgrid_noise=False)
+    assert np.allclose(result, result2)
+
+
+
+def test_initial_sorting2():
+    """
+    """
+    n1, n2 = int(2e3), int(1e3)
+
+    with NumpyRNGContext(fixed_seed):
+        x = np.sort(np.random.uniform(0, 10, n1))
+        y = np.random.uniform(0, 1, n1)
+
+    with NumpyRNGContext(fixed_seed):
+        x2 = np.random.uniform(0, 10, n2)
+        y2 = np.random.uniform(-4, -3, n2)
+
+    nwin1 = 101
+    result = bin_free_conditional_abunmatch(
+        x, y, x2, y2, nwin1, assume_x_is_sorted=False, assume_x2_is_sorted=False,
+            add_subgrid_noise=False)
+    result2 = bin_free_conditional_abunmatch(
+        x, y, x2, y2, nwin1, assume_x_is_sorted=True, assume_x2_is_sorted=False,
+            add_subgrid_noise=False)
+    assert np.allclose(result, result2)
+
+
+def test_initial_sorting3():
+    """
+    """
+    n1, n2 = int(2e3), int(1e3)
+
+    with NumpyRNGContext(fixed_seed):
+        x = np.random.uniform(0, 10, n1)
+        y = np.random.uniform(0, 1, n1)
+
+    with NumpyRNGContext(fixed_seed):
+        x2 = np.sort(np.random.uniform(0, 10, n2))
+        y2 = np.random.uniform(-4, -3, n2)
+
+    nwin1 = 101
+    result = bin_free_conditional_abunmatch(
+        x, y, x2, y2, nwin1, assume_x_is_sorted=False, assume_x2_is_sorted=True,
+            add_subgrid_noise=False)
+    result2 = bin_free_conditional_abunmatch(
+        x, y, x2, y2, nwin1, assume_x_is_sorted=False, assume_x2_is_sorted=False,
+            add_subgrid_noise=False)
+    assert np.allclose(result, result2)
+
+
+def test_initial_sorting4():
+    """
+    """
+    n1, n2 = int(2e3), int(1e3)
+
+    with NumpyRNGContext(fixed_seed):
+        x = np.random.uniform(0, 10, n1)
+        y = np.random.uniform(0, 1, n1)
+
+    with NumpyRNGContext(fixed_seed):
+        x2 = np.random.uniform(0, 10, n2)
+        y2 = np.random.uniform(-4, -3, n2)
+
+    nwin1 = 101
+    result = bin_free_conditional_abunmatch(
+        x, y, x2, y2, nwin1,
+        assume_x_is_sorted=False, assume_x2_is_sorted=False,
+        add_subgrid_noise=False)
+
+    idx_x_sorted = np.argsort(x)
+    x_sorted = x[idx_x_sorted]
+    y_sorted = y[idx_x_sorted]
+    result2 = bin_free_conditional_abunmatch(
+        x_sorted, y_sorted, x2, y2, nwin1,
+        assume_x_is_sorted=True, assume_x2_is_sorted=False,
+        add_subgrid_noise=False)
+    assert np.allclose(result, result2[unsorting_indices(idx_x_sorted)])
+
+    idx_x2_sorted = np.argsort(x2)
+    x2_sorted = x2[idx_x2_sorted]
+    y2_sorted = y2[idx_x2_sorted]
+    result3 = bin_free_conditional_abunmatch(
+        x, y, x2_sorted, y2_sorted, nwin1,
+        assume_x_is_sorted=False, assume_x2_is_sorted=True,
+        add_subgrid_noise=False)
+    assert np.allclose(result, result3)
+
+    result4 = bin_free_conditional_abunmatch(
+        x_sorted, y_sorted, x2_sorted, y2_sorted, nwin1,
+        assume_x_is_sorted=True, assume_x2_is_sorted=True,
+        add_subgrid_noise=False)
+    assert np.allclose(result, result4[unsorting_indices(idx_x_sorted)])

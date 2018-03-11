@@ -7,8 +7,8 @@ from .engines import cython_bin_free_cam_kernel
 from .tests.naive_python_cam import sample2_window_indices
 
 
-def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
-            assume_x_is_sorted=False, assume_x2_is_sorted=False, add_subgrid_noise=True):
+def bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=True,
+            assume_x_is_sorted=False, assume_x2_is_sorted=False):
     """
     Examples
     --------
