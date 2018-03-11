@@ -118,7 +118,6 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int 
 
     #  Set up window arrays for y1
     cdf_values1 = np.copy(y1[:nwin])
-    # print("initial cdf_values1 = {0}".format(np.array(cdf_values1)))
     idx_sorted_cdf_values1 = np.argsort(cdf_values1)
     cdef double[:] sorted_cdf_values1 = np.ascontiguousarray(
         cdf_values1[idx_sorted_cdf_values1], dtype='f8')
@@ -132,44 +131,31 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int 
     cdef int iy2 = _iy2
     cdef int iy2_max = npts2 - nhalfwin - 1
 
-    # print("initial iy2 = {0}".format(np.array(iy2)))
-
     msg = ("Bookkeeping error internal to cython_bin_free_cam_kernel\n"
         "init_iy2_low = {0}, init_iy2_high = {1}, nwin = {2}")
     assert init_iy2_high - init_iy2_low == nwin, msg.format(
             init_iy2_low, init_iy2_high, nwin)
 
     cdf_values2 = np.copy(y2[init_iy2_low:init_iy2_high])
-    # print("initial cdf_values2 = {0}".format(np.array(cdf_values2)))
 
     idx_sorted_cdf_values2 = np.argsort(cdf_values2)
-    # print("initial idx_sorted_cdf_values2 = {0}".format(
-    #     np.array(idx_sorted_cdf_values2)))
 
     cdef double[:] sorted_cdf_values2 = np.ascontiguousarray(
         cdf_values2[idx_sorted_cdf_values2], dtype='f8')
     cdef int[:] correspondence_indx2 = np.ascontiguousarray(
         unsorting_indices(idx_sorted_cdf_values2)[::-1], dtype='i4')
 
-    # print("initial sorted_cdf_values2 = {0}".format(np.array(sorted_cdf_values2)))
-
-    for iy1 in range(nhalfwin, npts1):
-        print("\niy1 = {0}".format(iy1))
+    for iy1 in range(nhalfwin, npts1-nhalfwin):
 
         rank1 = correspondence_indx1[nhalfwin]
-        print("rank1 = {0}".format(rank1))
         iy2_match = i2_match[iy1]
         if iy2_match > iy2_max:
             iy2_match = iy2_max
-        print("iy2_match = {0}".format(iy2_match))
-        print("iy2 = {0}".format(iy2))
 
         if iy2 > iy2_max:
             iy2 = iy2_max
         else:
             while iy2 < iy2_match:
-                msg = "While loop update to sorted_cdf_values2 for iy2 = {0}"
-                print(msg.format(iy2))
 
                 value_in2 = y2[iy2 + nhalfwin + 1]
                 idx_out2 = correspondence_indx2[nwin-1]
@@ -189,11 +175,8 @@ def cython_bin_free_cam_kernel(double[:] y1, double[:] y2, int[:] i2_match, int 
 
                 iy2 += 1
 
-        print("iy2 = {0}".format(iy2))
-        print("sorted_cdf_values2 = {0}".format(np.array(sorted_cdf_values2)))
         if add_subgrid_noise == 0:
             y1_new[iy1] = sorted_cdf_values2[rank1]
-            print("y1_new[{0}] being set to {1}".format(iy1, y1_new[iy1]))
         else:
             raise NotImplementedError
 
