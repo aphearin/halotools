@@ -177,6 +177,6 @@ def test_hard_coded_case5():
     pure_python_result = pure_python_rank_matching(x, ranks_sample1,
             x2, ranks_sample2, y2, nwin)
 
-    correct_result = [0.6, 5, 5, 5, 10]
+    correct_result = [0.04, 5, 5, 5, 10]
 
     assert np.allclose(pure_python_result, correct_result)
