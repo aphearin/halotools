@@ -4,6 +4,10 @@ import numpy as np
 
 
 def sample2_window_indices(ix1, x_sample1, x_sample2, nwin):
+    """ For the point x1 = x_sample1[ix1], determine the indices of
+    the window surrounding each point in sample 2 that defines the
+    conditional probability distribution for `ynew`.
+    """
     nhalfwin = int(nwin/2)
     npts2 = len(x_sample2)
 
@@ -23,7 +27,8 @@ def sample2_window_indices(ix1, x_sample1, x_sample2, nwin):
 
 def pure_python_rank_matching(x_sample1, ranks_sample1,
             x_sample2, ranks_sample2, y_sample2, nwin):
-    """
+    """ Naive algorithm for implementing bin-free conditional abundance matching
+    for use in unit-testing.
     """
     result = np.zeros_like(x_sample1)
 
