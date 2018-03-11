@@ -4,7 +4,7 @@ import numpy as np
 from ...utils import unsorting_indices
 from ...utils.conditional_percentile import _check_xyn_bounds, rank_order_function
 from .engines import cython_bin_free_cam_kernel
-from .tests.naive_python_cam import sample2_window_indices, pure_python_rank_matching
+from .tests.naive_python_cam import sample2_window_indices
 
 
 def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
@@ -18,12 +18,10 @@ def bin_free_conditional_abunmatch(x, y, x2, y2, nwin,
     >>> x2 = np.linspace(0.5, 0.6, npts2)
     >>> y2 = np.random.uniform(-5, 3, npts2)
     >>> nwin = 51
+    >>> new_y = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
     """
-    x = np.atleast_1d(x).astype('f8')
-    y = np.atleast_1d(y).astype('f8')
-    x2 = np.atleast_1d(x2).astype('f8')
-    y2 = np.atleast_1d(y2).astype('f8')
-    nwin = int(nwin)
+    x, y, nwin = _check_xyn_bounds(x, y, nwin)
+    x2, y2, nwin = _check_xyn_bounds(x2, y2, nwin)
     nhalfwin = int(nwin/2)
     npts1 = len(x)
 
