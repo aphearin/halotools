@@ -19,7 +19,7 @@ def test_hard_coded_case5():
     y = np.array([0.12, 0.13, 0.24, 0.33, 0.61])
     y2 = np.array([0.3, 0.04, 0.6, 10., 5.])
 
-    correct_result = [0.04, 5., 5., 5., 10.]
+    correct_result = [0.6, 5., 5., 5., 10.]
     result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
 
     print("\n\ncorrect result = {0}".format(correct_result))
