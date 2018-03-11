@@ -234,6 +234,13 @@ def test_hard_coded_case2():
 
 
 def test_hard_coded_case3():
+    """ x==x2.
+
+    So the CAM windows are always the same.
+    So the first two windows are the leftmost edge,
+    the middle entry uses the middle window,
+    and the last two entries use the rightmost edge window.
+    """
     nwin = 3
 
     x = np.array([0.1,  0.36, 0.5, 0.74, 0.83])
@@ -249,6 +256,10 @@ def test_hard_coded_case3():
 
 
 def test_hard_coded_case4():
+    """ Every x2 is larger than the largest x.
+
+    So the only CAM window ever used is the first 3 elements of y2.
+    """
     nwin = 3
 
     x = np.array((0., 0., 0., 0., 0.))
