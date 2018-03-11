@@ -9,7 +9,50 @@ from .tests.naive_python_cam import sample2_window_indices
 
 def conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=True,
             assume_x_is_sorted=False, assume_x2_is_sorted=False):
-    """
+    r"""
+    Given a set of input points with primary property `x` and secondary property `y`,
+    use conditional abundance matching to map new values `ynew` onto the input points
+    such that :math:`P(<y_{\rm new} | x) = P(<y_2 | x)`, and also that
+    `y` and `ynew` are in monotonic correspondence at fixed `x`.
+
+    Parameters
+    ----------
+    x : ndarray
+        Numpy array of shape (n1, ) storing the primary property of the input points.
+
+    y : ndarray
+        Numpy array of shape (n1, ) storing the secondary property of the input points.
+
+    x2 : ndarray
+        Numpy array of shape (n2, ) storing the primary property of the desired distribution.
+
+    y2 : ndarray
+        Numpy array of shape (n2, ) storing the secondary property of the desired distribution.
+
+    nwin : int
+        Odd integer specifying the size of the window
+        used to estimate :math:`P(<y | x)`. See Notes.
+
+    add_subgrid_noise : bool, optional
+        Flag determines whether random uniform noise will be added to fill in
+        the gaps at the sub-grid level determined by `nwin`. This argument
+        can be important for eliminating artificial discreteness effects.
+        Default is True.
+
+    assume_x_is_sorted : bool, optional
+        Performance enhancement flag that can be used for cases where input `x` and `y`
+        have been pre-sorted so that `x` is monotonically increasing. Default is False.
+
+    assume_x2_is_sorted : bool, optional
+        Performance enhancement flag that can be used for cases where input `x2` and `y2`
+        have been pre-sorted so that `x2` is monotonically increasing. Default is False.
+
+    Returns
+    -------
+    ynew : ndarray
+        Numpy array of shape (n1, ) storing the new values of
+        the secondary property for the input points.
+
     Examples
     --------
     >>> npts1, npts2 = 5000, 3000
@@ -19,6 +62,17 @@ def conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=True,
     >>> y2 = np.random.uniform(-5, 3, npts2)
     >>> nwin = 51
     >>> new_y = conditional_abunmatch_bin_free(x, y, x2, y2, nwin)
+
+    Notes
+    -----
+    The ``nwin`` argument controls the precision of the calculation,
+    and also the performance. For estimations of Prob(< y | x) with sub-percent accuracy,
+    values of ``window_length`` must exceed 100. Values more tha a few hundred are
+    likely overkill when using the (recommended) sub-grid noise option.
+
+    See :ref:`cam_tutorial` demonstrating how to use this
+    function in galaxy-halo modeling with several worked examples.
+
     """
     x, y, nwin = _check_xyn_bounds(x, y, nwin)
     x2, y2, nwin = _check_xyn_bounds(x2, y2, nwin)
