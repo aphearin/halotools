@@ -2,7 +2,7 @@
 """
 import numpy as np
 from astropy.utils.misc import NumpyRNGContext
-from ..bin_free_cam import bin_free_conditional_abunmatch
+from ..bin_free_cam import conditional_abunmatch_bin_free
 from ....utils.conditional_percentile import cython_sliding_rank, rank_order_function
 from .naive_python_cam import pure_python_rank_matching
 from ....utils import unsorting_indices
@@ -29,7 +29,7 @@ def test1():
     print("y  = {0}".format(y))
     print("y2 = {0}\n".format(y2))
 
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+    result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
     print("ynew  = {0}".format(result.astype('i4')))
 
     assert np.all(result == y2)
@@ -58,7 +58,7 @@ def test2():
     print("ranks1  = {0}".format(cython_sliding_rank(x, y, nwin)))
     print("ranks2  = {0}".format(cython_sliding_rank(x2, y2, nwin)))
 
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+    result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
 
     print("\n\nynew  = {0}".format(np.abs(result)))
     print("y2    = {0}".format(y2))
@@ -123,7 +123,7 @@ def test3():
     i2_matched = np.where(i2_matched >= len(y2), len(y2)-1, i2_matched)
     i2_matched = np.array([0, 0, 0, 4, 4])
 
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+    result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
     correct_result = [0.03, 0.54, 0.54, 0.73, 0.86]
 
     assert np.allclose(result, correct_result)
@@ -147,7 +147,7 @@ def test4():
     pure_python_result = pure_python_rank_matching(x, ranks_sample1,
             x2, ranks_sample2, y2, nwin)
 
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+    result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
 
     assert np.allclose(result, pure_python_result)
 
@@ -180,7 +180,7 @@ def test_brute_force_interior_points():
         pure_python_result = pure_python_rank_matching(x, ranks_sample1,
                 x2, ranks_sample2, y2, nwin)
 
-        cython_result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+        cython_result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
 
         assert np.allclose(pure_python_result[nhalfwin:-nhalfwin],
             cython_result[nhalfwin:-nhalfwin])
@@ -215,7 +215,7 @@ def test_brute_force_left_endpoints():
         pure_python_result = pure_python_rank_matching(x, ranks_sample1,
                 x2, ranks_sample2, y2, nwin)
 
-        cython_result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+        cython_result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
 
         #  Test left edge
         assert np.allclose(pure_python_result[:nhalfwin], cython_result[:nhalfwin])
@@ -250,7 +250,7 @@ def test_brute_force_right_points():
         pure_python_result = pure_python_rank_matching(x, ranks_sample1,
                 x2, ranks_sample2, y2, nwin)
 
-        cython_result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+        cython_result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
 
         #  Test right edge
         assert np.allclose(pure_python_result[-nhalfwin:], cython_result[-nhalfwin:])
@@ -266,7 +266,7 @@ def test_hard_coded_case1():
     y2 = np.array([0.03, 0.54, 0.67, 0.73, 0.86])
 
     correct_result = [0.03, 0.54, 0.67, 0.73, 0.86]
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+    result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
 
     assert np.allclose(result, correct_result)
 
@@ -280,7 +280,7 @@ def test_hard_coded_case2():
     y2 = np.array([0.03, 0.54, 0.67, 0.73, 0.86])
 
     correct_result = [0.03, 0.54, 0.54, 0.73, 0.86]
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+    result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
 
     assert np.allclose(result, correct_result)
 
@@ -302,7 +302,7 @@ def test_hard_coded_case3():
     y2 = np.array([0.3, 0.04, 0.6, 10., 5.])
 
     correct_result = [0.04, 0.3, 0.6, 5., 10.]
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+    result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
 
     assert np.allclose(result, correct_result)
 
@@ -317,7 +317,7 @@ def test_hard_coded_case5():
     y2 = np.array([0.3, 0.04, 0.6, 10., 5.])
 
     correct_result = [0.6, 5., 5., 5., 10.]
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+    result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
 
     print("\n\ncorrect result = {0}".format(correct_result))
     print("cython result  = {0}\n".format(result))
@@ -340,7 +340,7 @@ def test_hard_coded_case4():
     y2 = np.array([0.3, 0.04, 0.6, 10., 5.])
 
     correct_result = [0.04, 0.3, 0.3, 0.3, 0.6]
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+    result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
 
     assert np.allclose(result, correct_result)
 
@@ -363,7 +363,7 @@ def test_hard_coded_case6():
     pure_python_result = pure_python_rank_matching(x, ranks_sample1,
             x2, ranks_sample2, y2, nwin)
 
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=False)
+    result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin, add_subgrid_noise=False)
 
     assert np.allclose(result, pure_python_result)
 
@@ -380,14 +380,14 @@ def test_subgrid_noise1():
         y2 = np.random.uniform(-4, -3, n2)
 
     nwin1 = 201
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin1, add_subgrid_noise=False)
-    result2 = bin_free_conditional_abunmatch(x, y, x2, y2, nwin1, add_subgrid_noise=True)
+    result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin1, add_subgrid_noise=False)
+    result2 = conditional_abunmatch_bin_free(x, y, x2, y2, nwin1, add_subgrid_noise=True)
     assert np.allclose(result, result2, atol=0.1)
     assert not np.allclose(result, result2, atol=0.02)
 
     nwin2 = 1001
-    result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin2, add_subgrid_noise=False)
-    result2 = bin_free_conditional_abunmatch(x, y, x2, y2, nwin2, add_subgrid_noise=True)
+    result = conditional_abunmatch_bin_free(x, y, x2, y2, nwin2, add_subgrid_noise=False)
+    result2 = conditional_abunmatch_bin_free(x, y, x2, y2, nwin2, add_subgrid_noise=True)
     assert np.allclose(result, result2, atol=0.02)
 
 
@@ -405,10 +405,10 @@ def test_initial_sorting1():
         y2 = np.random.uniform(-4, -3, n2)
 
     nwin1 = 101
-    result = bin_free_conditional_abunmatch(
+    result = conditional_abunmatch_bin_free(
         x, y, x2, y2, nwin1, assume_x_is_sorted=False, assume_x2_is_sorted=False,
             add_subgrid_noise=False)
-    result2 = bin_free_conditional_abunmatch(
+    result2 = conditional_abunmatch_bin_free(
         x, y, x2, y2, nwin1, assume_x_is_sorted=True, assume_x2_is_sorted=True,
             add_subgrid_noise=False)
     assert np.allclose(result, result2)
@@ -429,10 +429,10 @@ def test_initial_sorting2():
         y2 = np.random.uniform(-4, -3, n2)
 
     nwin1 = 101
-    result = bin_free_conditional_abunmatch(
+    result = conditional_abunmatch_bin_free(
         x, y, x2, y2, nwin1, assume_x_is_sorted=False, assume_x2_is_sorted=False,
             add_subgrid_noise=False)
-    result2 = bin_free_conditional_abunmatch(
+    result2 = conditional_abunmatch_bin_free(
         x, y, x2, y2, nwin1, assume_x_is_sorted=True, assume_x2_is_sorted=False,
             add_subgrid_noise=False)
     assert np.allclose(result, result2)
@@ -452,10 +452,10 @@ def test_initial_sorting3():
         y2 = np.random.uniform(-4, -3, n2)
 
     nwin1 = 101
-    result = bin_free_conditional_abunmatch(
+    result = conditional_abunmatch_bin_free(
         x, y, x2, y2, nwin1, assume_x_is_sorted=False, assume_x2_is_sorted=True,
             add_subgrid_noise=False)
-    result2 = bin_free_conditional_abunmatch(
+    result2 = conditional_abunmatch_bin_free(
         x, y, x2, y2, nwin1, assume_x_is_sorted=False, assume_x2_is_sorted=False,
             add_subgrid_noise=False)
     assert np.allclose(result, result2)
@@ -475,7 +475,7 @@ def test_initial_sorting4():
         y2 = np.random.uniform(-4, -3, n2)
 
     nwin1 = 101
-    result = bin_free_conditional_abunmatch(
+    result = conditional_abunmatch_bin_free(
         x, y, x2, y2, nwin1,
         assume_x_is_sorted=False, assume_x2_is_sorted=False,
         add_subgrid_noise=False)
@@ -483,7 +483,7 @@ def test_initial_sorting4():
     idx_x_sorted = np.argsort(x)
     x_sorted = x[idx_x_sorted]
     y_sorted = y[idx_x_sorted]
-    result2 = bin_free_conditional_abunmatch(
+    result2 = conditional_abunmatch_bin_free(
         x_sorted, y_sorted, x2, y2, nwin1,
         assume_x_is_sorted=True, assume_x2_is_sorted=False,
         add_subgrid_noise=False)
@@ -492,13 +492,13 @@ def test_initial_sorting4():
     idx_x2_sorted = np.argsort(x2)
     x2_sorted = x2[idx_x2_sorted]
     y2_sorted = y2[idx_x2_sorted]
-    result3 = bin_free_conditional_abunmatch(
+    result3 = conditional_abunmatch_bin_free(
         x, y, x2_sorted, y2_sorted, nwin1,
         assume_x_is_sorted=False, assume_x2_is_sorted=True,
         add_subgrid_noise=False)
     assert np.allclose(result, result3)
 
-    result4 = bin_free_conditional_abunmatch(
+    result4 = conditional_abunmatch_bin_free(
         x_sorted, y_sorted, x2_sorted, y2_sorted, nwin1,
         assume_x_is_sorted=True, assume_x2_is_sorted=True,
         add_subgrid_noise=False)

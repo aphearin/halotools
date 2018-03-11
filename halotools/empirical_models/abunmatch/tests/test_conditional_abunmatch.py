@@ -10,7 +10,7 @@ def test_conditional_abunmatch1():
     with NumpyRNGContext(43):
         x = np.random.normal(loc=0, scale=0.1, size=100)
     y = np.linspace(10, 20, 100)
-    model_y = conditional_abunmatch(x, y, seed=43)
+    model_y = conditional_abunmatch(x, y, seed=43, npts_lookup_table=len(y))
     msg = "monotonic cam does not preserve mean"
     assert np.allclose(model_y.mean(), y.mean(), rtol=0.1), msg
 
@@ -19,7 +19,7 @@ def test_conditional_abunmatch2():
     with NumpyRNGContext(43):
         x = np.random.normal(loc=0, scale=0.1, size=100)
     y = np.linspace(10, 20, 100)
-    model_y = conditional_abunmatch(x, y, seed=43)
+    model_y = conditional_abunmatch(x, y, seed=43, npts_lookup_table=len(y))
     idx_x_sorted = np.argsort(x)
     msg = "monotonic cam does not preserve correlation"
     high = model_y[idx_x_sorted][-50:].mean()
@@ -33,7 +33,7 @@ def test_conditional_abunmatch3():
     with NumpyRNGContext(43):
         x = np.random.normal(loc=0, scale=0.1, size=100)
     y = np.linspace(10, 20, 100)
-    model_y = conditional_abunmatch(x, y, sigma=0.01, seed=43)
+    model_y = conditional_abunmatch(x, y, sigma=0.01, seed=43, npts_lookup_table=len(y))
     idx_x_sorted = np.argsort(x)
     msg = "low-noise cam does not preserve correlation"
     high = model_y[idx_x_sorted][-50:].mean()
