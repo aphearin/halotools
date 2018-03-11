@@ -185,7 +185,7 @@ def test_brute_force_interior_points():
             cython_result[nhalfwin:-nhalfwin])
 
 
-def test_brute_force_endpoints():
+def test_brute_force_left_endpoints():
     """
     """
 
@@ -218,6 +218,38 @@ def test_brute_force_endpoints():
 
         #  Test left edge
         assert np.allclose(pure_python_result[:nhalfwin], cython_result[:nhalfwin])
+
+
+def test_brute_force_right_points():
+    """
+    """
+
+    num_tests = 50
+
+    nwin = 11
+    nhalfwin = nwin/2
+
+    for i in range(num_tests):
+        seed = fixed_seed + i
+        with NumpyRNGContext(seed):
+            x1_low, x2_low = np.random.uniform(-10, 10, 2)
+            x1_high, x2_high = np.random.uniform(100, 200, 2)
+            n1, n2 = np.random.randint(30, 100, 2)
+            x = np.sort(np.random.uniform(x1_low, x1_high, n1))
+            x2 = np.sort(np.random.uniform(x2_low, x2_high, n2))
+
+            y1_low, y2_low = np.random.uniform(-10, 10, 2)
+            y1_high, y2_high = np.random.uniform(100, 200, 2)
+            y = np.random.uniform(y1_low, y1_high, n1)
+            y2 = np.random.uniform(y2_low, y2_high, n2)
+
+        ranks_sample1 = cython_sliding_rank(x, y, nwin)
+        ranks_sample2 = cython_sliding_rank(x2, y2, nwin)
+
+        pure_python_result = pure_python_rank_matching(x, ranks_sample1,
+                x2, ranks_sample2, y2, nwin)
+
+        cython_result = bin_free_conditional_abunmatch(x, y, x2, y2, nwin)
 
         #  Test right edge
         assert np.allclose(pure_python_result[-nhalfwin:], cython_result[-nhalfwin:])
