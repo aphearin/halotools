@@ -113,7 +113,7 @@ Now we show how to map star-formation rate onto these halos using CAM.
 The rest of this tutorial will help you understand the details behind this example, as well as other applications that involve different variations of the technique.
 
 
-Choosing the appropriate CAM variation
+Worked Examples
 ========================================
 
 CAM applications take on a slightly different form depending on whether or not you can analytically evaluate the inverse CDF of the galaxy property you are modeling. So the examples in this tutorial are divided into two categories:
