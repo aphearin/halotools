@@ -133,7 +133,6 @@ in such a situation:
    :maxdepth: 1
 
    cam_decorated_clf
-   cam_galaxy_size_halo_spin
    cam_disk_bulge_ratios
    cam_quenching_gradients
 
