@@ -67,6 +67,76 @@ and :math:`{\rm Prob}(h)\rightarrow{\rm Prob}(<\dot{M}_{\rm sub}\vert M_{\rm sub
 That is, SFR at fixed stellar mass is hypothesized to correlate with
 halo accretion rate at fixed (sub)halo mass.
 
+
+Quick Demonstration
+=====================================
+
+This tutorial gives many different examples of how to apply CAM when modeling
+the galaxy-halo connection, including several different variations of the technique.
+Before going into the details, we'll first give a brief demo of a simple example.
+
+Suppose we live in a very simple universe in which every galaxy lives on the star-forming
+sequence, with SFR distributed like a log-normal. Let's create a Monte Carlo realization
+of such a galaxy population:
+
+.. code:: python
+
+    import numpy as np
+    ngals = int(1e4)
+    log_mstar = np.random.uniform(10, 12, ngals)
+    galaxy_mstar = 10**log_mstar
+    mean_log_sfr = np.interp(log_mstar, [10, 11, 12], [0, 1, 2])
+    log_sfr = np.random.normal(loc=mean_log_sfr, scale=0.2, size=ngals)
+    galaxy_sfr = 10**log_sfr
+
+Now let's suppose that some simple stellar-to-halo mass relation accurately
+maps stellar mass onto dark matter halos, and that SFR is just determined by the
+CAM hypothesis that halos with large accretion rates host galaxies with
+large star-formation rates. First, we grab a halo catalog and map stellar mass onto it:
+
+.. code:: python
+
+    from halotools.sim_manager import CachedHaloCatalog
+    halocat = CachedHaloCatalog(simname='bolplanck', redshift=0)
+    halo_mass = halocat.halo_table['halo_mvir']
+    from halotools.empirical_models import Behroozi10SmHm
+    model = Behroozi10SmHm(redshift=0)
+    halo_mstar = model.mc_stellar_mass(prim_haloprop=halo_mass)
+    halo_acc_rate = halocat.halo_table['halo_dmvir_dt_100myr']
+
+Now we show how to map star-formation rate onto these halos using CAM.
+
+.. code:: python
+
+    from halotools.empirical_models.abunmatch.bin_free_cam import conditional_abunmatch_bin_free
+    nwin = 101
+    halo_sfr = conditional_abunmatch_bin_free(halo_mstar, halo_acc_rate, galaxy_mstar, galaxy_sfr, nwin)
+
+The rest of this tutorial will help you understand the details behind this example, as well as other applications that involve different variations of the technique.
+
+
+Choosing the appropriate CAM variation
+========================================
+
+CAM applications take on a slightly different form depending on whether or not you can analytically evaluate the inverse CDF of the galaxy property you are modeling. So the examples in this tutorial are divided into two categories:
+
+Modeling a galaxy property with a simple analytical distribution
+----------------------------------------------------------------
+
+Many galaxy properties are well-described by straightforward statistical distributions.
+For example, if your distribution can be approximated by a log-normal or power law,
+then the functions implemented in `scipy.stats` can be used to analytically evaluate
+the inverse CDF. Each of the following tutorials gives an example of how to apply CAM
+in such a situation:
+
+
+Modeling a galaxy property without a known analytical distribution
+------------------------------------------------------------------
+
+In many cases, evaluating the inverse CDF analytically is intractible,
+and it can only be numerically tabulated from some sample data. The examples
+below illustrate a few CAM applications for such galaxy properties:
+
 Satellite Galaxy Quenching Gradients
 =====================================
 
