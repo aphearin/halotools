@@ -130,6 +130,9 @@ in such a situation:
 .. toctree::
    :maxdepth: 1
 
+   cam_decorated_clf
+   cam_galaxy_size_halo_spin
+   cam_disk_bulge_ratios
    cam_quenching_gradients
 
 
@@ -140,3 +143,10 @@ In many cases, evaluating the inverse CDF analytically is intractible,
 and it can only be numerically tabulated from some sample data. The examples
 below illustrate a few CAM applications for such galaxy properties:
 
+
+.. toctree::
+   :maxdepth: 1
+
+   cam_complex_sfr
+   cam_complex_sz
+   cam_rescaling_hydro
