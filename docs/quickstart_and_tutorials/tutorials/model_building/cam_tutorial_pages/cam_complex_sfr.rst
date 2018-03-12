@@ -67,13 +67,13 @@ We perform that calculation for every model galaxy with the following syntax:
 
 .. code:: python
 
-    from halotools.empirical_models import conditional_abunmatch_bin_free
+    from halotools.empirical_models import conditional_abunmatch
     x = halocat.halo_table['stellar_mass']
     y = halocat.halo_table['halo_dmvir_dt_100myr']
     x2 = galaxy_mstar
     y2 = np.log10(galaxy_ssfr)
     nwin = 201
-    halocat.halo_table['log_ssfr'] = conditional_abunmatch_bin_free(x, y, x2, y2, nwin)
+    halocat.halo_table['log_ssfr'] = conditional_abunmatch(x, y, x2, y2, nwin)
 
 
 Results
