@@ -150,5 +150,3 @@ below illustrate a few CAM applications for such galaxy properties:
    :maxdepth: 1
 
    cam_complex_sfr
-   cam_complex_sz
-   cam_rescaling_hydro
