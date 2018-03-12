@@ -19,6 +19,35 @@ The code used to generate these results can be found here:
 Baseline model for B/T
 ------------------------------------------
 
+.. code:: python
+
+    from halotools.sim_manager import CachedHaloCatalog
+    halocat = CachedHaloCatalog()
+
+    from halotools.empirical_models import Moster13SmHm
+    model = Moster13SmHm()
+    halocat.halo_table['stellar_mass'] = model.mc_stellar_mass(
+        prim_haloprop=halocat.halo_table['halo_mpeak'], redshift=0)
+
+
+.. code:: python
+
+    from halotools.utils import sliding_conditional_percentile
+
+    x = halocat.halo_table['stellar_mass']
+    y = halocat.halo_table['halo_spin']
+    nwin = 201
+    halocat.halo_table['spin_percentile'] = sliding_conditional_percentile(x, y, nwin)
+
+    def powerlaw_index(log_mstar):
+        abscissa = [9, 10, 11.5]
+        ordinates = [3, 2, 1]
+        return np.interp(log_mstar, abscissa, ordinates)
+
+    a = powerlaw_index(np.log10(halocat.halo_table['stellar_mass']))
+    u = halocat.halo_table['spin_percentile']
+    halocat.halo_table['bulge_to_total_ratio'] = 1 - powerlaw.isf(1 - u, a)
+
 
 Correlating B/T with halo spin at fixed stellar mass
 ----------------------------------------------------------------
