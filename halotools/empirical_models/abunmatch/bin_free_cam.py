@@ -73,6 +73,10 @@ def conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=True,
     See :ref:`cam_tutorial` demonstrating how to use this
     function in galaxy-halo modeling with several worked examples.
 
+    With the release of Halotools v0.7, this function replaced a previous function
+    of the same name. The old function is now called
+    `~halotools.empirical_models.conditional_abunmatch_bin_based`.
+
     """
     x, y, nwin = _check_xyn_bounds(x, y, nwin)
     x2, y2, nwin = _check_xyn_bounds(x2, y2, nwin)
