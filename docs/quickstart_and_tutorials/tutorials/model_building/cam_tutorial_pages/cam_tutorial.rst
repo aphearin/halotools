@@ -11,8 +11,10 @@ halo formation time, or the dependence of galaxy disk size upon halo spin.
 This tutorial explains CAM by applying the technique to a few different problems.
 
 
-Basic Idea
-=================
+.. _cam_basic_idea:
+
+Basic Idea Behind CAM
+======================
 
 CAM is designed to answer questions of the following form:
 *does halo property A correlate with galaxy property B?*
