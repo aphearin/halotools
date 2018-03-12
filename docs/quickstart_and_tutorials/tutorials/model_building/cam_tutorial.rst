@@ -9,51 +9,63 @@ Tutorial on Conditional Abundance Matching
 Conditional Abundance Matching (CAM) is a technique that you can use to
 model a variety of correlations between galaxy and halo properties,
 such as the dependence of galaxy quenching upon both halo mass and
-halo formation time. This tutorial explains CAM by applying
-the technique to a few different problems.
-Each of the following worked examples are independent from one another,
-and illustrate the range of applications of the technique.
+halo formation time, or the dependence of galaxy disk size upon halo spin.
+This tutorial explains CAM by applying the technique to a few different problems.
 
 
 Basic Idea
 =================
 
+CAM is designed to answer questions of the following form:
+*does halo property A correlate with galaxy property B?*
+The Halotools approach to answering such questions is via forward modeling:
+a mock universe is created in which the A--B correlation exists;
+comparing the mock universe to the real one allows you to evaluate the
+success of the A--B correlation hypothesis.
+
 Forward-modeling the galaxy-halo connection requires specifying
 some statistical distribution of the galaxy property being modeled,
 so that Monte Carlo realizations can be drawn from the distribution.
-The most convenient distribution to use for this purpose is the cumulative
-distribution function (CDF), :math:`{\rm CDF}(x) = {\rm Prob}(< x).`
-Once the CDF is specified, you only need to generate
-a realization of a random uniform distribution and pass those draws to the
-CDF inverse,  :math:`{\rm CDF}^{-1}(p),` which evaluates to the variable
-:math:`x` being painted on the model galaxies.
+CAM uses the most ubiquitous approach to generating Monte Carlo realizations,
+*inverse transformation sampling,* in which the statistical distribution
+is specified in terms of the cumulative distribution function (CDF),
+:math:`{\rm CDF}(z) \equiv {\rm Prob}(< z).`
+Briefly, the way this work is that once you specify the CDF,
+you only need to generate a realization of a random uniform distribution,
+and pass the values of that realization to the CDF inverse,  :math:`{\rm CDF}^{-1}(p),`
+which evaluates to the variable :math:`z` being painted on the model galaxies.
+See the `Transformation of Probability tutorial <https://github.com/jbailinua/probability/>`_
+for pedagogical derivations associated with inverse transformation sampling,
+and the `~halotools.utils.monte_carlo_from_cdf_lookup` function
+for a convenient one-liner syntax.
 
-CAM introduces correlations between the
-galaxy property :math:`x` and some halo property :math:`h,`
-without changing :math:`{\rm CDF}(x)`. Rather than evaluating :math:`{\rm CDF}^{-1}(p)`
-with random uniform variables,
+In ordinary applications of inverse transformation sampling,
+the use of a random uniform variable guarantees
+that the output variables :math:`z` will be distributed according to
+:math:`{\rm Prob}(z),` and that each individual :math:`z` will be purely stochastic.
+CAM generalizes this common technique so that :math:`{\rm Prob}(z)`
+is still recovered exactly, and moreover :math:`z` exhibits residual correlations
+with some other variable, :math:`h`. Operationally, the way this works is that
+rather than evaluating :math:`{\rm CDF}^{-1}(p)` with random uniform variables,
 instead you evaluate with :math:`p = {\rm CDF}(h) = {\rm Prob}(< h),`
-introducing a monotonic correlation between :math:`x` and :math:`h`.
+introducing a monotonic correlation between :math:`z` and :math:`h`.
+In most applications, :math:`h` is some halo property like mass accretion rate,
+and :math:`z` is some galaxy property like star-formation rate.
+In this way, the galaxy property you paint on to your halos will
+trace the distribution :math:`{\rm Prob}(z)`, such that above-average
+values of :math:`z` will be painted onto halos with above average values of
+:math:`h`, and conversely.
 
-The function `~halotools.empirical_models.noisy_percentile` can be used to
-add controllable levels of noise to :math:`p = {\rm CDF}(h).`
-This allows you to control the correlation coefficient
-between :math:`x` and :math:`h,`
-always exactly preserving the 1-point statistics of the output distribution.
-
-
-The "Conditional" part of CAM is that this technique naturally generalizes to
+Finally, the "Conditional" part of CAM is that this technique naturally generalizes to
 introduce a galaxy property correlation while holding some other property fixed.
-Age Matching in `Hearin and Watson 2013 <https://arxiv.org/abs/1304.5557/>`_
-is an example of this: the distribution :math:`{\rm Prob}(<SFR\vert M_{\ast})`
-is modeled by correlating draws from the observed distribution with
-:math:`{\rm Prob}(<\dot{M}_{\rm sub}\vert M_{\rm sub})` in a simulation,
-so that galaxies which have
-large SFR for their stellar mass are associated with subhalos that have
-large mass accretion rates for their mass dark matter mass.
-
-Each of the sections below illustrates a different application of the same underlying method.
-Each section has an accompanying annotated Jupyter notebook with the code used to generate the plots.
+For example, at fixed stellar mass, it is natural to hypothesize that
+star-forming galaxies live in halos that are rapidly accreting mass,
+and that quiescent galaxies live in halos that have already built up most of their mass.
+In this kind of CAM application, we have:
+:math:`{\rm Prob}(z)\rightarrow{\rm Prob}(<SFR\vert M_{\ast})`,
+and :math:`{\rm Prob}(h)\rightarrow{\rm Prob}(<\dot{M}_{\rm sub}\vert M_{\rm sub})`.
+That is, SFR at fixed stellar mass is hypothesized to correlate with
+halo accretion rate at fixed (sub)halo mass.
 
 Satellite Galaxy Quenching Gradients
 =====================================
