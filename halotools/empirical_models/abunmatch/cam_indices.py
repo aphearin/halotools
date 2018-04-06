@@ -108,13 +108,8 @@ def conditional_abunmatch_indices(x, y, x2, y2, nwin, add_subgrid_noise=True,
         y_sorted, y2_sorted, i2_matched, nwin, int(add_subgrid_noise)))
 
     #  Finish the leftmost points in pure python
-    iw = 0
-    for ix1 in range(0, nhalfwin):
-        iy2_low, iy2_high = sample2_window_indices(ix1, x_sorted, x2_sorted, nwin)
-        leftmost_sorted_window_y2 = np.sort(y2_sorted[iy2_low:iy2_high])
-        leftmost_window_ranks = rank_order_function(y_sorted[:nwin])
-        result[ix1] = leftmost_sorted_window_y2[leftmost_window_ranks[iw]]
-        iw += 1
+    result[:nhalfwin] = _left_endpoint_indices(
+        x_sorted, y_sorted, x2_sorted, y2_sorted, nhalfwin)
 
     #  Finish the rightmost points in pure python
     iw = nhalfwin + 1
@@ -129,3 +124,19 @@ def conditional_abunmatch_indices(x, y, x2, y2, nwin, add_subgrid_noise=True,
         return result
     else:
         return result[unsorting_indices(idx_x_sorted)]
+
+
+def _left_endpoint_indices(x_sorted, y_sorted, x2_sorted, y2_sorted, nhalfwin):
+    """
+    """
+    nwin = 2*nhalfwin
+    result = np.zeros(nhalfwin)
+    iw = 0
+    for ix1 in range(0, nhalfwin):
+        iy2_low, iy2_high = sample2_window_indices(ix1, x_sorted, x2_sorted, nwin)
+        leftmost_sorted_window_y2 = np.sort(y2_sorted[iy2_low:iy2_high])
+        leftmost_window_ranks = rank_order_function(y_sorted[:nwin])
+        result[ix1] = leftmost_sorted_window_y2[leftmost_window_ranks[iw]]
+        iw += 1
+
+    return result
