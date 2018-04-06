@@ -3,7 +3,7 @@
 import numpy as np
 from ...utils import unsorting_indices
 from ...utils.conditional_percentile import _check_xyn_bounds, rank_order_function
-from .engines import cython_bin_free_cam_kernel
+from .engines import cam_indices_kernel
 from .tests.naive_python_cam import sample2_window_indices
 
 
@@ -104,7 +104,7 @@ def conditional_abunmatch_indices(x, y, x2, y2, nwin, add_subgrid_noise=True,
 
     i2_matched = np.searchsorted(x2_sorted, x_sorted).astype('i4')
 
-    result = np.array(cython_bin_free_cam_kernel(
+    result = np.array(cam_indices_kernel(
         y_sorted, y2_sorted, i2_matched, nwin, int(add_subgrid_noise)))
 
     #  Finish the leftmost points in pure python
