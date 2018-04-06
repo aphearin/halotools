@@ -7,10 +7,10 @@ from .engines import cython_bin_free_cam_kernel
 from .tests.naive_python_cam import sample2_window_indices
 
 
-__all__ = ('conditional_abunmatch', )
+__all__ = ('conditional_abunmatch_indices', )
 
 
-def conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=True,
+def conditional_abunmatch_indices(x, y, x2, y2, nwin, add_subgrid_noise=True,
             assume_x_is_sorted=False, assume_x2_is_sorted=False):
     r"""
     Given a set of input points with primary property `x` and secondary property `y`,
@@ -64,7 +64,7 @@ def conditional_abunmatch(x, y, x2, y2, nwin, add_subgrid_noise=True,
     >>> x2 = np.linspace(0.5, 0.6, npts2)
     >>> y2 = np.random.uniform(-5, 3, npts2)
     >>> nwin = 51
-    >>> new_y = conditional_abunmatch(x, y, x2, y2, nwin)
+    >>> idx_new_y = conditional_abunmatch_indices(x, y, x2, y2, nwin)
 
     Notes
     -----
