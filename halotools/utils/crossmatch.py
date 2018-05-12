@@ -5,6 +5,9 @@ sharing a common objectID.
 import numpy as np
 
 
+__all__ = ('crossmatch', 'hostid_has_matching_host')
+
+
 def crossmatch(x, y, skip_bounds_checking=False):
     """
     Finds where the elements of ``x`` appear in the array ``y``, including repeats.
@@ -57,8 +60,8 @@ def crossmatch(x, y, skip_bounds_checking=False):
 
     Notes
     -----
-    The matching between ``x`` and ``y`` is done on the sorted arrays.  A consequence of 
-    this is that x[idx_x] and y[idx_y] will generally be a subset of ``x`` and ``y`` in 
+    The matching between ``x`` and ``y`` is done on the sorted arrays.  A consequence of
+    this is that x[idx_x] and y[idx_y] will generally be a subset of ``x`` and ``y`` in
     sorted order.
 
     Examples
@@ -172,3 +175,41 @@ def crossmatch(x, y, skip_bounds_checking=False):
 
     # Undo the original sorting and return the result
     return idx_x_sorted[idx_x], idx_y_sorted[idx_y]
+
+
+def hostid_has_matching_host(subhalo_hostid, host_halo_id):
+    """ Calculate whether each ID in `subhalo_hostid` appears in `host_halo_id`.
+
+    Parameters
+    ----------
+    subhalo_hostid : ndarray
+        Numpy integer array of shape (nsubs, )
+
+    host_halo_id : ndarray
+        Numpy integer array of shape (nhosts, )
+
+    Returns
+    -------
+    has_match : ndarray
+        Numpy boolean array of shape (nsubs, )
+
+    Examples
+    --------
+    >>> nsubs, nhosts = int(1e4), 100
+    >>> subhalo_hostid = np.random.randint(0, nhosts, nsubs)
+    >>> host_halo_id = np.arange(nhosts)
+    >>> has_match = hostid_has_matching_host(subhalo_hostid, host_halo_id)
+
+    """
+    nhosts = len(host_halo_id)
+    subhalo_hostid = np.atleast_1d(subhalo_hostid)
+    sorted_host_halo_id = np.sort(host_halo_id)
+
+    idx = np.searchsorted(sorted_host_halo_id, subhalo_hostid)
+    upper_edge_mask = idx >= nhosts
+    idx[upper_edge_mask] = nhosts-1
+    matched_host_halo_id = sorted_host_halo_id[idx]
+    has_match = matched_host_halo_id == subhalo_hostid
+    has_match[upper_edge_mask] = False
+    return has_match
+

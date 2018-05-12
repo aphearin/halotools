@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from astropy.utils.misc import NumpyRNGContext
 
-from ..crossmatch import crossmatch
+from ..crossmatch import crossmatch, hostid_has_matching_host
 
 __all__ = ('test_crossmatch1', )
 
@@ -138,3 +138,42 @@ def test_error_handling5():
         result = crossmatch(x, y)
     substr = "Input array x must be a 1d sequence of integers"
     assert substr in err.value.args[0]
+
+
+def test_hostid_matching1():
+    """
+    """
+    nsubs, nhosts = int(1e4), 100
+    with NumpyRNGContext(fixed_seed):
+        subhalo_hostid = np.random.randint(0, nhosts, nsubs)
+    host_halo_id = np.arange(nhosts)
+    has_match = hostid_has_matching_host(subhalo_hostid, host_halo_id)
+    assert np.all(has_match == True)
+    assert has_match.shape == (nsubs, )
+
+
+def test_hostid_matching2():
+    """
+    """
+    subhalo_hostid = [10, 20, -1, 1, -4, 1, 5, -4]
+    correct_has_match = [0, 0, 0, 1, 0, 1, 1, 0]
+
+    host_halo_id = np.arange(0, 8)
+    with NumpyRNGContext(fixed_seed):
+        np.random.shuffle(host_halo_id)
+
+    has_match = hostid_has_matching_host(subhalo_hostid, host_halo_id)
+    assert has_match.shape == (len(subhalo_hostid), )
+    assert np.all(has_match == correct_has_match)
+
+
+def test_hostid_matching3():
+    """
+    """
+    satellite_hostid = [1, 3, 0]
+    host_halo_id = [0, 1, 2, 3, 4]
+    has_match = hostid_has_matching_host(satellite_hostid, host_halo_id)
+    correct_has_match = [True, True, True]
+    assert np.all(has_match == correct_has_match)
+
+
