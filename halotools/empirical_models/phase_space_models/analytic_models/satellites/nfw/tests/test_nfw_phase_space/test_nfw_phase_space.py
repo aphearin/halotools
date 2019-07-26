@@ -56,3 +56,8 @@ def test_mc_dimensionless_radial_distance():
             analytic_nfw_density_outer_shell_normalization(rbin_midpoints, c))
         assert np.allclose(monte_carlo_ratio, analytical_ratio, 0.05)
 
+
+def test_mc_generate_arguments():
+    nfw = NFWPhaseSpace()
+    points = nfw.mc_generate_nfw_phase_space_points(Ngals=100, conc=5, mass=1e14)
+
