@@ -243,7 +243,12 @@ class ModelFactory(object):
                 "halo_mass_column_key"
             ]
         except KeyError:
-            pass
+            if hasattr(self, "_haloprop_list"):
+                self._haloprop_list.extend(model_defaults.default_halo_mvir_props)
+            else:
+                a = model_defaults.default_haloprop_list_inherited_by_mock
+                b = model_defaults.default_halo_mvir_props
+                self._haloprop_list = a + b
         self.mock = self.mock_factory(**mock_factory_init_args)
 
         additional_potential_kwargs = (
